@@ -23,13 +23,19 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         
-        // App Checkを一時的にコメントアウト
-        /*
-         let providerFactory = MyAppCheckProviderFactory()
-         AppCheck.setAppCheckProviderFactory(providerFactory)
-         */
+        print("🚀 AppDelegate: アプリ起動")
         
+        // Firebase設定
         FirebaseApp.configure()
+        print("🔥 Firebase が初期化されました")
+        
+        // Firebase Authの状態を確認
+        if let app = FirebaseApp.app() {
+            print("✅ FirebaseApp: \(app.name)")
+            print("   - ProjectID: \(app.options.projectID ?? "なし")")
+        } else {
+            print("❌ FirebaseApp が nil です！")
+        }
         
         return true
     }

@@ -25,7 +25,7 @@ struct MainTabView: View {
         var icon: String {
             switch self {
             case .timer: return "timer"
-            case .ranking: return "list.number"
+            case .ranking: return "crown.fill"
             case .profile: return "person.fill"
             }
         }
@@ -112,7 +112,7 @@ struct FloatingTabButton: View {
                             endPoint: .bottomTrailing
                         )
                         : LinearGradient(
-                            colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.1)],
+                            colors: [Color.white.opacity(0.2), Color.white.opacity(0.1)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -129,7 +129,7 @@ struct FloatingTabButton: View {
                 HStack(spacing: 8) {
                     Image(systemName: tab.icon)
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(isSelected ? .white : .gray)
+                        .foregroundColor(isSelected ? .white : .white.opacity(0.7))
                     
                     if isSelected {
                         Text(tab.title)
@@ -144,78 +144,7 @@ struct FloatingTabButton: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
-
-// オプション: さらにモダンなバージョン
-struct ModernFloatingTabBar: View {
-    @Binding var selectedTab: MainTabView.Tab
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(MainTabView.Tab.allCases, id: \.self) { tab in
-                ModernTabButton(tab: tab, selectedTab: $selectedTab)
-            }
-        }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 6)
-        .background(
-            Capsule()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Capsule()
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.2), radius: 15, x: 0, y: 8)
-        )
-    }
-}
-
-struct ModernTabButton: View {
-    let tab: MainTabView.Tab
-    @Binding var selectedTab: MainTabView.Tab
-    
-    var isSelected: Bool {
-        selectedTab == tab
-    }
-    
-    var body: some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedTab = tab
-            }
-        } label: {
-            VStack(spacing: 4) {
-                ZStack {
-                    // 選択時の背景円
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: isSelected ? tab.gradient : [.clear, .clear],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 45, height: 45)
-                        .scaleEffect(isSelected ? 1 : 0.8)
-                        .opacity(isSelected ? 1 : 0)
-                    
-                    Image(systemName: tab.icon)
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(isSelected ? .white : .gray)
-                        .scaleEffect(isSelected ? 1.1 : 1)
-                }
-                
-                Text(tab.title)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(isSelected ? tab.gradient[0] : .gray)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 5)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
 #Preview {
     MainTabView()
-        .environmentObject(MainViewModel())
+        .environmentObject(MainViewModel.mock)
 }

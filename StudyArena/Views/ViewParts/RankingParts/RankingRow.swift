@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+// 既存のRankingViewで使用されている場合のために残しておく
 struct RankingRow: View {
     let user: User
     @EnvironmentObject var viewModel: MainViewModel
@@ -19,7 +20,7 @@ struct RankingRow: View {
                 .foregroundColor(rankColor)
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(user.nickname)
+                Text(displayName)
                     .fontWeight(.semibold)
                 Text("Lv. \(user.level)")
                     .font(.caption)
@@ -36,6 +37,19 @@ struct RankingRow: View {
         .padding(.vertical, 4)
     }
     
+    private var displayName: String {
+        let isCurrentUser = user.id == viewModel.user?.id
+        
+        if isCurrentUser, let currentNickname = viewModel.user?.nickname {
+            return currentNickname.isEmpty ? "名無しさん" : currentNickname
+        } else {
+            if user.nickname.isEmpty || user.nickname == "挑戦者" {
+                return "名無しさん"
+            }
+            return user.nickname
+        }
+    }
+    
     private var rankColor: Color {
         switch user.rank {
         case 1: return .yellow
@@ -45,6 +59,7 @@ struct RankingRow: View {
         }
     }
 }
+
 #Preview {
     let sampleUser = User(
         id: "1",
@@ -55,7 +70,7 @@ struct RankingRow: View {
     )
     
     RankingRow(user: sampleUser)
-        .environmentObject(MainViewModel())
+        .environmentObject(MainViewModel.mock)
         .previewLayout(.sizeThatFits)
         .padding()
 }

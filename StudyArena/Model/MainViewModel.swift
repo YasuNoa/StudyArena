@@ -21,13 +21,36 @@ class MainViewModel: ObservableObject {
     private var userId: String?
     private var timer: Timer?
     
+    // MainViewModel.swift の init() メソッドをデバッグ版に変更
+    
     init() {
-        authenticateUser()
+        // デバッグ: 環境変数を確認
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        print("🔍 環境チェック:")
+        print("   - isPreview: \(isPreview)")
+        print("   - 実行環境: \(isPreview ? "プレビュー" : "シミュレーター/実機")")
+        
+        if !isPreview {
+            print("🚀 Firebase認証を開始します...")
+            authenticateUser()
+        } else {
+            print("📱 プレビューモード: モックデータを使用")
+            self.isLoading = false
+            self.userId = "previewUserID"
+            self.user = User(
+                id: "previewUserID",
+                nickname: "プレビューユーザー",
+                level: 5,
+                experience: 250,
+                totalStudyTime: 3600
+            )
+        }
     }
     
     deinit {
         timer?.invalidate()
     }
+    
     
     // MARK: - Authentication & Data Loading
     func retryAuthentication() {
@@ -35,22 +58,33 @@ class MainViewModel: ObservableObject {
         errorMessage = nil
         authenticateUser()
     }
-    
     private func authenticateUser() {
+        print("🔐 authenticateUser() が呼ばれました")
+        print("🔥 Firebase Auth の状態を確認中...")
+        
         Auth.auth().signInAnonymously { [weak self] (authResult, error) in
+            print("🔐 signInAnonymously のコールバックが呼ばれました")
+            
             Task { @MainActor in
-                guard let self = self else { return }
+                guard let self = self else {
+                    print("❌ self が nil です")
+                    return
+                }
                 
                 if let error = error {
+                    print("❌ 認証エラー: \(error.localizedDescription)")
+                    print("   エラー詳細: \(error)")
                     self.handleError("認証に失敗しました", error: error)
                     return
                 }
                 
                 guard let authUser = authResult?.user else {
+                    print("❌ authResult.user が nil です")
                     self.handleError("認証に失敗しました", error: nil)
                     return
                 }
                 
+                print("✅ 認証成功! UID: \(authUser.uid)")
                 self.userId = authUser.uid
                 await self.loadUserData(uid: authUser.uid)
             }
@@ -58,39 +92,54 @@ class MainViewModel: ObservableObject {
     }
     
     private func loadUserData(uid: String) async {
+        print("📊 loadUserData() 開始 - UID: \(uid)")
+        
         do {
             let document = try await db.collection("users").document(uid).getDocument()
+            print("📄 Firestoreドキュメント取得完了")
             
             if document.exists {
+                print("✅ 既存ユーザーデータが見つかりました")
                 var loadedUser = try document.data(as: User.self)
                 loadedUser.id = uid
                 
-                // 初回ユーザーなどでニックネームが空の場合、デフォルト値を設定
                 if loadedUser.nickname.isEmpty {
                     loadedUser.nickname = "挑戦者"
                     try await self.saveUserData(userToSave: loadedUser)
                 }
                 
                 self.user = loadedUser
+                print("👤 ユーザーデータ設定完了: \(loadedUser.nickname)")
                 
             } else {
-                // 新規ユーザーのドキュメント作成
+                print("🆕 新規ユーザーを作成します")
                 var newUser = User(id: uid, nickname: "挑戦者")
                 self.user = newUser
                 try await self.saveUserData(userToSave: newUser)
             }
             
+            print("✅ isLoading を false に設定します")
             self.isLoading = false
             
         } catch {
+            print("❌ loadUserData エラー: \(error)")
             self.handleError("ユーザーデータのロードに失敗しました", error: error)
         }
     }
-    
     // MARK: - Data Persistence
     func saveUserData(userToSave: User) async throws {
         guard let uid = self.userId else {
             throw NSError(domain: "UserDataError", code: -1, userInfo: [NSLocalizedDescriptionKey: "ユーザーIDが見つかりません"])
+        }
+        
+        // プレビュー環境をチェック
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        
+        if isPreview {
+            // プレビュー時は実際の保存をスキップし、ローカルデータのみ更新
+            print("📱 プレビューモード: データ保存をスキップ")
+            self.user = userToSave
+            return
         }
         
         do {
@@ -102,6 +151,20 @@ class MainViewModel: ObservableObject {
     
     // MARK: - Ranking
     func loadRanking() {
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        
+        if isPreview {
+            // プレビュー時はモックデータを使用
+            self.ranking = [
+                User(id: "rank1", nickname: "レベルアップ王", level: 50, totalStudyTime: 1000000, rank: 1),
+                User(id: "rank2", nickname: "勉強の達人", level: 48, totalStudyTime: 980000, rank: 2),
+                User(id: "rank3", nickname: "努力家さん", level: 45, totalStudyTime: 850000, rank: 3),
+                User(id: "previewUserID", nickname: "プレビューユーザー", level: 5, totalStudyTime: 3600, rank: 15),
+            ]
+            return
+        }
+        
+        // 通常のFirestore処理
         Task { @MainActor in
             do {
                 let querySnapshot = try await db.collection("users")
@@ -200,4 +263,46 @@ class MainViewModel: ObservableObject {
             return String(format: "%02d:%02d", minutes, seconds)
         }
     }
+    
+    // ★★★ ここから下がプレビュー用のコード ★★★
+    // MainViewModel.swift の mock プロパティを以下のように更新
+    
+    // MainViewModel.swift の mock プロパティを修正
+    
+#if DEBUG
+    static let mock: MainViewModel = {
+        let viewModel = MainViewModel()
+        
+        // ⚠️ 重要: userIdを設定
+        viewModel.userId = "mockUserID"
+        
+        // 基本データを設定
+        viewModel.user = User(
+            id: "mockUserID",
+            nickname: "プレビュー太郎",
+            level: 10,
+            experience: 1200,
+            totalStudyTime: 54000,
+            rank: 15
+        )
+        
+        // ランキングデータを生成
+        viewModel.ranking = [
+            User(id: "rank1", nickname: "レベルアップ王", level: 50, experience: 0, totalStudyTime: 1000000, rank: 1),
+            User(id: "rank2", nickname: "勉強の達人", level: 48, experience: 0, totalStudyTime: 980000, rank: 2),
+            User(id: "rank3", nickname: "努力家さん", level: 45, experience: 0, totalStudyTime: 850000, rank: 3),
+            User(id: "rank4", nickname: "コツコツ君", level: 42, experience: 0, totalStudyTime: 720000, rank: 4),
+            User(id: "rank5", nickname: "頑張り屋", level: 40, experience: 0, totalStudyTime: 650000, rank: 5),
+            User(id: "mockUserID", nickname: "プレビュー太郎", level: 10, experience: 1200, totalStudyTime: 54000, rank: 15),
+        ]
+        
+        // 状態を設定
+        viewModel.isLoading = false
+        viewModel.errorMessage = nil
+        viewModel.timerValue = 0
+        viewModel.isTimerRunning = false
+        
+        return viewModel
+    }()
+#endif
 }

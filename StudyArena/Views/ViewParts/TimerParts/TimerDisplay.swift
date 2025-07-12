@@ -23,9 +23,8 @@ struct TimerDisplay: View {
         return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
     }
 }
-#Preview {
+#Preview(traits: .sizeThatFitsLayout) {
     TimerDisplay(timeValue: 3661) // Example time value of 1 hour, 1 minute, and 1 second
-        .previewLayout(.sizeThatFits)
         .padding()
         .background(Color.blue.opacity(0.8))
         .cornerRadius(12)

@@ -36,8 +36,7 @@ struct ErrorView: View {
         .background(Color(.systemBackground))
     }
 }
-#Preview {
+#Preview (traits: .sizeThatFitsLayout) {
     ErrorView(errorMessage: "ネットワーク接続に問題があります。", onRetry: {})
-        .previewLayout(.sizeThatFits)
         .padding()
 }

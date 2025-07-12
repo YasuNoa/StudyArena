@@ -22,6 +22,7 @@ struct ContentView: View {
     }
 }
 
+// ContentView.swift の一番下
 #Preview {
     ContentView()
 }
