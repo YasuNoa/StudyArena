@@ -166,8 +166,9 @@ struct ParticleView: View {
         }
     }
 }
-
+#if DEBUG
 #Preview(traits: .sizeThatFitsLayout) {
     TimerView()
         .environmentObject(MainViewModel.mock)
 }
+#endif

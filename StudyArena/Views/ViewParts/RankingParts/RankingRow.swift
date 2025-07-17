@@ -59,7 +59,7 @@ struct RankingRow: View {
         }
     }
 }
-
+#if DEBUG
 #Preview {
     let sampleUser = User(
         id: "1",
@@ -74,3 +74,4 @@ struct RankingRow: View {
         .previewLayout(.sizeThatFits)
         .padding()
 }
+#endif

@@ -144,7 +144,9 @@ struct FloatingTabButton: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+#if DEBUG
 #Preview {
     MainTabView()
         .environmentObject(MainViewModel.mock)
 }
+#endif

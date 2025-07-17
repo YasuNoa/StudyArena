@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF7F8B782E13CCF400DF3CFC"
-               BuildableName = "productene.app"
-               BlueprintName = "productene"
+               BuildableName = "StudyArena.app"
+               BlueprintName = "StudyArena"
                ReferencedContainer = "container:StudyArena.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BF7F8B782E13CCF400DF3CFC"
-            BuildableName = "productene.app"
-            BlueprintName = "productene"
+            BuildableName = "StudyArena.app"
+            BlueprintName = "StudyArena"
             ReferencedContainer = "container:StudyArena.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -75,8 +75,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BF7F8B782E13CCF400DF3CFC"
-            BuildableName = "productene.app"
-            BlueprintName = "productene"
+            BuildableName = "StudyArena.app"
+            BlueprintName = "StudyArena"
             ReferencedContainer = "container:StudyArena.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

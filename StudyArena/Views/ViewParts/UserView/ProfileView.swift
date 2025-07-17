@@ -431,13 +431,13 @@ struct DarkAlert: View {
         }
     }
 }
-
+#if DEBUG
 #Preview(traits: .sizeThatFitsLayout) {
     ProfileView()
         .environmentObject(MainViewModel.mock)
 }
 
-// アラートのプレビュー
+
 #Preview("Dark Alert") {
     ZStack {
         BackgroundView()
@@ -451,3 +451,4 @@ struct DarkAlert: View {
         }
     }
 }
+#endif

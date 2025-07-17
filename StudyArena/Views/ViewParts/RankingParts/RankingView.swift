@@ -201,8 +201,9 @@ struct MinimalRankingRow: View {
         }
     }
 }
-
+#if DEBUG
 #Preview(traits: .sizeThatFitsLayout) {
     RankingView()
         .environmentObject(MainViewModel.mock)
 }
+#endif
