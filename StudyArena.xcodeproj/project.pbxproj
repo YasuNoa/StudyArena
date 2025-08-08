@@ -40,6 +40,12 @@
 		BF7F8BCC2E15988E00DF3CFC /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCB2E15988E00DF3CFC /* FirebaseStorage */; };
 		BF7F8BCE2E15988E00DF3CFC /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCD2E15988E00DF3CFC /* FirebaseStorageCombine-Community */; };
 		BF7F8BD02E15988E00DF3CFC /* FirebaseVertexAI in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCF2E15988E00DF3CFC /* FirebaseVertexAI */; };
+		BFAD2C3B2E3E43AB004C748A /* ScreenTimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3A2E3E43AB004C748A /* ScreenTimeManager.swift */; };
+		BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */; };
+		BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */; };
+		BFAD2C422E3E7521004C748A /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C412E3E7521004C748A /* TimelineView.swift */; };
+		BFAD2C442E408708004C748A /* TimelinePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C432E408708004C748A /* TimelinePost.swift */; };
+		BFAD2C462E408728004C748A /* PostCreateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C452E408728004C748A /* PostCreateView.swift */; };
 		BFC0F9DE2E164FE300870CDD /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC0F9DD2E164FE300870CDD /* LoadingView.swift */; };
 		BFC0F9E22E16503200870CDD /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC0F9E12E16503200870CDD /* ErrorView.swift */; };
 		BFC0F9E42E16504B00870CDD /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC0F9E32E16504B00870CDD /* MainTabView.swift */; };
@@ -60,6 +66,12 @@
 		BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		BF7F8B8E2E15099C00DF3CFC /* producteneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = producteneApp.swift; sourceTree = "<group>"; };
 		BF7F8B962E150B2400DF3CFC /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		BFAD2C3A2E3E43AB004C748A /* ScreenTimeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeManager.swift; sourceTree = "<group>"; };
+		BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTracker.swift; sourceTree = "<group>"; };
+		BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyRecord.swift; sourceTree = "<group>"; };
+		BFAD2C412E3E7521004C748A /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		BFAD2C432E408708004C748A /* TimelinePost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelinePost.swift; sourceTree = "<group>"; };
+		BFAD2C452E408728004C748A /* PostCreateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostCreateView.swift; sourceTree = "<group>"; };
 		BFC0F9DD2E164FE300870CDD /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		BFC0F9E12E16503200870CDD /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
 		BFC0F9E32E16504B00870CDD /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -131,8 +143,12 @@
 		BF7F8B8A2E15099C00DF3CFC /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */,
+				BFAD2C3A2E3E43AB004C748A /* ScreenTimeManager.swift */,
+				BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */,
 				BF7F8B962E150B2400DF3CFC /* MainViewModel.swift */,
 				BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */,
+				BFAD2C432E408708004C748A /* TimelinePost.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -169,6 +185,8 @@
 			isa = PBXGroup;
 			children = (
 				BFC0F9DD2E164FE300870CDD /* LoadingView.swift */,
+				BFAD2C412E3E7521004C748A /* TimelineView.swift */,
+				BFAD2C452E408728004C748A /* PostCreateView.swift */,
 				BFC0F9E12E16503200870CDD /* ErrorView.swift */,
 				BFC0F9F92E16513E00870CDD /* TimerParts */,
 				BFC0F9FA2E16515A00870CDD /* RankingParts */,
@@ -308,12 +326,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFAD2C462E408728004C748A /* PostCreateView.swift in Sources */,
+				BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */,
 				BFC0F9EC2E16509A00870CDD /* TimerButton.swift in Sources */,
 				BFC0F9F22E1650D800870CDD /* RankingRow.swift in Sources */,
 				BFC0F9E82E16507900870CDD /* UserStatusCard.swift in Sources */,
 				BF7F8B902E15099C00DF3CFC /* ContentView.swift in Sources */,
 				BFC0F9E22E16503200870CDD /* ErrorView.swift in Sources */,
+				BFAD2C442E408708004C748A /* TimelinePost.swift in Sources */,
 				BF7F8B912E15099C00DF3CFC /* DataModel.swift in Sources */,
+				BFAD2C422E3E7521004C748A /* TimelineView.swift in Sources */,
+				BFAD2C3B2E3E43AB004C748A /* ScreenTimeManager.swift in Sources */,
 				BFC0F9F02E1650BF00870CDD /* RankingView.swift in Sources */,
 				BFC0F9F82E16511700870CDD /* ProfileView.swift in Sources */,
 				BFC0F9EA2E16508800870CDD /* TimerDisplay.swift in Sources */,
@@ -321,6 +344,7 @@
 				BFC0F9E42E16504B00870CDD /* MainTabView.swift in Sources */,
 				BFC0F9DE2E164FE300870CDD /* LoadingView.swift in Sources */,
 				BFC0F9E62E16505E00870CDD /* TimerView.swift in Sources */,
+				BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */,
 				BF7F8B972E150B2400DF3CFC /* MainViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -455,7 +479,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = F2KY6KTH3H;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -484,7 +508,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = F2KY6KTH3H;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

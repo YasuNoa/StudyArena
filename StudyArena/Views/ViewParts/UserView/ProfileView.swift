@@ -145,6 +145,8 @@ struct ProfileView: View {
         userRank = viewModel.ranking.firstIndex(where: { $0.id == userId }).map { $0 + 1 }
     }
     
+    // ProfileView.swift の saveProfile() メソッドを以下に置き換え
+    
     private func saveProfile() {
         let trimmedNickname = editingNickname.trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -164,20 +166,20 @@ struct ProfileView: View {
             return
         }
         
-        guard var updatedUser = viewModel.user else { return }
-        updatedUser.nickname = trimmedNickname
-        
-        viewModel.user = updatedUser
-        
         Task {
             do {
-                try await viewModel.saveUserData(userToSave: updatedUser)
+                // ⭐️ すべての場所のニックネームを更新
+                try await viewModel.updateNicknameEverywhere(newNickname: trimmedNickname)
                 
                 isEditing = false
                 alertMessage = "プロフィールを保存しました"
                 alertType = .success
                 showSaveAlert = true
+                
+                // ランキングとタイムラインをリロード
                 viewModel.loadRanking()
+                viewModel.loadTimelinePosts()
+                
             } catch {
                 print("プロフィールの保存に失敗しました: \(error)")
                 alertMessage = "保存に失敗しました"

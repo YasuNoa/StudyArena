@@ -1,5 +1,5 @@
 //
-//  MainTabView.swift - フローティングボタン風
+//  MainTabView.swift - フローティングボタン風（タイムライン付き）
 //  productene
 //
 
@@ -12,12 +12,14 @@ struct MainTabView: View {
     enum Tab: Int, CaseIterable {
         case timer = 0
         case ranking = 1
-        case profile = 2
+        case timeline = 2
+        case profile = 3
         
         var title: String {
             switch self {
             case .timer: return "タイマー"
             case .ranking: return "ランキング"
+            case .timeline: return "タイムライン"
             case .profile: return "プロフィール"
             }
         }
@@ -26,6 +28,7 @@ struct MainTabView: View {
             switch self {
             case .timer: return "timer"
             case .ranking: return "crown.fill"
+            case .timeline: return "clock.arrow.circlepath"
             case .profile: return "person.fill"
             }
         }
@@ -34,6 +37,7 @@ struct MainTabView: View {
             switch self {
             case .timer: return [.blue, .cyan]
             case .ranking: return [.orange, .yellow]
+            case .timeline: return [.green, .mint]
             case .profile: return [.purple, .pink]
             }
         }
@@ -48,6 +52,8 @@ struct MainTabView: View {
                     TimerView()
                 case .ranking:
                     RankingView()
+                case .timeline:
+                    TimelineView()
                 case .profile:
                     ProfileView()
                 }
@@ -67,7 +73,7 @@ struct FloatingTabBar: View {
     @Namespace private var animation
     
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: 10) {
             ForEach(MainTabView.Tab.allCases, id: \.self) { tab in
                 FloatingTabButton(
                     tab: tab,
@@ -117,7 +123,7 @@ struct FloatingTabButton: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: isSelected ? 110 : 90, height: 55)
+                    .frame(width: isSelected ? 100 : 75, height: 50)
                     .shadow(
                         color: isSelected ? tab.gradient[0].opacity(0.4) : .clear,
                         radius: 8,
@@ -126,24 +132,25 @@ struct FloatingTabButton: View {
                     )
                 
                 // コンテンツ
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Image(systemName: tab.icon)
-                        .font(.system(size: 20, weight: .medium))
+                        .font(.system(size: 18, weight: .medium))
                         .foregroundColor(isSelected ? .white : .white.opacity(0.7))
                     
                     if isSelected {
                         Text(tab.title)
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.white)
                             .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .padding(.horizontal, isSelected ? 12 : 0)
+                .padding(.horizontal, isSelected ? 10 : 0)
             }
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
+
 #if DEBUG
 #Preview {
     MainTabView()

@@ -9,22 +9,27 @@ import FirebaseAuth
 @MainActor
 class MainViewModel: ObservableObject {
     
+    // 既存のプロパティ
     @Published var user: User?
     @Published var ranking: [User] = []
-    
     @Published var timerValue: TimeInterval = 0
     @Published var isTimerRunning: Bool = false
     @Published var isLoading: Bool = true
     @Published var errorMessage: String?
     
+    // ⭐️ 不正防止機能（スクリーンタイム＆バックグラウンド追跡のみ）
+    @Published var screenTimeManager = ScreenTimeManager()
+    @Published var backgroundTracker = BackgroundTracker()
+    @Published var validationWarning: String?
+    
+    @Published var studyRecords: [StudyRecord] = []
+    @Published var studyStatistics: StudyStatistics?
+    
     private var db = Firestore.firestore()
     private var userId: String?
     private var timer: Timer?
     
-    // MainViewModel.swift の init() メソッドをデバッグ版に変更
-    
     init() {
-        // デバッグ: 環境変数を確認
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         print("🔍 環境チェック:")
         print("   - isPreview: \(isPreview)")
@@ -51,13 +56,13 @@ class MainViewModel: ObservableObject {
         timer?.invalidate()
     }
     
-    
-    // MARK: - Authentication & Data Loading
+    // 既存のメソッドはそのまま保持
     func retryAuthentication() {
         isLoading = true
         errorMessage = nil
         authenticateUser()
     }
+    
     private func authenticateUser() {
         print("🔐 authenticateUser() が呼ばれました")
         print("🔥 Firebase Auth の状態を確認中...")
@@ -126,17 +131,15 @@ class MainViewModel: ObservableObject {
             self.handleError("ユーザーデータのロードに失敗しました", error: error)
         }
     }
-    // MARK: - Data Persistence
+    
     func saveUserData(userToSave: User) async throws {
         guard let uid = self.userId else {
             throw NSError(domain: "UserDataError", code: -1, userInfo: [NSLocalizedDescriptionKey: "ユーザーIDが見つかりません"])
         }
         
-        // プレビュー環境をチェック
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         
         if isPreview {
-            // プレビュー時は実際の保存をスキップし、ローカルデータのみ更新
             print("📱 プレビューモード: データ保存をスキップ")
             self.user = userToSave
             return
@@ -149,12 +152,10 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Ranking
     func loadRanking() {
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         
         if isPreview {
-            // プレビュー時はモックデータを使用
             self.ranking = [
                 User(id: "rank1", nickname: "レベルアップ王", level: 50, totalStudyTime: 1000000, rank: 1),
                 User(id: "rank2", nickname: "勉強の達人", level: 48, totalStudyTime: 980000, rank: 2),
@@ -164,7 +165,6 @@ class MainViewModel: ObservableObject {
             return
         }
         
-        // 通常のFirestore処理
         Task { @MainActor in
             do {
                 let querySnapshot = try await db.collection("users")
@@ -190,7 +190,77 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Timer & Experience Logic
+    // ⭐️ スクリーンタイム&バックグラウンド追跡付きタイマー
+    func startTimerWithValidation() {
+        guard !isTimerRunning else { return }
+        
+        // バックグラウンド追跡リセット
+        backgroundTracker.resetSession()
+        
+        // スクリーンタイム監視開始
+        screenTimeManager.startMonitoring()
+        
+        isTimerRunning = true
+        timer?.invalidate()
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.timerValue += 1
+            }
+        }
+    }
+    
+    func stopTimerWithValidation() {
+        guard isTimerRunning else { return }
+        
+        isTimerRunning = false
+        timer?.invalidate()
+        timer = nil
+        
+        // スクリーンタイム監視終了
+        screenTimeManager.stopMonitoring()
+        
+        let studyTime = timerValue
+        
+        // バックグラウンド時間チェック
+        if backgroundTracker.backgroundTimeExceeded {
+            validationWarning = "バックグラウンド時間が長すぎるため、今回の学習は記録されません"
+            timerValue = 0
+            return
+        }
+        
+        // 通常通り経験値を付与
+        timerValue = 0
+        Task { @MainActor in
+            // ⭐️ レベル記録（変更前）
+            let beforeLevel = self.user?.level ?? 1
+            
+            // 経験値を追加
+            self.addExperience(from: studyTime)
+            
+            // ⭐️ レベル記録（変更後）
+            let afterLevel = self.user?.level ?? 1
+            let earnedExp = studyTime
+            
+            // ⭐️ 学習記録を保存（これが抜けていた！）
+            await self.saveStudyRecord(
+                duration: studyTime,
+                earnedExp: earnedExp,
+                beforeLevel: beforeLevel,
+                afterLevel: afterLevel
+            )
+            
+            guard let userToSave = self.user else { return }
+            do {
+                try await self.saveUserData(userToSave: userToSave)
+                validationWarning = nil
+            } catch {
+                self.handleError("データの保存に失敗しました", error: error)
+            }
+        }
+    }
+    
+    // 既存のタイマーメソッド（互換性のため残す）
     func startTimer() {
         guard !isTimerRunning else { return }
         
@@ -264,19 +334,384 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    // ★★★ ここから下がプレビュー用のコード ★★★
-    // MainViewModel.swift の mock プロパティを以下のように更新
+    func loadStudyRecords() {
+        guard let userId = self.userId else { return }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        
+        if isPreview {
+            // プレビュー用のモックデータ
+            self.studyRecords = createMockStudyRecords()
+            self.calculateStatistics()
+            return
+        }
+        
+        Task { @MainActor in
+            do {
+                let querySnapshot = try await db.collection("studyRecords")
+                    .whereField("userId", isEqualTo: userId)
+                    .order(by: "timestamp", descending: true)
+                    .limit(to: 50)
+                    .getDocuments()
+                
+                self.studyRecords = querySnapshot.documents.compactMap { doc -> StudyRecord? in
+                    do {
+                        return try doc.data(as: StudyRecord.self)
+                    } catch {
+                        print("学習記録のパースエラー: \(error)")
+                        return nil
+                    }
+                }
+                
+                // 統計情報を計算
+                self.calculateStatistics()
+                
+            } catch {
+                print("学習記録の取得エラー: \(error)")
+            }
+        }
+    }
     
-    // MainViewModel.swift の mock プロパティを修正
+    // 学習記録の保存
+    // MainViewModel.swift の saveStudyRecord メソッドを以下に置き換え
     
+    // 学習記録の保存
+    // MainViewModel.swift の saveStudyRecord メソッドを以下に置き換え
+    
+    // 学習記録の保存
+    private func saveStudyRecord(duration: TimeInterval, earnedExp: Double, beforeLevel: Int, afterLevel: Int) async {
+        guard let userId = self.userId else { return }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview { return }
+        
+        let recordType: StudyRecord.RecordType = (beforeLevel < afterLevel) ? .levelUp : .study
+        
+        let record = StudyRecord(
+            userId: userId,
+            timestamp: Date(),
+            duration: duration,
+            earnedExperience: earnedExp,
+            recordType: recordType,
+            beforeLevel: beforeLevel,
+            afterLevel: afterLevel
+        )
+        
+        do {
+            // ⭐️ 修正: シンプルな辞書形式でデータを保存
+            let data: [String: Any] = [
+                "userId": userId,
+                "timestamp": Timestamp(date: Date()),
+                "duration": duration,
+                "earnedExperience": earnedExp,
+                "recordType": recordType.rawValue,
+                "beforeLevel": beforeLevel,
+                "afterLevel": afterLevel
+            ]
+            
+            try await db.collection("studyRecords").addDocument(data: data)
+            
+            // ローカルの配列にも追加
+            self.studyRecords.insert(record, at: 0)
+            self.calculateStatistics()
+        } catch {
+            print("学習記録の保存エラー: \(error)")
+        }
+    }
+    // 統計情報の計算
+    private func calculateStatistics() {
+        guard !studyRecords.isEmpty else {
+            studyStatistics = nil
+            return
+        }
+        
+        // 日付ごとにグループ化
+        let calendar = Calendar.current
+        let recordsByDate = Dictionary(grouping: studyRecords) { record in
+            calendar.startOfDay(for: record.timestamp)
+        }
+        
+        // 総学習日数
+        let totalStudyDays = recordsByDate.count
+        
+        // 現在の連続日数を計算
+        var currentStreak = 0
+        var checkDate = calendar.startOfDay(for: Date())
+        
+        while true {
+            if recordsByDate[checkDate] != nil {
+                currentStreak += 1
+                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+            } else if currentStreak == 0 {
+                // 今日学習していない場合は昨日をチェック
+                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+                if recordsByDate[checkDate] != nil {
+                    currentStreak = 1
+                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
+                } else {
+                    break
+                }
+            } else {
+                break
+            }
+        }
+        
+        // 平均学習時間
+        let totalTime = studyRecords.reduce(0) { $0 + $1.duration }
+        let averageTime = totalStudyDays > 0 ? totalTime / Double(totalStudyDays) : 0
+        
+        studyStatistics = StudyStatistics(
+            totalStudyDays: totalStudyDays,
+            currentStreak: currentStreak,
+            longestStreak: currentStreak, // 簡易版
+            averageStudyTime: averageTime,
+            totalRecords: studyRecords.count
+        )
+    }
+    
+    // モックデータ生成（プレビュー用）
+    private func createMockStudyRecords() -> [StudyRecord] {
+        var records: [StudyRecord] = []
+        let calendar = Calendar.current
+        
+        // 過去7日間のデータを生成
+        for i in 0..<10 {
+            let date = calendar.date(byAdding: .day, value: -i, to: Date())!
+            
+            // 通常の学習記録
+            records.append(StudyRecord(
+                id: "mock\(i)",
+                userId: "mockUserID",
+                timestamp: date,
+                duration: TimeInterval.random(in: 600...3600),
+                earnedExperience: Double.random(in: 100...500),
+                recordType: .study,
+                beforeLevel: 10,
+                afterLevel: 10
+            ))
+            
+            // レベルアップ記録（3回に1回）
+            if i % 3 == 0 && i > 0 {
+                records.append(StudyRecord(
+                    id: "mockLevelUp\(i)",
+                    userId: "mockUserID",
+                    timestamp: calendar.date(byAdding: .minute, value: 30, to: date)!,
+                    duration: 0,
+                    earnedExperience: 0,
+                    recordType: .levelUp,
+                    beforeLevel: 10 - i/3,
+                    afterLevel: 11 - i/3
+                ))
+            }
+        }
+        
+        return records.sorted { $0.timestamp > $1.timestamp }
+    }
+    // MainViewModel.swift に追加するコード
+    
+    // MARK: - 既存のプロパティの下に追加
+    @Published var timelinePosts: [TimelinePost] = []
+    
+    // MARK: - タイムライン投稿関連メソッド
+    
+    // タイムライン投稿の読み込み
+    func loadTimelinePosts() {
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        
+        if isPreview {
+            // プレビュー用のモックデータ
+            self.timelinePosts = createMockTimelinePosts()
+            return
+        }
+        
+        Task { @MainActor in
+            do {
+                let querySnapshot = try await db.collection("timelinePosts")
+                    .order(by: "timestamp", descending: true)
+                    .limit(to: 30)
+                    .getDocuments()
+                
+                self.timelinePosts = querySnapshot.documents.compactMap { doc -> TimelinePost? in
+                    do {
+                        return try doc.data(as: TimelinePost.self)
+                    } catch {
+                        print("投稿のパースエラー: \(error)")
+                        return nil
+                    }
+                }
+            } catch {
+                print("投稿の取得エラー: \(error)")
+            }
+        }
+    }
+    
+    // 投稿の作成
+    // MainViewModel.swift の createTimelinePost メソッドを以下に置き換え
+    
+    // 投稿の作成（throwsを追加）
+    func createTimelinePost(content: String) async throws {
+        guard let userId = self.userId,
+              let user = self.user else { return }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview { return }
+        
+        let post = TimelinePost(
+            userId: userId,
+            nickname: user.nickname,
+            content: content,
+            timestamp: Date(),
+            level: user.level
+        )
+        
+        do {
+            // Firestoreに保存
+            let data: [String: Any] = [
+                "userId": userId,
+                "nickname": user.nickname,
+                "content": content,
+                "timestamp": Timestamp(date: Date()),
+                "level": user.level
+            ]
+            
+            try await db.collection("timelinePosts").addDocument(data: data)
+            
+            // ローカルの配列にも追加
+            self.timelinePosts.insert(post, at: 0)
+        } catch {
+            print("投稿の作成エラー: \(error)")
+            throw error
+        }
+    }
+    // 今日すでに投稿しているかチェック
+    func hasPostedToday() async -> Bool {
+        guard let userId = self.userId else { return false }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview { return false }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        
+        do {
+            let querySnapshot = try await db.collection("timelinePosts")
+                .whereField("userId", isEqualTo: userId)
+                .whereField("timestamp", isGreaterThanOrEqualTo: Timestamp(date: today))
+                .whereField("timestamp", isLessThan: Timestamp(date: tomorrow))
+                .limit(to: 1)
+                .getDocuments()
+            
+            return !querySnapshot.documents.isEmpty
+        } catch {
+            print("投稿チェックエラー: \(error)")
+            return false
+        }
+    }
+    
+    // モック投稿データ生成（プレビュー用）
+    private func createMockTimelinePosts() -> [TimelinePost] {
+        var posts: [TimelinePost] = []
+        let calendar = Calendar.current
+        
+        let mockUsers = [
+            ("田中太郎", 15),
+            ("鈴木花子", 23),
+            ("山田次郎", 8),
+            ("佐藤美咲", 42)
+        ]
+        
+        let mockContents = [
+            "今日も頑張って3時間勉強できた！明日も継続するぞ💪",
+            "レベルアップできて嬉しい！みんなも一緒に頑張ろう✨",
+            "数学の問題が解けるようになってきた。基礎って大事だね。",
+            "朝活始めました。早起きは三文の徳って本当だった！",
+            "プログラミングの勉強楽しい〜！エラーと格闘中だけど😅"
+        ]
+        
+        // 過去5日間の投稿を生成
+        for i in 0..<5 {
+            let date = calendar.date(byAdding: .day, value: -i, to: Date())!
+            let user = mockUsers.randomElement()!
+            
+            posts.append(TimelinePost(
+                id: "mockPost\(i)",
+                userId: "mockUser\(i)",
+                nickname: user.0,
+                content: mockContents[i % mockContents.count],
+                timestamp: date,
+                level: user.1
+            ))
+        }
+        
+        return posts
+    }
+    
+    
+    // ⭐️ すべての投稿のニックネームを更新
+    func updateNicknameEverywhere(newNickname: String) async throws {
+        guard let userId = self.userId else { return }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview { return }
+        
+        // 1. ユーザー情報を更新
+        guard var updatedUser = self.user else { return }
+        updatedUser.nickname = newNickname
+        self.user = updatedUser
+        
+        // ユーザー情報を保存
+        try await saveUserData(userToSave: updatedUser)
+        
+        // 2. 自分の全ての投稿を取得して更新
+        do {
+            // 自分の投稿を全て取得
+            let querySnapshot = try await db.collection("timelinePosts")
+                .whereField("userId", isEqualTo: userId)
+                .getDocuments()
+            
+            // バッチ処理で一括更新
+            let batch = db.batch()
+            
+            for document in querySnapshot.documents {
+                let docRef = db.collection("timelinePosts").document(document.documentID)
+                batch.updateData(["nickname": newNickname], forDocument: docRef)
+            }
+            
+            // バッチをコミット
+            try await batch.commit()
+            
+            // 3. ローカルの配列も更新
+            self.timelinePosts = self.timelinePosts.map { post in
+                if post.userId == userId {
+                    var updatedPost = post
+                    // TimelinePostは構造体なので、新しいインスタンスを作成
+                    return TimelinePost(
+                        id: post.id,
+                        userId: post.userId,
+                        nickname: newNickname,  // 新しいニックネーム
+                        content: post.content,
+                        timestamp: post.timestamp,
+                        level: post.level
+                    )
+                }
+                return post
+            }
+            
+            print("✅ すべての投稿のニックネームを更新しました")
+            
+        } catch {
+            print("❌ 投稿の更新エラー: \(error)")
+            throw error
+        }
+    }
+
 #if DEBUG
     static let mock: MainViewModel = {
         let viewModel = MainViewModel()
         
-        // ⚠️ 重要: userIdを設定
         viewModel.userId = "mockUserID"
         
-        // 基本データを設定
         viewModel.user = User(
             id: "mockUserID",
             nickname: "プレビュー太郎",
@@ -286,7 +721,6 @@ class MainViewModel: ObservableObject {
             rank: 15
         )
         
-        // ランキングデータを生成
         viewModel.ranking = [
             User(id: "rank1", nickname: "レベルアップ王", level: 50, experience: 0, totalStudyTime: 1000000, rank: 1),
             User(id: "rank2", nickname: "勉強の達人", level: 48, experience: 0, totalStudyTime: 980000, rank: 2),
@@ -296,7 +730,6 @@ class MainViewModel: ObservableObject {
             User(id: "mockUserID", nickname: "プレビュー太郎", level: 10, experience: 1200, totalStudyTime: 54000, rank: 15),
         ]
         
-        // 状態を設定
         viewModel.isLoading = false
         viewModel.errorMessage = nil
         viewModel.timerValue = 0

@@ -1,5 +1,5 @@
 //
-//  TimerView.swift - ゲート風バージョン
+//  TimerView.swift - スクリーンタイム&バックグラウンド追跡版
 //  productene
 //
 //  Created by 田中正造 on 03/07/2025.
@@ -13,28 +13,49 @@ struct TimerView: View {
     
     var body: some View {
         ZStack {
-            
             MinimalDarkBackgroundView()
             
             VStack(spacing: 30) {
                 if let user = viewModel.user {
                     UserStatusCard(user: user)
                 }
+                
                 Spacer()
                 
                 TimerDisplay(timeValue: viewModel.timerValue)
                 
+                // ⭐️ 警告表示（バックグラウンド警告のみ）
+                if let warning = viewModel.validationWarning {
+                    WarningBanner(message: warning)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+                
+                // ⭐️ スクリーンタイム認証状態
+                if !viewModel.screenTimeManager.isAuthorized {
+                    HStack {
+                        Image(systemName: "exclamationmark.shield")
+                            .foregroundColor(.orange)
+                        Text("スクリーンタイム認証が必要です")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.horizontal)
+                }
+                
                 Spacer()
+                
+                // ⭐️ スクリーンタイム&バックグラウンド追跡付きボタン
                 TimerButton(
                     isRunning: viewModel.isTimerRunning,
                     onTap: {
                         if viewModel.isTimerRunning {
-                            viewModel.stopTimer()
+                            viewModel.stopTimerWithValidation()
                         } else {
-                            viewModel.startTimer()
+                            viewModel.startTimerWithValidation()
                         }
                     }
                 )
+                
                 Spacer()
             }
             .padding()
@@ -42,18 +63,37 @@ struct TimerView: View {
     }
 }
 
-// ゲート風背景
+// ⭐️ 警告バナー（シンプル版）
+struct WarningBanner: View {
+    let message: String
+    
+    var body: some View {
+        Text(message)
+            .font(.caption)
+            .foregroundColor(.white)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.red.opacity(0.3))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                    )
+            )
+            .padding(.horizontal)
+    }
+}
+
+// 既存のコンポーネントはそのまま保持
 struct GateBackgroundView: View {
     @State private var rotation: Double = 0
     @State private var pulsate: Bool = false
     
     var body: some View {
         ZStack {
-            // ベース: より深い闇
             Color.black
                 .ignoresSafeArea()
             
-            // 中心の青い光（ゲートの核）- 脈動効果付き
             RadialGradient(
                 gradient: Gradient(colors: [
                     Color.cyan.opacity(0.8),
@@ -72,7 +112,6 @@ struct GateBackgroundView: View {
                 }
             }
             
-            // 回転する魔法陣（内側）
             AngularGradient(
                 gradient: Gradient(colors: [
                     .cyan, .blue, .purple, .blue, .cyan
@@ -85,7 +124,6 @@ struct GateBackgroundView: View {
             .ignoresSafeArea()
             .rotationEffect(.degrees(rotation))
             
-            // 回転する魔法陣（外側）- 逆回転
             AngularGradient(
                 gradient: Gradient(colors: [
                     .purple, .cyan, .blue, .cyan, .purple
@@ -98,14 +136,12 @@ struct GateBackgroundView: View {
             .ignoresSafeArea()
             .rotationEffect(.degrees(-rotation * 0.7))
             
-            // アニメーション開始
             .onAppear {
                 withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
                     rotation = 360
                 }
             }
             
-            // パーティクル効果
             ForEach(0..<15, id: \.self) { index in
                 ParticleView(delay: Double(index) * 0.3)
             }
@@ -113,7 +149,6 @@ struct GateBackgroundView: View {
     }
 }
 
-// パーティクルエフェクト
 struct ParticleView: View {
     let delay: Double
     @State private var offset = CGSize.zero
@@ -158,7 +193,6 @@ struct ParticleView: View {
                     opacity = 0
                 }
                 
-                // 再度アニメーション
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     animateParticle()
                 }
@@ -166,6 +200,7 @@ struct ParticleView: View {
         }
     }
 }
+
 #if DEBUG
 #Preview(traits: .sizeThatFitsLayout) {
     TimerView()
