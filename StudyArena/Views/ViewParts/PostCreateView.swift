@@ -9,9 +9,49 @@ struct PostCreateView: View {
     @State private var alertMessage = ""
     @State private var isPosting = false
     
-    // 文字数制限
-    private let postLimit = 10
-    private let inputLimit = 31
+    // ⭐️ レベルに応じた文字数制限を計算（非線形版）
+    var postLimit: Int {
+        guard let user = viewModel.user else { return 5 }
+        
+        let milestones: [(level: Int, chars: Int)] = [
+            (1, 5),
+            (3, 6),
+            (5, 7),
+            (7, 8),
+            (10, 10),
+            (13, 12),
+            (17, 14),
+            (20, 15),
+            (25, 17),
+            (30, 18),
+            (35, 20),
+            (40, 22),
+            (45, 23),
+            (50, 25),
+            (55, 26),
+            (60, 28),
+            (70, 30),
+            (80, 33),
+            (85, 35),
+            (90, 37),
+            (95, 38),
+            (100, 40)
+        ]
+        
+        var currentLimit = 5
+        for milestone in milestones {
+            if user.level >= milestone.level {
+                currentLimit = milestone.chars
+            } else {
+                break
+            }
+        }
+        
+        return currentLimit
+    }
+    
+    // 入力制限は投稿制限の3倍程度に設定
+    var inputLimit: Int { postLimit * 3 }
     
     var characterCount: Int { postContent.count }
     var remainingCharacters: Int { postLimit - characterCount }
@@ -36,7 +76,7 @@ struct PostCreateView: View {
                 // 投稿エリア
                 VStack(alignment: .leading, spacing: 20) {
                     // ユーザー情報
-                    PostUserInfo(user: viewModel.user)
+                    PostUserInfo(user: viewModel.user, postLimit: postLimit)
                     
                     // テキスト入力
                     PostTextEditor(
@@ -51,8 +91,11 @@ struct PostCreateView: View {
                         remainingCharacters: remainingCharacters
                     )
                     
-                    // 注意事項
-                    PostInfoBanner()
+                    // ⭐️ レベルと文字数制限の情報
+                    PostLevelInfoBanner(
+                        currentLevel: viewModel.user?.level ?? 1,
+                        postLimit: postLimit
+                    )
                 }
                 .padding()
                 
@@ -73,27 +116,41 @@ struct PostCreateView: View {
     }
     
     private func postToTimeline() {
-        guard canPost else { return }
+        // ⭐️ 重複投稿防止のため、すでに投稿中なら何もしない
+        guard canPost, !isPosting else { return }
         
         isPosting = true
         
         Task {
             do {
+                // ⭐️ 投稿前に必ず今日の投稿状況をチェック
                 let hasPostedToday = await viewModel.hasPostedToday()
                 
                 if hasPostedToday {
-                    alertMessage = "今日はすでに投稿済みです。明日また投稿してください。"
-                    showAlert = true
-                    isPosting = false
+                    await MainActor.run {
+                        alertMessage = "今日はすでに投稿済みです。明日また投稿してください。"
+                        showAlert = true
+                        isPosting = false
+                    }
                     return
                 }
                 
+                // 投稿を実行
                 try await viewModel.createTimelinePost(content: postContent)
-                isPresented = false
+                
+                // ⭐️ 成功時は画面を閉じる前に少し待機（重複タップ防止）
+                try await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
+                
+                await MainActor.run {
+                    isPresented = false
+                    isPosting = false
+                }
             } catch {
-                alertMessage = "投稿に失敗しました: \(error.localizedDescription)"
-                showAlert = true
-                isPosting = false
+                await MainActor.run {
+                    alertMessage = "投稿に失敗しました: \(error.localizedDescription)"
+                    showAlert = true
+                    isPosting = false
+                }
             }
         }
     }
@@ -124,6 +181,7 @@ struct PostCreateHeader: View {
                 .font(.headline)
                 .foregroundColor(canPost ? .cyan : .white.opacity(0.3))
                 .disabled(!canPost)
+                .allowsHitTesting(canPost) // ⭐️ タップを物理的に無効化
         }
         .padding()
         .background(Color(red: 0.1, green: 0.1, blue: 0.15))
@@ -133,6 +191,7 @@ struct PostCreateHeader: View {
 // ユーザー情報コンポーネント
 struct PostUserInfo: View {
     let user: User?
+    let postLimit: Int
     
     var body: some View {
         HStack(spacing: 12) {
@@ -156,9 +215,19 @@ struct PostUserInfo: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
                 
-                Text("Lv.\(user?.level ?? 1)")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.6))
+                HStack(spacing: 6) {
+                    Text("Lv.\(user?.level ?? 1)")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    // ⭐️ 文字数制限の表示を追加
+                    Text("・")
+                        .foregroundColor(.white.opacity(0.3))
+                    
+                    Text("最大\(postLimit)文字")
+                        .font(.caption)
+                        .foregroundColor(.cyan.opacity(0.8))
+                }
             }
             
             Spacer()
@@ -254,7 +323,7 @@ struct CharacterProgressCircle: View {
                 .rotationEffect(.degrees(-90))
                 .animation(.easeInOut(duration: 0.2), value: characterCount)
             
-            if characterCount > postLimit * 8 / 10 {
+            if characterCount > postLimit * 8 / 10 || characterCount > postLimit {
                 Text("\(remainingCharacters)")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(color)
@@ -264,28 +333,92 @@ struct CharacterProgressCircle: View {
     }
 }
 
-// 情報バナー
-struct PostInfoBanner: View {
-    var body: some View {
-        HStack {
-            Image(systemName: "info.circle.fill")
-                .font(.caption)
-                .foregroundColor(.blue.opacity(0.7))
-            
-            Text("1日1回、10文字以内で投稿")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.6))
+// ⭐️ レベル情報バナー（非線形文字数増加対応版）
+struct PostLevelInfoBanner: View {
+    let currentLevel: Int
+    let postLimit: Int
+    
+    // 次のマイルストーンレベルを計算（非線形版）
+    var nextMilestone: (level: Int, chars: Int)? {
+        let milestones = [
+            (3, 6),
+            (5, 7),
+            (7, 8),
+            (10, 10),
+            (13, 12),
+            (17, 14),
+            (20, 15),
+            (25, 17),
+            (30, 18),
+            (35, 20),
+            (40, 22),
+            (45, 23),
+            (50, 25),
+            (55, 26),
+            (60, 28),
+            (70, 30),
+            (80, 33),
+            (85, 35),
+            (90, 37),
+            (95, 38),
+            (100, 40)
+        ]
+        
+        for milestone in milestones {
+            if currentLevel < milestone.0 {
+                return milestone
+            }
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 15)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.blue.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                )
-        )
+        return nil
+    }
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            // 現在の文字数制限
+            HStack {
+                Image(systemName: "info.circle.fill")
+                    .font(.caption)
+                    .foregroundColor(.blue.opacity(0.7))
+                
+                Text("1日1回、\(postLimit)文字以内で投稿")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 15)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.blue.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    )
+            )
+            
+            // 次のマイルストーン表示
+            if let milestone = nextMilestone {
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 11))
+                        .foregroundColor(.yellow.opacity(0.8))
+                    
+                    Text("Lv.\(milestone.level)で\(milestone.chars)文字投稿可能")
+                        .font(.system(size: 11))
+                        .foregroundColor(.yellow.opacity(0.7))
+                }
+            } else if currentLevel >= 100 {
+                HStack(spacing: 4) {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.yellow)
+                    
+                    Text("最大文字数に到達！")
+                        .font(.system(size: 11))
+                        .foregroundColor(.yellow)
+                }
+            }
+        }
     }
 }
 

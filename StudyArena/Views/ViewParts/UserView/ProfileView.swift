@@ -32,89 +32,94 @@ struct ProfileView: View {
                     .shadow(color: .purple.opacity(0.5), radius: 10)
                     .padding(.top, 50)
                 
-                if let user = viewModel.user {
-                    // ステータスカード
+                ScrollView {
                     VStack(spacing: 20) {
-                        // ニックネーム編集セクション
-                        ProfileCard {
-                            VStack(spacing: 15) {
-                                HStack {
-                                    Text("ニックネーム")
-                                        .font(.headline)
-                                        .foregroundColor(.white.opacity(0.7))
-                                    Spacer()
-                                }
-                                
-                                if isEditing {
-                                    VStack(alignment: .leading, spacing: 5) {
-                                        TextField("新しいニックネームを入力", text: $editingNickname)
-                                            .textFieldStyle(DarkTextFieldStyle())
-                                            .font(.title3)
+                        if let user = viewModel.user {
+                            // ステータスカード
+                            VStack(spacing: 20) {
+                                // ニックネーム編集セクション
+                                ProfileCard {
+                                    VStack(spacing: 15) {
+                                        HStack {
+                                            Text("ニックネーム")
+                                                .font(.headline)
+                                                .foregroundColor(.white.opacity(0.7))
+                                            Spacer()
+                                        }
                                         
-                                        if editingNickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !editingNickname.isEmpty {
-                                            Text("空白のみのニックネームは使用できません")
-                                                .font(.caption)
-                                                .foregroundColor(.red)
+                                        if isEditing {
+                                            VStack(alignment: .leading, spacing: 5) {
+                                                TextField("新しいニックネームを入力", text: $editingNickname)
+                                                    .textFieldStyle(DarkTextFieldStyle())
+                                                    .font(.title3)
+                                                
+                                                if editingNickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !editingNickname.isEmpty {
+                                                    Text("空白のみのニックネームは使用できません")
+                                                        .font(.caption)
+                                                        .foregroundColor(.red)
+                                                }
+                                            }
+                                        } else {
+                                            HStack {
+                                                Text(user.nickname.isEmpty ? "未設定" : user.nickname)
+                                                    .font(.title2)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundColor(user.nickname.isEmpty ? .white.opacity(0.5) : .white)
+                                                Spacer()
+                                            }
                                         }
                                     }
-                                } else {
-                                    HStack {
-                                        Text(user.nickname.isEmpty ? "未設定" : user.nickname)
-                                            .font(.title2)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(user.nickname.isEmpty ? .white.opacity(0.5) : .white)
-                                        Spacer()
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // ステータス情報
-                        ProfileCard {
-                            VStack(spacing: 20) {
-                                StatRow(title: "レベル", value: "Lv. \(user.level)", color: .yellow)
-                                StatRow(title: "総学習時間", value: viewModel.formatTime(user.totalStudyTime), color: .cyan)
-                                StatRow(title: "全国ランク", value: userRank != nil ? "\(userRank!)位" : "---", color: .orange)
-                                StatRow(title: "獲得経験値", value: "\(Int(user.experience)) EXP", color: .purple)
-                            }
-                        }
-                        
-                        // 編集ボタン
-                        if isEditing {
-                            HStack(spacing: 20) {
-                                DarkButton(title: "キャンセル", color: .gray) {
-                                    let originalNickname = viewModel.user?.nickname ?? ""
-                                    if editingNickname != originalNickname {
-                                        alertMessage = "変更を破棄しました"
-                                        alertType = .cancel
-                                        showSaveAlert = true
-                                    }
-                                    editingNickname = originalNickname
-                                    isEditing = false
                                 }
                                 
-                                DarkButton(title: "保存", color: .purple) {
-                                    saveProfile()
+                                // ステータス情報
+                                ProfileCard {
+                                    VStack(spacing: 20) {
+                                        StatRow(title: "レベル", value: "Lv. \(user.level)", color: .yellow)
+                                        StatRow(title: "総学習時間", value: viewModel.formatTime(user.totalStudyTime), color: .cyan)
+                                        StatRow(title: "全国ランク", value: userRank != nil ? "\(userRank!)位" : "---", color: .orange)
+                                        StatRow(title: "獲得経験値", value: "\(Int(user.experience)) EXP", color: .purple)
+                                    }
                                 }
-                                .disabled(editingNickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                                .opacity(editingNickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
-                            }
-                        } else {
-                            DarkButton(title: "プロフィールを編集", color: .blue) {
-                                // 現在のニックネームを編集フィールドにセット
-                                editingNickname = viewModel.user?.nickname ?? ""
-                                // もし現在のニックネームが"挑戦者"の場合は空欄にする
-                                if editingNickname == "挑戦者" {
-                                    editingNickname = ""
+                                
+                                // 編集ボタン
+                                if isEditing {
+                                    HStack(spacing: 20) {
+                                        DarkButton(title: "キャンセル", color: .gray) {
+                                            let originalNickname = viewModel.user?.nickname ?? ""
+                                            if editingNickname != originalNickname {
+                                                alertMessage = "変更を破棄しました"
+                                                alertType = .cancel
+                                                showSaveAlert = true
+                                            }
+                                            editingNickname = originalNickname
+                                            isEditing = false
+                                        }
+                                        
+                                        DarkButton(title: "保存", color: .purple) {
+                                            saveProfile()
+                                        }
+                                        .disabled(editingNickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                        .opacity(editingNickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+                                    }
+                                } else {
+                                    DarkButton(title: "プロフィールを編集", color: .blue) {
+                                        // 現在のニックネームを編集フィールドにセット
+                                        editingNickname = viewModel.user?.nickname ?? ""
+                                        // もし現在のニックネームが"挑戦者"の場合は空欄にする
+                                        if editingNickname == "挑戦者" {
+                                            editingNickname = ""
+                                        }
+                                        isEditing = true
+                                    }
                                 }
-                                isEditing = true
                             }
+                            .padding(.horizontal)
+                            .padding(.bottom, 20) // 編集ボタンの下に余白を追加
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.bottom, 100) // TabBar用の余白
                 }
-                
-                Spacer()
+                .scrollIndicators(.hidden) // スクロールインジケーターを非表示
             }
             .onAppear {
                 findUserRank()
@@ -144,8 +149,6 @@ struct ProfileView: View {
         guard let userId = viewModel.user?.id else { return }
         userRank = viewModel.ranking.firstIndex(where: { $0.id == userId }).map { $0 + 1 }
     }
-    
-    // ProfileView.swift の saveProfile() メソッドを以下に置き換え
     
     private func saveProfile() {
         let trimmedNickname = editingNickname.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -286,38 +289,6 @@ struct DarkTextFieldStyle: TextFieldStyle {
     }
 }
 
-struct BackgroundView: View {
-    var body: some View {
-        ZStack {
-            Color(red: 0.05, green: 0, blue: 0.1)
-                .ignoresSafeArea()
-            
-            RadialGradient(
-                gradient: Gradient(colors: [
-                    Color.purple.opacity(0.5),
-                    Color.blue.opacity(0.2),
-                    .clear
-                ]),
-                center: .center,
-                startRadius: 50,
-                endRadius: 400
-            )
-            .ignoresSafeArea()
-            
-            AngularGradient(
-                gradient: Gradient(colors: [
-                    .purple, .blue, .purple, .cyan, .blue, .purple
-                ]),
-                center: .center,
-                angle: .degrees(0)
-            )
-            .blur(radius: 60)
-            .opacity(0.7)
-            .ignoresSafeArea()
-        }
-    }
-}
-
 struct DarkAlert: View {
     @Binding var isPresented: Bool
     let message: String
@@ -433,24 +404,10 @@ struct DarkAlert: View {
         }
     }
 }
+
 #if DEBUG
-#Preview(traits: .sizeThatFitsLayout) {
+#Preview {
     ProfileView()
         .environmentObject(MainViewModel.mock)
-}
-
-
-#Preview("Dark Alert") {
-    ZStack {
-        BackgroundView()
-        
-        VStack(spacing: 30) {
-            DarkAlert(
-                isPresented: .constant(true),
-                message: "プロフィールを保存しました",
-                type: .success
-            )
-        }
-    }
 }
 #endif

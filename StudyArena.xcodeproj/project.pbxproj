@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF639EB12E48EC66004FCD52 /* RewardSystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */; };
+		BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */; };
 		BF64ED5D2E1E5F0F00FCF13D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BF64ED5C2E1E5F0F00FCF13D /* GoogleService-Info.plist */; };
 		BF7F8B902E15099C00DF3CFC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8C2E15099C00DF3CFC /* ContentView.swift */; };
 		BF7F8B912E15099C00DF3CFC /* DataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */; };
@@ -40,6 +42,8 @@
 		BF7F8BCC2E15988E00DF3CFC /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCB2E15988E00DF3CFC /* FirebaseStorage */; };
 		BF7F8BCE2E15988E00DF3CFC /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCD2E15988E00DF3CFC /* FirebaseStorageCombine-Community */; };
 		BF7F8BD02E15988E00DF3CFC /* FirebaseVertexAI in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCF2E15988E00DF3CFC /* FirebaseVertexAI */; };
+		BFACD4882E49CDCC00935FCE /* TrophyDisplayCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */; };
+		BFACD48A2E4CCCA300935FCE /* Trophy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4892E4CCCA300935FCE /* Trophy.swift */; };
 		BFAD2C3B2E3E43AB004C748A /* ScreenTimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3A2E3E43AB004C748A /* ScreenTimeManager.swift */; };
 		BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */; };
 		BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */; };
@@ -59,6 +63,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardSystemView.swift; sourceTree = "<group>"; };
+		BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalDarkBackgroundView.swift; sourceTree = "<group>"; };
 		BF64ED5C2E1E5F0F00FCF13D /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		BF7F8B792E13CCF400DF3CFC /* StudyArena.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyArena.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF7F8B8B2E15099C00DF3CFC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -66,6 +72,8 @@
 		BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		BF7F8B8E2E15099C00DF3CFC /* producteneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = producteneApp.swift; sourceTree = "<group>"; };
 		BF7F8B962E150B2400DF3CFC /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrophyDisplayCard.swift; sourceTree = "<group>"; };
+		BFACD4892E4CCCA300935FCE /* Trophy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trophy.swift; sourceTree = "<group>"; };
 		BFAD2C3A2E3E43AB004C748A /* ScreenTimeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeManager.swift; sourceTree = "<group>"; };
 		BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTracker.swift; sourceTree = "<group>"; };
 		BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyRecord.swift; sourceTree = "<group>"; };
@@ -146,6 +154,7 @@
 				BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */,
 				BFAD2C3A2E3E43AB004C748A /* ScreenTimeManager.swift */,
 				BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */,
+				BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */,
 				BF7F8B962E150B2400DF3CFC /* MainViewModel.swift */,
 				BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */,
 				BFAD2C432E408708004C748A /* TimelinePost.swift */,
@@ -201,6 +210,7 @@
 				BFC0F9E52E16505E00870CDD /* TimerView.swift */,
 				BFC0F9E92E16508800870CDD /* TimerDisplay.swift */,
 				BFC0F9EB2E16509A00870CDD /* TimerButton.swift */,
+				BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */,
 			);
 			path = TimerParts;
 			sourceTree = "<group>";
@@ -210,6 +220,7 @@
 			children = (
 				BFC0F9EF2E1650BF00870CDD /* RankingView.swift */,
 				BFC0F9F12E1650D800870CDD /* RankingRow.swift */,
+				BFACD4892E4CCCA300935FCE /* Trophy.swift */,
 			);
 			path = RankingParts;
 			sourceTree = "<group>";
@@ -219,6 +230,7 @@
 			children = (
 				BFC0F9F72E16511700870CDD /* ProfileView.swift */,
 				BFC0F9E72E16507900870CDD /* UserStatusCard.swift */,
+				BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */,
 			);
 			path = UserView;
 			sourceTree = "<group>";
@@ -328,11 +340,13 @@
 			files = (
 				BFAD2C462E408728004C748A /* PostCreateView.swift in Sources */,
 				BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */,
+				BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */,
 				BFC0F9EC2E16509A00870CDD /* TimerButton.swift in Sources */,
 				BFC0F9F22E1650D800870CDD /* RankingRow.swift in Sources */,
 				BFC0F9E82E16507900870CDD /* UserStatusCard.swift in Sources */,
 				BF7F8B902E15099C00DF3CFC /* ContentView.swift in Sources */,
 				BFC0F9E22E16503200870CDD /* ErrorView.swift in Sources */,
+				BF639EB12E48EC66004FCD52 /* RewardSystemView.swift in Sources */,
 				BFAD2C442E408708004C748A /* TimelinePost.swift in Sources */,
 				BF7F8B912E15099C00DF3CFC /* DataModel.swift in Sources */,
 				BFAD2C422E3E7521004C748A /* TimelineView.swift in Sources */,
@@ -341,9 +355,11 @@
 				BFC0F9F82E16511700870CDD /* ProfileView.swift in Sources */,
 				BFC0F9EA2E16508800870CDD /* TimerDisplay.swift in Sources */,
 				BF7F8B922E15099C00DF3CFC /* producteneApp.swift in Sources */,
+				BFACD4882E49CDCC00935FCE /* TrophyDisplayCard.swift in Sources */,
 				BFC0F9E42E16504B00870CDD /* MainTabView.swift in Sources */,
 				BFC0F9DE2E164FE300870CDD /* LoadingView.swift in Sources */,
 				BFC0F9E62E16505E00870CDD /* TimerView.swift in Sources */,
+				BFACD48A2E4CCCA300935FCE /* Trophy.swift in Sources */,
 				BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */,
 				BF7F8B972E150B2400DF3CFC /* MainViewModel.swift in Sources */,
 			);
@@ -386,7 +402,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = F2KY6KTH3H;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -493,7 +509,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yasu.studyarena;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -522,7 +538,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yasu.studyarena;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -11,7 +11,7 @@ struct RankingView: View {
     
     var body: some View {
         ZStack {
-            // ミニマルダーク背景
+            // ミニマルダーク背景（共通コンポーネント使用）
             MinimalDarkBackgroundView()
             
             VStack(spacing: 0) {
@@ -72,65 +72,7 @@ struct RankingView: View {
     }
 }
 
-// ミニマルダーク背景
-struct MinimalDarkBackgroundView: View {
-    var body: some View {
-        ZStack {
-            // ベースグラデーション
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.08, green: 0.08, blue: 0.12),
-                    Color(red: 0.05, green: 0.05, blue: 0.08)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            // 微細なテクスチャ効果
-            GeometryReader { geometry in
-                // 斜めのグラデーションライン
-                ForEach(0..<5) { index in
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    .white.opacity(0.01),
-                                    .clear,
-                                    .white.opacity(0.005)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: geometry.size.width * 2)
-                        .rotationEffect(.degrees(45))
-                        .offset(x: CGFloat(index) * 100 - 200)
-                        .opacity(0.5)
-                }
-            }
-            .ignoresSafeArea()
-            
-            // 上部のハイライト
-            VStack {
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        .white.opacity(0.03),
-                        .clear
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 200)
-                
-                Spacer()
-            }
-            .ignoresSafeArea()
-        }
-    }
-}
-
-// ミニマルランキング行
+// ミニマルランキング行（トロフィー表示追加版）
 struct MinimalRankingRow: View {
     let user: User
     @EnvironmentObject var viewModel: MainViewModel
@@ -139,29 +81,64 @@ struct MinimalRankingRow: View {
         user.id == viewModel.user?.id
     }
     
+    var trophyInfo: (color: Color, icon: String) {
+        switch user.level {
+        case 1...20:
+            return (Color(red: 0.8, green: 0.5, blue: 0.2), "shield.fill")
+        case 21...50:
+            return (Color(white: 0.7), "shield.lefthalf.filled")
+        case 51...100:
+            return (Color.yellow, "crown.fill")
+        case 101...150:
+            return (Color.cyan, "star.circle.fill")
+        case 151...200:
+            return (Color.purple, "rhombus.fill")
+        default:
+            return (Color.red, "flame.fill")
+        }
+    }
+    
     var body: some View {
         HStack(spacing: 16) {
-            // ランク表示（ミニマル）
+            // ランク表示
             Text("\(user.rank ?? 0)")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundColor(rankColor)
                 .frame(width: 40, alignment: .center)
             
+            // トロフィーアイコン
+            Image(systemName: trophyInfo.icon)
+                .font(.system(size: 20))
+                .foregroundColor(trophyInfo.color)
+                .shadow(color: trophyInfo.color.opacity(0.3), radius: 2)
+            
             // ユーザー情報
             VStack(alignment: .leading, spacing: 4) {
-                Text(user.nickname)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(isCurrentUser ? .white : .white.opacity(0.9))
-                
-                HStack(spacing: 12) {
-                    Text("Lv.\(user.level)")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white.opacity(0.5))
+                HStack(spacing: 8) {
+                    Text(user.nickname)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(isCurrentUser ? .white : .white.opacity(0.9))
                     
-                    Text(viewModel.formatTime(user.totalStudyTime))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white.opacity(0.5))
+                    // レベルバッジ
+                    Text("Lv.\(user.level)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(trophyInfo.color)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(trophyInfo.color.opacity(0.2))
+                                .overlay(
+                                    Capsule()
+                                        .stroke(trophyInfo.color.opacity(0.4), lineWidth: 0.5)
+                                )
+                        )
                 }
+                
+                // 学習時間
+                Text(viewModel.formatTime(user.totalStudyTime))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white.opacity(0.5))
             }
             
             Spacer()
@@ -201,6 +178,7 @@ struct MinimalRankingRow: View {
         }
     }
 }
+
 #if DEBUG
 #Preview(traits: .sizeThatFitsLayout) {
     RankingView()

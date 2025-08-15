@@ -243,12 +243,16 @@ class MainViewModel: ObservableObject {
             let earnedExp = studyTime
             
             // ⭐️ 学習記録を保存（これが抜けていた！）
-            await self.saveStudyRecord(
-                duration: studyTime,
-                earnedExp: earnedExp,
-                beforeLevel: beforeLevel,
-                afterLevel: afterLevel
-            )
+            do {
+                try await self.saveStudyRecord(
+                    duration: studyTime,
+                    earnedExp: earnedExp,
+                    beforeLevel: beforeLevel,
+                    afterLevel: afterLevel
+                )
+            } catch {
+                print("学習記録の保存エラー: \(error)")
+            }
             
             guard let userToSave = self.user else { return }
             do {
@@ -372,14 +376,8 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    // 学習記録の保存
-    // MainViewModel.swift の saveStudyRecord メソッドを以下に置き換え
-    
-    // 学習記録の保存
-    // MainViewModel.swift の saveStudyRecord メソッドを以下に置き換え
-    
-    // 学習記録の保存
-    private func saveStudyRecord(duration: TimeInterval, earnedExp: Double, beforeLevel: Int, afterLevel: Int) async {
+
+    private func saveStudyRecord(duration: TimeInterval, earnedExp: Double, beforeLevel: Int, afterLevel: Int) async throws {
         guard let userId = self.userId else { return }
         
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
@@ -416,6 +414,7 @@ class MainViewModel: ObservableObject {
             self.calculateStatistics()
         } catch {
             print("学習記録の保存エラー: \(error)")
+            throw error
         }
     }
     // 統計情報の計算
@@ -646,7 +645,7 @@ class MainViewModel: ObservableObject {
         
         return posts
     }
-    
+    // MainViewModel.swift に追加するメソッド
     
     // ⭐️ すべての投稿のニックネームを更新
     func updateNicknameEverywhere(newNickname: String) async throws {

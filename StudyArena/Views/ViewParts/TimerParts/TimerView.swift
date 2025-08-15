@@ -16,8 +16,10 @@ struct TimerView: View {
             MinimalDarkBackgroundView()
             
             VStack(spacing: 30) {
+                // ⭐️ ユーザーステータスカード（改善版）
                 if let user = viewModel.user {
                     UserStatusCard(user: user)
+                        .environmentObject(viewModel)
                 }
                 
                 Spacer()
@@ -59,6 +61,10 @@ struct TimerView: View {
                 Spacer()
             }
             .padding()
+        }
+        .onAppear {
+            // ⭐️ ランキングデータを読み込む（UserStatusCardで使用）
+            viewModel.loadRanking()
         }
     }
 }
