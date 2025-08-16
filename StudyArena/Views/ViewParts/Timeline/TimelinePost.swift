@@ -19,6 +19,8 @@ struct TimelinePost: Identifiable, Codable {
     let level: Int
     var likeCount: Int = 0  // いいね数
     var likedUserIds: [String] = []  // いいねしたユーザーのID
+    var studyDuration: TimeInterval?
+    var linkedStudyRecordId: String?
     
     // Firestoreに保存するプロパティ
     enum CodingKeys: String, CodingKey {
@@ -29,6 +31,8 @@ struct TimelinePost: Identifiable, Codable {
         case level
         case likeCount
         case likedUserIds
+        case studyDuration
+        case linkedStudyRecordId
     }
     
     // 表示用のフォーマット済み日付

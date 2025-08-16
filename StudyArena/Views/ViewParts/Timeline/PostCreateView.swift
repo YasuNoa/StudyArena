@@ -9,45 +9,10 @@ struct PostCreateView: View {
     @State private var alertMessage = ""
     @State private var isPosting = false
     
-    // ⭐️ レベルに応じた文字数制限を計算（非線形版）
+    // ⭐️ レベルに応じた文字数制限を計算（新計算式版）
     var postLimit: Int {
         guard let user = viewModel.user else { return 5 }
-        
-        let milestones: [(level: Int, chars: Int)] = [
-            (1, 5),
-            (3, 6),
-            (5, 7),
-            (7, 8),
-            (10, 10),
-            (13, 12),
-            (17, 14),
-            (20, 15),
-            (25, 17),
-            (30, 18),
-            (35, 20),
-            (40, 22),
-            (45, 23),
-            (50, 25),
-            (55, 26),
-            (60, 28),
-            (70, 30),
-            (80, 33),
-            (85, 35),
-            (90, 37),
-            (95, 38),
-            (100, 40)
-        ]
-        
-        var currentLimit = 5
-        for milestone in milestones {
-            if user.level >= milestone.level {
-                currentLimit = milestone.chars
-            } else {
-                break
-            }
-        }
-        
-        return currentLimit
+        return user.postCharacterLimit
     }
     
     // 入力制限は投稿制限の3倍程度に設定
@@ -338,37 +303,26 @@ struct PostLevelInfoBanner: View {
     let currentLevel: Int
     let postLimit: Int
     
-    // 次のマイルストーンレベルを計算（非線形版）
-    var nextMilestone: (level: Int, chars: Int)? {
-        let milestones = [
-            (3, 6),
-            (5, 7),
-            (7, 8),
-            (10, 10),
-            (13, 12),
-            (17, 14),
-            (20, 15),
-            (25, 17),
-            (30, 18),
-            (35, 20),
-            (40, 22),
-            (45, 23),
-            (50, 25),
-            (55, 26),
-            (60, 28),
-            (70, 30),
-            (80, 33),
-            (85, 35),
-            (90, 37),
-            (95, 38),
-            (100, 40)
-        ]
+    // 次の文字数増加を計算（動的版）
+    var nextCharacterIncrease: (level: Int, chars: Int)? {
+        // 現在の文字数
+        let currentChars = postLimit
         
-        for milestone in milestones {
-            if currentLevel < milestone.0 {
-                return milestone
+        // レベルを少しずつ上げて、文字数が増える地点を探す
+        for checkLevel in (currentLevel + 1)...(currentLevel + 1000) {
+            var tempUser = User(level: checkLevel)
+            let nextChars = tempUser.postCharacterLimit
+            
+            if nextChars > currentChars {
+                return (level: checkLevel, chars: nextChars)
+            }
+            
+            // 最大値に達した場合
+            if nextChars >= 500 {
+                return nil
             }
         }
+        
         return nil
     }
     
@@ -397,23 +351,23 @@ struct PostLevelInfoBanner: View {
             )
             
             // 次のマイルストーン表示
-            if let milestone = nextMilestone {
+            if let next = nextCharacterIncrease {
                 HStack(spacing: 4) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 11))
                         .foregroundColor(.yellow.opacity(0.8))
                     
-                    Text("Lv.\(milestone.level)で\(milestone.chars)文字投稿可能")
+                    Text("Lv.\(next.level)で\(next.chars)文字投稿可能")
                         .font(.system(size: 11))
                         .foregroundColor(.yellow.opacity(0.7))
                 }
-            } else if currentLevel >= 100 {
+            } else if postLimit >= 500 {
                 HStack(spacing: 4) {
                     Image(systemName: "crown.fill")
                         .font(.system(size: 11))
                         .foregroundColor(.yellow)
                     
-                    Text("最大文字数に到達！")
+                    Text("最大文字数（500文字）に到達！")
                         .font(.system(size: 11))
                         .foregroundColor(.yellow)
                 }

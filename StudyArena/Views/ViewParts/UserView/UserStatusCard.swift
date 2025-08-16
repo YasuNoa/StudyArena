@@ -1,55 +1,21 @@
 //
-//  UserStatusCard.swift
+//  UserStatusCard.swift - レベル10000対応版
 //  productene
 //
-//  Created by 田中正造 on 03/07/2025.
-//
+
 import SwiftUI
 
 struct UserStatusCard: View {
     let user: User
     @EnvironmentObject var viewModel: MainViewModel
     
-    // トロフィー情報をレベルから直接判定
+    // 現在のトロフィー情報を取得
     var trophyInfo: (color: Color, icon: String) {
-        switch user.level {
-        case 1...20:
-            return (Color(red: 0.8, green: 0.5, blue: 0.2), "shield.fill")
-        case 21...50:
-            return (Color(white: 0.7), "shield.lefthalf.filled")
-        case 51...100:
-            return (Color.yellow, "crown.fill")
-        case 101...150:
-            return (Color.cyan, "star.circle.fill")
-        case 151...200:
-            return (Color.purple, "rhombus.fill")
-        default:
-            return (Color.red, "flame.fill")
+        if let trophy = user.currentTrophy {
+            return (trophy.color, trophy.icon)
         }
-    }
-    
-    // レベルからトロフィー名を取得
-    func getTrophyName(level: Int) -> String {
-        switch level {
-        case 1...7: return "ブロンズ I"
-        case 8...14: return "ブロンズ II"
-        case 15...20: return "ブロンズ III"
-        case 21...30: return "シルバー I"
-        case 31...40: return "シルバー II"
-        case 41...50: return "シルバー III"
-        case 51...65: return "ゴールド I"
-        case 66...85: return "ゴールド II"
-        case 86...100: return "ゴールド III"
-        case 101...115: return "プラチナ I"
-        case 116...135: return "プラチナ II"
-        case 136...150: return "プラチナ III"
-        case 151...165: return "ダイヤモンド I"
-        case 166...185: return "ダイヤモンド II"
-        case 186...200: return "ダイヤモンド III"
-        case 201...250: return "マスター I"
-        case 251...300: return "マスター II"
-        default: return "マスター III"
-        }
+        // デフォルト（レベル1未満の場合）
+        return (Color.gray, "questionmark.circle")
     }
     
     // レベル数字のフォントサイズ（レベルに応じて調整）
@@ -61,14 +27,11 @@ struct UserStatusCard: View {
             return 16
         case 100...999:
             return 14
-        default:
+        case 1000...9999:
             return 12
+        default: // 10000以上
+            return 10
         }
-    }
-    
-    // 次のレベルまでの必要経験値を計算
-    func getExperienceForNextLevel(level: Int) -> Double {
-        return Double(level * 100 + Int(pow(Double(level), 1.5) * 50))
     }
     
     var body: some View {
@@ -94,9 +57,13 @@ struct UserStatusCard: View {
             
             // 中央：トロフィー名とニックネーム
             VStack(alignment: .leading, spacing: 2) {
-                Text(getTrophyName(level: user.level))
-                    .font(.system(size: 11))
-                    .foregroundColor(trophyInfo.color.opacity(0.9))
+                if let trophy = user.currentTrophy {
+                    Text(trophy.displayName)
+                        .font(.system(size: 11))
+                        .foregroundColor(trophyInfo.color.opacity(0.9))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
                 
                 Text(user.nickname)
                     .font(.system(size: 15, weight: .semibold))
@@ -109,7 +76,7 @@ struct UserStatusCard: View {
             // 右側：経験値情報（コンパクト版）
             VStack(alignment: .trailing, spacing: 4) {
                 // 経験値プログレスバー（細く）
-                ProgressView(value: user.experience, total: getExperienceForNextLevel(level: user.level))
+                ProgressView(value: user.experience, total: user.experienceForNextLevel)
                     .tint(.yellow)
                     .frame(width: 100, height: 3)
                     .background(
@@ -117,13 +84,13 @@ struct UserStatusCard: View {
                             .fill(.white.opacity(0.1))
                     )
                 
-                // 経験値テキスト
-                Text("\(Int(user.experience))/\(Int(getExperienceForNextLevel(level: user.level)))")
+                // 経験値テキスト（大きな数値対応）
+                Text(formatExperience(current: user.experience, total: user.experienceForNextLevel))
                     .font(.system(size: 9))
                     .foregroundColor(.white.opacity(0.5))
                 
                 // 次のレベルまで
-                Text("次Lvまで\(Int(getExperienceForNextLevel(level: user.level) - user.experience))")
+                Text("次Lvまで\(formatNumber(user.experienceForNextLevel - user.experience))")
                     .font(.system(size: 8))
                     .foregroundColor(.green.opacity(0.6))
             }
@@ -147,9 +114,30 @@ struct UserStatusCard: View {
                 )
         )
     }
+    
+    // 大きな数値を適切にフォーマット
+    private func formatNumber(_ value: Double) -> String {
+        let intValue = Int(value)
+        
+        if intValue >= 1_000_000_000 {
+            return String(format: "%.1fB", Double(intValue) / 1_000_000_000)
+        } else if intValue >= 1_000_000 {
+            return String(format: "%.1fM", Double(intValue) / 1_000_000)
+        } else if intValue >= 10_000 {
+            return String(format: "%.1fK", Double(intValue) / 1_000)
+        } else {
+            return "\(intValue)"
+        }
+    }
+    
+    private func formatExperience(current: Double, total: Double) -> String {
+        let currentStr = formatNumber(current)
+        let totalStr = formatNumber(total)
+        return "\(currentStr)/\(totalStr)"
+    }
 }
 
-// レベルバッジコンポーネント
+// レベルバッジコンポーネント（レベル10000対応版）
 struct LevelBadge: View {
     let level: Int
     
@@ -162,39 +150,30 @@ struct LevelBadge: View {
             return 14
         case 100...999:
             return 12
-        default:
+        case 1000...9999:
             return 10
+        default:
+            return 8
         }
     }
     
-    // レベルに応じた背景色（グラデーション）
+    // レベルに応じた背景グラデーション（新トロフィーシステム対応）
     var badgeGradient: LinearGradient {
-        switch level {
-        case 1...20:  // ブロンズ帯
+        if let trophy = Trophy.from(level: level) {
+            let color = trophy.color
             return LinearGradient(
-                colors: [Color(red: 0.8, green: 0.5, blue: 0.2), Color(red: 0.6, green: 0.4, blue: 0.15)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        case 21...50:  // シルバー帯
-            return LinearGradient(
-                colors: [Color.white.opacity(0.9), Color.gray],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        case 51...100:  // ゴールド帯
-            return LinearGradient(
-                colors: [Color.yellow, Color.orange],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        default:  // レベル100以上（レジェンド）
-            return LinearGradient(
-                colors: [Color.purple, Color.pink],
+                colors: [color, color.opacity(0.7)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         }
+        
+        // デフォルト
+        return LinearGradient(
+            colors: [Color.gray, Color.gray.opacity(0.7)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
     
     var body: some View {
@@ -211,16 +190,28 @@ struct LevelBadge: View {
             
             // レベル番号
             VStack(spacing: 0) {
-                Text("\(level)")
+                Text(formatLevelNumber(level))
                     .font(.system(size: fontSize, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
                 
-                Text("Lv")
-                    .font(.system(size: 6, weight: .bold))
-                    .foregroundColor(.white.opacity(0.9))
+                if level < 10000 {
+                    Text("Lv")
+                        .font(.system(size: 6, weight: .bold))
+                        .foregroundColor(.white.opacity(0.9))
+                }
             }
+        }
+    }
+    
+    private func formatLevelNumber(_ level: Int) -> String {
+        if level >= 10000 {
+            return "\(level / 1000)K"
+        } else if level >= 1000 {
+            return String(format: "%.1fK", Double(level) / 1000)
+        } else {
+            return "\(level)"
         }
     }
 }
@@ -241,43 +232,43 @@ struct LevelBadge: View {
             ))
             .environmentObject(MainViewModel.mock)
             
-            // レベル35のシルバーユーザー
+            // レベル100のゴールドユーザー
             UserStatusCard(user: User(
                 id: "2",
                 nickname: "中級者花子",
-                level: 35,
-                experience: 1500,
-                totalStudyTime: 36000
+                level: 100,
+                experience: 5000,
+                totalStudyTime: 100000
             ))
             .environmentObject(MainViewModel.mock)
             
-            // レベル75のゴールドユーザー
+            // レベル1000のグランドマスター
             UserStatusCard(user: User(
                 id: "3",
                 nickname: "上級者次郎",
-                level: 75,
-                experience: 3000,
-                totalStudyTime: 360000
+                level: 1000,
+                experience: 150000,
+                totalStudyTime: 5000000
             ))
             .environmentObject(MainViewModel.mock)
             
-            // レベル100のゴールドユーザー（3桁テスト）
+            // レベル5000のレジェンド
             UserStatusCard(user: User(
                 id: "4",
-                nickname: "マスター",
-                level: 100,
-                experience: 4500,
-                totalStudyTime: 500000
+                nickname: "伝説の人",
+                level: 5000,
+                experience: 800000,
+                totalStudyTime: 50000000
             ))
             .environmentObject(MainViewModel.mock)
             
-            // レベル999のレジェンド（3桁最大テスト）
+            // レベル10000のミシック
             UserStatusCard(user: User(
                 id: "5",
-                nickname: "レジェンド",
-                level: 999,
-                experience: 9999,
-                totalStudyTime: 9999999
+                nickname: "神話級",
+                level: 10000,
+                experience: 2000000,
+                totalStudyTime: 100000000
             ))
             .environmentObject(MainViewModel.mock)
         }
