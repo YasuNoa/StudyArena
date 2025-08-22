@@ -55,18 +55,9 @@ struct TimelineView: View {
     
     var body: some View {
         ZStack {
-            MinimalDarkBackgroundView()
-            
             VStack(spacing: 0) {
                 // ヘッダー
                 VStack(spacing: 15) {
-                    Text("タイムライン")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .shadow(color: .white.opacity(0.1), radius: 5)
-                    
-                    // 統計情報
                     if let stats = viewModel.studyStatistics {
                         StudyStatsCard(statistics: stats)
                     }

@@ -18,6 +18,8 @@ struct SideNavigationView: View {
     @State private var showingSection: NavigationSection? = nil
     @State private var showFeedback = false
     @State private var showDepartmentJoin = false
+    @State private var showStudyCalendar = false
+    @State private var showMBTIStats = false
     
     enum NavigationSection: String, CaseIterable {
         case main = "メイン"
@@ -87,6 +89,7 @@ struct SideNavigationView: View {
                                 }
                             }
                             
+                            
                             // 部門関連
                             MenuSection(title: "部門") {
                                 NavigationItem(
@@ -124,6 +127,14 @@ struct SideNavigationView: View {
                                 ) {
                                     // 統計画面へ
                                 }
+                                NavigationItem(
+                                    icon: "brain.head.profile",
+                                    title: "MBTI別統計",
+                                    color: .purple
+                                ) {
+                                    showMBTIStats = true
+                                    isShowing = false
+                                }
                                 
                                 NavigationItem(
                                     icon: "trophy.fill",
@@ -139,6 +150,8 @@ struct SideNavigationView: View {
                                     color: .red
                                 ) {
                                     // カレンダー画面へ
+                                    showStudyCalendar = true  // ⭐️ シートを表示
+                                    isShowing = false
                                 }
                             }
                             
@@ -216,6 +229,38 @@ struct SideNavigationView: View {
         }
         .sheet(isPresented: $showDepartmentJoin) {
             DepartmentBrowserView()
+        }
+        .sheet(isPresented: $showStudyCalendar) {  // ⭐️ カレンダーシート追加
+            NavigationView {
+                StudyCalendarView()
+                    .environmentObject(viewModel)
+                    .navigationTitle("学習カレンダー")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("閉じる") {
+                                showStudyCalendar = false
+                            }
+                            .foregroundColor(.white)
+                        }
+                    }
+            }
+        }
+        .sheet(isPresented: $showMBTIStats) {
+            NavigationView {
+                MBTIStatsView()
+                    .environmentObject(viewModel)
+                    .navigationTitle("MBTI統計")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("閉じる") {
+                                showMBTIStats = false
+                            }
+                            .foregroundColor(.white)
+                        }
+                    }
+            }
         }
     }
 }

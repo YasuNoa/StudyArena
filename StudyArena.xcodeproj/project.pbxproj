@@ -45,6 +45,8 @@
 		BFACD48E2E517C1400935FCE /* Department.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD48D2E517C1400935FCE /* Department.swift */; };
 		BFACD4912E517C8800935FCE /* SideNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4902E517C8800935FCE /* SideNavigationView.swift */; };
 		BFACD4932E58285200935FCE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BFACD4922E58285200935FCE /* GoogleService-Info.plist */; };
+		BFACD4962E5875F300935FCE /* StudyCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4952E5875F300935FCE /* StudyCalendarView.swift */; };
+		BFACD4982E588C6D00935FCE /* MBTIStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4972E588C6D00935FCE /* MBTIStatsView.swift */; };
 		BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */; };
 		BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */; };
 		BFAD2C422E3E7521004C748A /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C412E3E7521004C748A /* TimelineView.swift */; };
@@ -75,6 +77,8 @@
 		BFACD48D2E517C1400935FCE /* Department.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Department.swift; sourceTree = "<group>"; };
 		BFACD4902E517C8800935FCE /* SideNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideNavigationView.swift; sourceTree = "<group>"; };
 		BFACD4922E58285200935FCE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		BFACD4952E5875F300935FCE /* StudyCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyCalendarView.swift; sourceTree = "<group>"; };
+		BFACD4972E588C6D00935FCE /* MBTIStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTIStatsView.swift; sourceTree = "<group>"; };
 		BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTracker.swift; sourceTree = "<group>"; };
 		BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyRecord.swift; sourceTree = "<group>"; };
 		BFAD2C412E3E7521004C748A /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
@@ -185,8 +189,8 @@
 		BFACD48B2E5057F500935FCE /* Timeline */ = {
 			isa = PBXGroup;
 			children = (
-				BFAD2C432E408708004C748A /* TimelinePost.swift */,
 				BFAD2C412E3E7521004C748A /* TimelineView.swift */,
+				BFAD2C432E408708004C748A /* TimelinePost.swift */,
 				BFAD2C452E408728004C748A /* PostCreateView.swift */,
 			);
 			path = Timeline;
@@ -204,8 +208,18 @@
 			isa = PBXGroup;
 			children = (
 				BFACD4902E517C8800935FCE /* SideNavigationView.swift */,
+				BFACD4942E5875E100935FCE /* Static */,
 			);
 			path = Navigation;
+			sourceTree = "<group>";
+		};
+		BFACD4942E5875E100935FCE /* Static */ = {
+			isa = PBXGroup;
+			children = (
+				BFACD4972E588C6D00935FCE /* MBTIStatsView.swift */,
+				BFACD4952E5875F300935FCE /* StudyCalendarView.swift */,
+			);
+			path = Static;
 			sourceTree = "<group>";
 		};
 		BFC0F9DB2E159B1800870CDD /* Frameworks */ = {
@@ -221,15 +235,15 @@
 				BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */,
 				BFC0F9DD2E164FE300870CDD /* LoadingView.swift */,
 				BFC0F9E12E16503200870CDD /* ErrorView.swift */,
-				BFC0F9F92E16513E00870CDD /* TimerParts */,
-				BFC0F9FA2E16515A00870CDD /* RankingParts */,
+				BFC0F9F92E16513E00870CDD /* Timer */,
+				BFC0F9FA2E16515A00870CDD /* Ranking */,
 				BFACD48B2E5057F500935FCE /* Timeline */,
-				BFC0F9FC2E1651E900870CDD /* UserView */,
+				BFC0F9FC2E1651E900870CDD /* Prifile */,
 			);
 			path = ViewParts;
 			sourceTree = "<group>";
 		};
-		BFC0F9F92E16513E00870CDD /* TimerParts */ = {
+		BFC0F9F92E16513E00870CDD /* Timer */ = {
 			isa = PBXGroup;
 			children = (
 				BFC0F9E52E16505E00870CDD /* TimerView.swift */,
@@ -237,26 +251,26 @@
 				BFC0F9EB2E16509A00870CDD /* TimerButton.swift */,
 				BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */,
 			);
-			path = TimerParts;
+			path = Timer;
 			sourceTree = "<group>";
 		};
-		BFC0F9FA2E16515A00870CDD /* RankingParts */ = {
+		BFC0F9FA2E16515A00870CDD /* Ranking */ = {
 			isa = PBXGroup;
 			children = (
 				BFC0F9EF2E1650BF00870CDD /* RankingView.swift */,
 				BFC0F9F12E1650D800870CDD /* RankingRow.swift */,
 			);
-			path = RankingParts;
+			path = Ranking;
 			sourceTree = "<group>";
 		};
-		BFC0F9FC2E1651E900870CDD /* UserView */ = {
+		BFC0F9FC2E1651E900870CDD /* Prifile */ = {
 			isa = PBXGroup;
 			children = (
 				BFC0F9F72E16511700870CDD /* ProfileView.swift */,
 				BFC0F9E72E16507900870CDD /* UserStatusCard.swift */,
 				BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */,
 			);
-			path = UserView;
+			path = Prifile;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -362,6 +376,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFACD4962E5875F300935FCE /* StudyCalendarView.swift in Sources */,
 				BFAD2C462E408728004C748A /* PostCreateView.swift in Sources */,
 				BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */,
 				BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */,
@@ -379,6 +394,7 @@
 				BFC0F9F82E16511700870CDD /* ProfileView.swift in Sources */,
 				BFC0F9EA2E16508800870CDD /* TimerDisplay.swift in Sources */,
 				BFACD48E2E517C1400935FCE /* Department.swift in Sources */,
+				BFACD4982E588C6D00935FCE /* MBTIStatsView.swift in Sources */,
 				BF7F8B922E15099C00DF3CFC /* producteneApp.swift in Sources */,
 				BFACD4882E49CDCC00935FCE /* TrophyDisplayCard.swift in Sources */,
 				BFC0F9E42E16504B00870CDD /* MainTabView.swift in Sources */,
@@ -519,7 +535,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = F2KY6KTH3H;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -527,13 +543,13 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yasu.studyarena;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -548,7 +564,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = F2KY6KTH3H;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -556,13 +572,13 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yasu.studyarena;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

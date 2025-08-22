@@ -38,39 +38,45 @@ struct RankingView: View {
     @State private var selectedDepartment: Department? = nil
     
     var body: some View {
-        ZStack {
-            MinimalDarkBackgroundView()
-            
-            VStack(spacing: 0) {
-                // フィルター選択
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(RankingFilter.allCases, id: \.self) { filter in
-                            FilterChip(
-                                filter: filter,
-                                isSelected: selectedFilter == filter,
-                                action: {
-                                    selectedFilter = filter
-                                    loadFilteredRanking()
-                                }
-                            )
-                        }
+        VStack(spacing: 0) {
+            // フィルター選択
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(RankingFilter.allCases, id: \.self) { filter in
+                        FilterChip(
+                            filter: filter,
+                            isSelected: selectedFilter == filter,
+                            action: {
+                                selectedFilter = filter
+                                loadFilteredRanking()
+                            }
+                        )
                     }
-                    .padding()
                 }
-                
-                // 部門選択（部門フィルターの場合）
-                if selectedFilter == .department {
-                    DepartmentSelector(
-                        departments: viewModel.departments,
-                        selectedDepartment: $selectedDepartment
-                    )
+                .padding()
+            }
+            
+            // 部門選択（部門フィルターの場合）
+            if selectedFilter == .department {
+                DepartmentSelector(
+                    departments: viewModel.departments,
+                    selectedDepartment: $selectedDepartment
+                )
+            }
+            
+            
+            // ランキングリスト
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(viewModel.ranking) { user in
+                        MinimalRankingRow(user: user)
+                            .padding(.horizontal)
+                    }
                 }
-                
-                // ランキングリスト
-                ScrollView {
-                    // 既存のランキング表示
-                }
+                .padding(.vertical, 10)
+            }
+            .refreshable {
+                viewModel.loadRanking()
             }
         }
     }

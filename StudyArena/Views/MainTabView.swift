@@ -42,38 +42,43 @@ struct MainTabView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // メインコンテンツ
-            VStack(spacing: 0) {
-                // 上部ナビゲーションバー
-                TopNavigationBar(showSideMenu: $showSideMenu, currentTab: selectedTab)
-                
-                // コンテンツエリア
-                Group {
-                    switch selectedTab {
-                    case .timer:
-                        TimerView()
-                    case .ranking:
-                        RankingView()
-                    case .timeline:
-                        TimelineView()
-                    case .profile:
-                        ProfileView()
+        ZStack { // ← ZStackで全体を囲む
+            // ① 一番下に背景を一度だけ配置
+            MinimalDarkBackgroundView()
+                .ignoresSafeArea()
+            ZStack(alignment: .bottom) {
+                // メインコンテンツ
+                VStack(spacing: 0) {
+                    // 上部ナビゲーションバー
+                    TopNavigationBar(showSideMenu: $showSideMenu, currentTab: selectedTab)
+                    
+                    // コンテンツエリア
+                    Group {
+                        switch selectedTab {
+                        case .timer:
+                            TimerView()
+                        case .ranking:
+                            RankingView()
+                        case .timeline:
+                            TimelineView()
+                        case .profile:
+                            ProfileView()
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                // フローティングTabBar
+                FloatingTabBar(selectedTab: $selectedTab)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 10)
+                
+                // サイドメニューオーバーレイ
+                SideNavigationView(
+                    isShowing: $showSideMenu,
+                    selectedTab: $selectedTab
+                )
             }
-            
-            // フローティングTabBar
-            FloatingTabBar(selectedTab: $selectedTab)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 10)
-            
-            // サイドメニューオーバーレイ
-            SideNavigationView(
-                isShowing: $showSideMenu,
-                selectedTab: $selectedTab
-            )
         }
     }
 }
@@ -135,12 +140,7 @@ struct TopNavigationBar: View {
             .disabled(true) // 今は無効
         }
         .padding(.horizontal)
-        .padding(.vertical, 10)
-        .background(
-            Color.black.opacity(0.3)
-                .background(.ultraThinMaterial)
-                .ignoresSafeArea(edges: .top)
-        )
+        .background(Color.clear)
     }
 }
 
@@ -223,4 +223,8 @@ struct FloatingTabButton: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
+}
+#Preview{
+    MainTabView()
+        .environmentObject(MainViewModel())
 }

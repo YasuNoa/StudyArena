@@ -20,18 +20,7 @@ struct ProfileView: View {
     
     var body: some View {
         ZStack {
-            // TimerViewと同じ背景
-            MinimalDarkBackgroundView()
-            
             VStack(spacing: 20) {
-                // タイトル
-                Text("プロフィール")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .shadow(color: .purple.opacity(0.5), radius: 10)
-                    .padding(.top, 50)
-                
                 ScrollView {
                     VStack(spacing: 20) {
                         if let user = viewModel.user {
@@ -121,6 +110,7 @@ struct ProfileView: View {
                 }
                 .scrollIndicators(.hidden) // スクロールインジケーターを非表示
             }
+            .padding(.top, 20) // 上部の余白
             .onAppear {
                 findUserRank()
             }

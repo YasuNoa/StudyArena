@@ -14,7 +14,7 @@ struct TimerView: View {
     
     var body: some View {
         ZStack {
-            MinimalDarkBackgroundView()
+            
             
             VStack(spacing: 30) {
                 if let user = viewModel.user {

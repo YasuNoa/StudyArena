@@ -25,6 +25,9 @@ class MainViewModel: ObservableObject {
     @Published var studyRecords: [StudyRecord] = []
     @Published var studyStatistics: StudyStatistics?
     
+    // 日別の学習データ
+    @Published var dailyStudyData: [Date: TimeInterval] = [:]
+    
     private var db = Firestore.firestore()
     private var userId: String?
     private var timer: Timer?
@@ -118,7 +121,7 @@ class MainViewModel: ObservableObject {
                 
             } else {
                 print("🆕 新規ユーザーを作成します")
-                var newUser = User(id: uid, nickname: "挑戦者")
+                let newUser = User(id: uid, nickname: "挑戦者")
                 self.user = newUser
                 try await self.saveUserData(userToSave: newUser)
             }
@@ -190,7 +193,13 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    // ⭐️ スクリーンタイム&バックグラウンド追跡付きタイマー
+    func saveTodayStudyTime(_ time: TimeInterval) {
+        let today = Calendar.current.startOfDay(for: Date())
+        dailyStudyData[today] = (dailyStudyData[today] ?? 0) + time
+        // saveDailyRecordの呼び出しを削除
+    }
+    
+    //バックグラウンド追跡付きタイマー
     func startTimerWithValidation() {
         guard !isTimerRunning else { return }
         
@@ -291,7 +300,8 @@ class MainViewModel: ObservableObject {
             
             // 経験値を追加
             self.addExperience(from: studyTime)
-            
+            //カレンダーに記録
+            saveTodayStudyTime(studyTime)
             // ⭐️ レベル記録（変更後）
             let afterLevel = self.user?.level ?? 1
             let earnedExp = studyTime
@@ -318,6 +328,10 @@ class MainViewModel: ObservableObject {
         }
     }
     
+    func getStudyTime(for date: Date) -> TimeInterval {
+        let day = Calendar.current.startOfDay(for: date)
+        return dailyStudyData[day] ?? 0
+    }
     // 既存のタイマーメソッド（互換性のため残す）
     func startTimer() {
         guard !isTimerRunning else { return }
@@ -661,11 +675,12 @@ class MainViewModel: ObservableObject {
         }
     }
     // 今日すでに投稿しているかチェック
-    func hasPostedToday() async -> Bool {
-        guard let userId = self.userId else { return false }
+    // hasPostedTodayを改名してgetTodayPostCountに変更
+    func getTodayPostCount() async -> Int {
+        guard let userId = self.userId else { return 0 }
         
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-        if isPreview { return false }
+        if isPreview { return 0 }
         
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -676,17 +691,21 @@ class MainViewModel: ObservableObject {
                 .whereField("userId", isEqualTo: userId)
                 .whereField("timestamp", isGreaterThanOrEqualTo: Timestamp(date: today))
                 .whereField("timestamp", isLessThan: Timestamp(date: tomorrow))
-                .limit(to: 1)
                 .getDocuments()
             
-            return !querySnapshot.documents.isEmpty
+            return querySnapshot.documents.count
         } catch {
-            print("投稿チェックエラー: \(error)")
-            // ⚠️ エラー時はtrueを返すべき（安全側に倒す）
-            return true  // ← falseではなくtrue！
+            print("投稿数チェックエラー: \(error)")
+            return 99  // エラー時は安全側に倒す
         }
     }
     
+    // 投稿可能かチェック
+    func canPostToday() async -> Bool {
+        let todayCount = await getTodayPostCount()
+        let limit = user?.dailyPostLimit ?? 1
+        return todayCount < limit
+    }
     // モック投稿データ生成（プレビュー用）
     private func createMockTimelinePosts() -> [TimelinePost] {
         var posts: [TimelinePost] = []
@@ -784,6 +803,70 @@ class MainViewModel: ObservableObject {
         }
     }
 
+    // loadMonthlyDataを実装（studyRecordsから集計）
+    
+    func loadMonthlyData(for month: Date) async {
+        
+        guard let userId = self.userId else { return }
+        
+        
+        
+        let calendar = Calendar.current
+        
+        let startOfMonth = calendar.dateInterval(of: .month, for: month)!.start
+        
+        let endOfMonth = calendar.dateInterval(of: .month, for: month)!.end
+        
+        
+        
+        do {
+            
+            let querySnapshot = try await db.collection("studyRecords")
+            
+                .whereField("userId", isEqualTo: userId)
+            
+                .whereField("timestamp", isGreaterThanOrEqualTo: Timestamp(date: startOfMonth))
+            
+                .whereField("timestamp", isLessThan: Timestamp(date: endOfMonth))
+            
+                .whereField("recordType", isEqualTo: "study")
+            
+                .getDocuments()
+            
+            
+            
+            // 日付ごとに集計
+            
+            var dailyData: [Date: TimeInterval] = [:]
+            
+            for document in querySnapshot.documents {
+                
+                let data = document.data()
+                
+                if let timestamp = (data["timestamp"] as? Timestamp)?.dateValue(),
+                   
+                    let duration = data["duration"] as? TimeInterval {
+                    
+                    let day = calendar.startOfDay(for: timestamp)
+                    
+                    dailyData[day] = (dailyData[day] ?? 0) + duration
+                    
+                }
+                
+            }
+            
+            
+            
+            self.dailyStudyData = dailyData
+            
+        } catch {
+            
+            print("月間データ取得エラー: \(error)")
+            
+        }
+        
+    }
+    
 #if DEBUG
     static let mock: MainViewModel = {
         let viewModel = MainViewModel()

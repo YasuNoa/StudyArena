@@ -15,6 +15,17 @@ struct User: Identifiable, Codable {
     var unlockedPersonIDs: [String] = []
     var departments: [DepartmentMembership]? = []
     var primaryDepartmentId: String? = nil
+    // User構造体に追加
+    var dailyPostLimit: Int {
+        switch level {
+        case 1...49: return 1
+        case 50...99: return 2
+        case 100...499: return 3
+        case 500...999: return 5
+        default: return 10  // レベル1000以上
+        }
+    }
+    var mbtiType: String? = nil  // MBTI型（16種類）
     
     // ランキング表示時にViewModel側で設定する一時的なプロパティ
     var rank: Int? = nil

@@ -8,6 +8,7 @@ struct PostCreateView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var isPosting = false
+    @State private var remainingPosts = 0
     
     // ⭐️ レベルに応じた文字数制限を計算（新計算式版）
     var postLimit: Int {
@@ -62,7 +63,20 @@ struct PostCreateView: View {
                         postLimit: postLimit
                     )
                 }
-                .padding()
+                if let user = viewModel.user {
+                    HStack {
+                        Text("本日の投稿: \(user.dailyPostLimit - remainingPosts)/\(user.dailyPostLimit)回")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                        
+                        if user.level < 50 {
+                            Text("(Lv.50で2回投稿解放)")
+                                .font(.caption2)
+                                .foregroundColor(.yellow.opacity(0.6))
+                        }
+                    }
+                    .padding(.horizontal)
+                }
                 
                 Spacer()
             }
@@ -81,42 +95,25 @@ struct PostCreateView: View {
     }
     
     private func postToTimeline() {
-        // ⭐️ 重複投稿防止のため、すでに投稿中なら何もしない
-        guard canPost, !isPosting else { return }
-        
-        isPosting = true
-        
         Task {
             do {
-                // ⭐️ 投稿前に必ず今日の投稿状況をチェック
-                let hasPostedToday = await viewModel.hasPostedToday()
-                print("📝 今日の投稿状況: \(hasPostedToday)") 
+                let todayCount = await viewModel.getTodayPostCount()
+                let limit = viewModel.user?.dailyPostLimit ?? 1
                 
-                if hasPostedToday {
+                if todayCount >= limit {
                     await MainActor.run {
-                        alertMessage = "今日はすでに投稿済みです。明日また投稿してください。"
+                        alertMessage = "本日の投稿回数(\(limit)回)に達しました。"
                         showAlert = true
                         isPosting = false
                     }
                     return
                 }
                 
-                // 投稿を実行
+                // 投稿処理...
                 try await viewModel.createTimelinePost(content: postContent)
                 
-                // ⭐️ 成功時は画面を閉じる前に少し待機（重複タップ防止）
-                try await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
-                
-                await MainActor.run {
-                    isPresented = false
-                    isPosting = false
-                }
-            } catch {
-                await MainActor.run {
-                    alertMessage = "投稿に失敗しました: \(error.localizedDescription)"
-                    showAlert = true
-                    isPosting = false
-                }
+                // 残り投稿数を更新
+                remainingPosts = limit - (todayCount + 1)
             }
         }
     }
