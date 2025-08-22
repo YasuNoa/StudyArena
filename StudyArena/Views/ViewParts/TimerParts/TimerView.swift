@@ -10,13 +10,13 @@ import SwiftUI
 struct TimerView: View {
     @EnvironmentObject var viewModel: MainViewModel
     @State private var rotation: Double = 0
+    @State private var showRewardSystem = false
     
     var body: some View {
         ZStack {
             MinimalDarkBackgroundView()
             
             VStack(spacing: 30) {
-                // ⭐️ ユーザーステータスカード（改善版）
                 if let user = viewModel.user {
                     UserStatusCard(user: user)
                         .environmentObject(viewModel)
@@ -30,18 +30,6 @@ struct TimerView: View {
                 if let warning = viewModel.validationWarning {
                     WarningBanner(message: warning)
                         .transition(.move(edge: .top).combined(with: .opacity))
-                }
-                
-                // ⭐️ スクリーンタイム認証状態
-                if !viewModel.screenTimeManager.isAuthorized {
-                    HStack {
-                        Image(systemName: "exclamationmark.shield")
-                            .foregroundColor(.orange)
-                        Text("スクリーンタイム認証が必要です")
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                    }
-                    .padding(.horizontal)
                 }
                 
                 Spacer()

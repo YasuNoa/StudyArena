@@ -16,9 +16,9 @@ class MainViewModel: ObservableObject {
     @Published var isTimerRunning: Bool = false
     @Published var isLoading: Bool = true
     @Published var errorMessage: String?
-    
-    // ⭐️ 不正防止機能（スクリーンタイム＆バックグラウンド追跡のみ）
-    @Published var screenTimeManager = ScreenTimeManager()
+    @Published var departments: [Department] = []
+    @Published var userDepartments: [DepartmentMembership] = []
+    @Published var selectedDepartmentId: String? = nil
     @Published var backgroundTracker = BackgroundTracker()
     @Published var validationWarning: String?
     
@@ -196,9 +196,7 @@ class MainViewModel: ObservableObject {
         
         // バックグラウンド追跡リセット
         backgroundTracker.resetSession()
-        
-        // スクリーンタイム監視開始
-        screenTimeManager.startMonitoring()
+      
         
         isTimerRunning = true
         timer?.invalidate()
@@ -210,15 +208,71 @@ class MainViewModel: ObservableObject {
         }
     }
     
+    func loadDepartments() {
+        Task { @MainActor in
+            do {
+                let querySnapshot = try await db.collection("departments")
+                    .getDocuments()
+                
+                self.departments = querySnapshot.documents.compactMap { doc in
+                    try? doc.data(as: Department.self)
+                }
+            } catch {
+                print("部門の取得エラー: \(error)")
+            }
+        }
+    }
+    
+    func joinDepartment(_ departmentId: String) async throws {
+        guard let userId = self.userId else { return }
+        
+        let membership = DepartmentMembership(
+            departmentId: departmentId,
+            departmentName: departments.first { $0.id == departmentId }?.name ?? "",
+            joinedAt: Date()
+        )
+        
+        // Firestoreに保存
+        try await db.collection("users").document(userId)
+            .collection("departments").document(departmentId)
+            .setData(from: membership)
+        
+        // 部門のメンバー数を更新
+        try await db.collection("departments").document(departmentId)
+            .updateData(["memberCount": FieldValue.increment(Int64(1))])
+        
+        userDepartments.append(membership)
+    }
+    
+    func loadDepartmentRanking(departmentId: String) async throws -> [User] {
+        // 部門メンバーのIDを取得
+        let membersSnapshot = try await db.collection("departments")
+            .document(departmentId)
+            .collection("members")
+            .getDocuments()
+        
+        let memberIds = membersSnapshot.documents.map { $0.documentID }
+        
+        // メンバーの情報を取得してランキング作成
+        var users: [User] = []
+        for id in memberIds {
+            if let doc = try? await db.collection("users").document(id).getDocument(),
+               var user = try? doc.data(as: User.self) {
+                user.id = id
+                users.append(user)
+            }
+        }
+        
+        return users.sorted { $0.totalStudyTime > $1.totalStudyTime }
+    }
+    
     func stopTimerWithValidation() {
         guard isTimerRunning else { return }
         
         isTimerRunning = false
         timer?.invalidate()
         timer = nil
-        
-        // スクリーンタイム監視終了
-        screenTimeManager.stopMonitoring()
+      
         
         let studyTime = timerValue
         
@@ -544,23 +598,20 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    // 投稿の作成
-    // MainViewModel.swift の createTimelinePost メソッドを以下に置き換え
-    
-    // 投稿の作成（throwsを追加）
     func createTimelinePost(content: String) async throws {
         guard let userId = self.userId,
               let user = self.user else { return }
         
-        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-        if isPreview { return }
+        // その日の学習時間を計算
+        let todayStudyTime = await getTodayStudyTime()
         
         let post = TimelinePost(
             userId: userId,
             nickname: user.nickname,
             content: content,
             timestamp: Date(),
-            level: user.level
+            level: user.level,
+            studyDuration: todayStudyTime  // 学習時間を追加
         )
         
         do {
@@ -580,6 +631,33 @@ class MainViewModel: ObservableObject {
         } catch {
             print("投稿の作成エラー: \(error)")
             throw error
+        }
+    }
+    
+    private func getTodayStudyTime() async -> TimeInterval? {
+        guard let userId = self.userId else { return nil }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        
+        do {
+            let querySnapshot = try await db.collection("studyRecords")
+                .whereField("userId", isEqualTo: userId)
+                .whereField("timestamp", isGreaterThanOrEqualTo: Timestamp(date: today))
+                .whereField("timestamp", isLessThan: Timestamp(date: tomorrow))
+                .whereField("recordType", isEqualTo: "study")
+                .getDocuments()
+            
+            let totalTime = querySnapshot.documents.reduce(0.0) { total, doc in
+                let data = doc.data()
+                let duration = data["duration"] as? TimeInterval ?? 0
+                return total + duration
+            }
+            
+            return totalTime > 0 ? totalTime : nil
+        } catch {
+            return nil
         }
     }
     // 今日すでに投稿しているかチェック
@@ -604,7 +682,8 @@ class MainViewModel: ObservableObject {
             return !querySnapshot.documents.isEmpty
         } catch {
             print("投稿チェックエラー: \(error)")
-            return false
+            // ⚠️ エラー時はtrueを返すべき（安全側に倒す）
+            return true  // ← falseではなくtrue！
         }
     }
     
@@ -737,4 +816,13 @@ class MainViewModel: ObservableObject {
         return viewModel
     }()
 #endif
+}
+extension MainViewModel {
+    func additionalMethod() {
+        // 追加メソッドの実装
+    }
+    
+    func anotherMethod() {
+        // 別のメソッド
+    }
 }

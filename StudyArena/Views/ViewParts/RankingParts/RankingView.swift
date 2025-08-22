@@ -6,72 +6,93 @@
 //
 import SwiftUI
 
-struct RankingView: View {
-    @EnvironmentObject var viewModel: MainViewModel
+struct FilterChip: View {
+    let filter: RankingFilter
+    let isSelected: Bool
+    let action: () -> Void
     
     var body: some View {
-        ZStack {
-            // ミニマルダーク背景（共通コンポーネント使用）
-            MinimalDarkBackgroundView()
-            
-            VStack(spacing: 0) {
-                // ヘッダー
-                VStack(spacing: 10) {
-                    Text("全国ランキング")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .shadow(color: .white.opacity(0.1), radius: 5)
-                    
-                    Text("トップ100")
-                        .font(.headline)
-                        .foregroundColor(.white.opacity(0.6))
-                }
-                .padding(.top, 50)
-                .padding(.bottom, 30)
-                
-                if viewModel.ranking.isEmpty {
-                    // 空の状態
-                    VStack(spacing: 20) {
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.white.opacity(0.2))
-                        
-                        Text("ランキングデータがありません")
-                            .font(.title3)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white.opacity(0.6))
-                        
-                        Text("下にスワイプして更新してください")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.4))
-                    }
-                    .frame(maxHeight: .infinity)
-                } else {
-                    // ランキングリスト
-                    ScrollView {
-                        VStack(spacing: 8) {
-                            ForEach(viewModel.ranking) { user in
-                                MinimalRankingRow(user: user)
-                                    .padding(.horizontal)
-                            }
-                        }
-                        .padding(.vertical, 10)
-                    }
-                    .refreshable {
-                        viewModel.loadRanking()
-                    }
-                }
-                
-                Spacer()
-            }
-            .onAppear {
-                viewModel.loadRanking()
-            }
+        Button(action: action) {
+            Text(filter.rawValue)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(isSelected ? Color.blue : Color.gray.opacity(0.3))
+                .foregroundColor(.white)
+                .cornerRadius(15)
         }
     }
 }
+struct DepartmentSelector: View {
+    let departments: [Department]
+    @Binding var selectedDepartment: Department?
+    
+    var body: some View {
+        // 部門選択UIの実装
+        Text("部門選択")
+    }
+}
 
+struct RankingView: View {
+    @EnvironmentObject var viewModel: MainViewModel
+    @State private var selectedFilter: RankingFilter = .all
+    @State private var selectedDepartment: Department? = nil
+    
+    var body: some View {
+        ZStack {
+            MinimalDarkBackgroundView()
+            
+            VStack(spacing: 0) {
+                // フィルター選択
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(RankingFilter.allCases, id: \.self) { filter in
+                            FilterChip(
+                                filter: filter,
+                                isSelected: selectedFilter == filter,
+                                action: {
+                                    selectedFilter = filter
+                                    loadFilteredRanking()
+                                }
+                            )
+                        }
+                    }
+                    .padding()
+                }
+                
+                // 部門選択（部門フィルターの場合）
+                if selectedFilter == .department {
+                    DepartmentSelector(
+                        departments: viewModel.departments,
+                        selectedDepartment: $selectedDepartment
+                    )
+                }
+                
+                // ランキングリスト
+                ScrollView {
+                    // 既存のランキング表示
+                }
+            }
+        }
+    }
+    
+    private func loadFilteredRanking() {
+        switch selectedFilter {
+        case .all:
+            viewModel.loadRanking()
+        case .department:
+            if let deptId = selectedDepartment?.id {
+                Task {
+                    // 部門ランキング読み込み
+                }
+            }
+        case .monthly:
+            // 今月のランキング
+            break
+        default:
+            break
+        }
+    }
+}
 // ミニマルランキング行（トロフィー表示追加版）
 struct MinimalRankingRow: View {
     let user: User

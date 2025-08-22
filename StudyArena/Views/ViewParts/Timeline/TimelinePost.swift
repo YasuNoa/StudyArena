@@ -17,8 +17,8 @@ struct TimelinePost: Identifiable, Codable {
     let content: String
     let timestamp: Date
     let level: Int
-    var likeCount: Int = 0  // いいね数
-    var likedUserIds: [String] = []  // いいねしたユーザーのID
+    var likeCount: Int? = 0  // いいね数
+    var likedUserIds: [String]? = []  // いいねしたユーザーのID
     var studyDuration: TimeInterval?
     var linkedStudyRecordId: String?
     
@@ -54,6 +54,6 @@ struct TimelinePost: Identifiable, Codable {
     
     // 特定のユーザーがいいね済みかチェック
     func isLikedBy(userId: String) -> Bool {
-        return likedUserIds.contains(userId)
+        return ((likedUserIds?.contains(userId)) != nil)
     }
 }

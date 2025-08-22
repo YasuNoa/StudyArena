@@ -1,13 +1,11 @@
-//
-//  MainTabView.swift - フローティングボタン風（タイムライン付き）
-//  productene
-//
+// StudyArena/Views/MainTabView.swift - 更新版
 
 import SwiftUI
 
 struct MainTabView: View {
     @EnvironmentObject var viewModel: MainViewModel
     @State private var selectedTab: Tab = .timer
+    @State private var showSideMenu = false
     
     enum Tab: Int, CaseIterable {
         case timer = 0
@@ -46,28 +44,107 @@ struct MainTabView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             // メインコンテンツ
-            Group {
-                switch selectedTab {
-                case .timer:
-                    TimerView()
-                case .ranking:
-                    RankingView()
-                case .timeline:
-                    TimelineView()
-                case .profile:
-                    ProfileView()
+            VStack(spacing: 0) {
+                // 上部ナビゲーションバー
+                TopNavigationBar(showSideMenu: $showSideMenu, currentTab: selectedTab)
+                
+                // コンテンツエリア
+                Group {
+                    switch selectedTab {
+                    case .timer:
+                        TimerView()
+                    case .ranking:
+                        RankingView()
+                    case .timeline:
+                        TimelineView()
+                    case .profile:
+                        ProfileView()
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             // フローティングTabBar
             FloatingTabBar(selectedTab: $selectedTab)
                 .padding(.horizontal, 20)
                 .padding(.bottom, 10)
+            
+            // サイドメニューオーバーレイ
+            SideNavigationView(
+                isShowing: $showSideMenu,
+                selectedTab: $selectedTab
+            )
         }
     }
 }
 
+// MARK: - 上部ナビゲーションバー
+struct TopNavigationBar: View {
+    @Binding var showSideMenu: Bool
+    let currentTab: MainTabView.Tab
+    @EnvironmentObject var viewModel: MainViewModel
+    
+    var body: some View {
+        HStack {
+            // メニューボタン
+            Button(action: {
+                withAnimation(.spring()) {
+                    showSideMenu.toggle()
+                }
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.white)
+                }
+            }
+            
+            Spacer()
+            
+            // 現在のタブ名
+            Text(currentTab.title)
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            Spacer()
+            
+            // 通知ボタン（将来的な拡張用）
+            Button(action: {}) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    // 通知バッジ（ある場合）
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 10, y: -10)
+                        .opacity(0) // 今は非表示
+                }
+            }
+            .disabled(true) // 今は無効
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(
+            Color.black.opacity(0.3)
+                .background(.ultraThinMaterial)
+                .ignoresSafeArea(edges: .top)
+        )
+    }
+}
+
+// 既存のFloatingTabBarはそのまま使用
 struct FloatingTabBar: View {
     @Binding var selectedTab: MainTabView.Tab
     @Namespace private var animation
@@ -84,7 +161,6 @@ struct FloatingTabBar: View {
         }
         .padding(15)
         .background(
-            // すりガラス効果の背景
             RoundedRectangle(cornerRadius: 30)
                 .fill(.ultraThinMaterial)
                 .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
@@ -108,7 +184,6 @@ struct FloatingTabButton: View {
             }
         } label: {
             ZStack {
-                // 背景
                 RoundedRectangle(cornerRadius: 20)
                     .fill(
                         isSelected
@@ -131,7 +206,6 @@ struct FloatingTabButton: View {
                         y: 4
                     )
                 
-                // コンテンツ
                 HStack(spacing: 6) {
                     Image(systemName: tab.icon)
                         .font(.system(size: 18, weight: .medium))
@@ -150,10 +224,3 @@ struct FloatingTabButton: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
-
-#if DEBUG
-#Preview {
-    MainTabView()
-        .environmentObject(MainViewModel.mock)
-}
-#endif

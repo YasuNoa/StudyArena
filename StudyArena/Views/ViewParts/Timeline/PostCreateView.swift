@@ -90,6 +90,7 @@ struct PostCreateView: View {
             do {
                 // ⭐️ 投稿前に必ず今日の投稿状況をチェック
                 let hasPostedToday = await viewModel.hasPostedToday()
+                print("📝 今日の投稿状況: \(hasPostedToday)") 
                 
                 if hasPostedToday {
                     await MainActor.run {

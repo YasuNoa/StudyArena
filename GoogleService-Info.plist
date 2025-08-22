@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>319757628971-ij4bh1bp2sfrre4lcvb99cfk9tmj56vn.apps.googleusercontent.com</string>
+	<string>319757628971-8mcj71ubht3e8a0bk6gmuufiuv16fnq3.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.319757628971-ij4bh1bp2sfrre4lcvb99cfk9tmj56vn</string>
+	<string>com.googleusercontent.apps.319757628971-8mcj71ubht3e8a0bk6gmuufiuv16fnq3</string>
 	<key>API_KEY</key>
 	<string>AIzaSyAyuO5gfzlcXaflTa4e_MbaMv8tQ7t46v4</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.yasu.productene</string>
+	<string>com.yasu.studyarena</string>
 	<key>PROJECT_ID</key>
 	<string>timebattle</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:319757628971:ios:a59eeb525af3336b811c6e</string>
+	<string>1:319757628971:ios:3988939b0008da10811c6e</string>
 </dict>
 </plist>

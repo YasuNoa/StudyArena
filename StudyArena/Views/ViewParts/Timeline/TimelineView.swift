@@ -399,6 +399,19 @@ struct TimelinePostCard: View {
                         Text("Lv.\(post.level)")
                             .font(.caption)
                             .foregroundColor(.green)
+                        // 学習時間を表示（X風）
+                        if let duration = post.studyDuration {
+                            Text("・")
+                                .foregroundColor(.white.opacity(0.3))
+                            
+                            HStack(spacing: 4) {
+                                Image(systemName: "book.fill")
+                                    .font(.system(size: 10))
+                                Text(formatStudyTime(duration))
+                            }
+                            .font(.caption)
+                            .foregroundColor(.blue.opacity(0.8))
+                        }
                         
                         Text("・")
                             .foregroundColor(.white.opacity(0.3))
@@ -421,8 +434,8 @@ struct TimelinePostCard: View {
             Text(post.content)
                 .font(.system(size: 16))
                 .foregroundColor(.white.opacity(0.9))
-                .lineSpacing(4)
-                .fixedSize(horizontal: false, vertical: true)
+            .lineSpacing(4)
+
         }
         .padding(16)
         .background(
@@ -446,6 +459,16 @@ struct TimelinePostCard: View {
             withAnimation(.spring(response: 0.4)) {
                 isAnimated = true
             }
+        }
+    }
+    private func formatStudyTime(_ duration: TimeInterval) -> String {
+        let hours = Int(duration) / 3600
+        let minutes = Int(duration) / 60 % 60
+        
+        if hours > 0 {
+            return "\(hours)時間\(minutes)分学習"
+        } else {
+            return "\(minutes)分学習"
         }
     }
 }
