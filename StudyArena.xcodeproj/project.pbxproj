@@ -47,6 +47,7 @@
 		BFACD4932E58285200935FCE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BFACD4922E58285200935FCE /* GoogleService-Info.plist */; };
 		BFACD4962E5875F300935FCE /* StudyCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4952E5875F300935FCE /* StudyCalendarView.swift */; };
 		BFACD4982E588C6D00935FCE /* MBTIStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4972E588C6D00935FCE /* MBTIStatsView.swift */; };
+		BFACD49A2E5898BB00935FCE /* MBTISelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4992E5898BB00935FCE /* MBTISelectionView.swift */; };
 		BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */; };
 		BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */; };
 		BFAD2C422E3E7521004C748A /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAD2C412E3E7521004C748A /* TimelineView.swift */; };
@@ -79,6 +80,7 @@
 		BFACD4922E58285200935FCE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		BFACD4952E5875F300935FCE /* StudyCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyCalendarView.swift; sourceTree = "<group>"; };
 		BFACD4972E588C6D00935FCE /* MBTIStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTIStatsView.swift; sourceTree = "<group>"; };
+		BFACD4992E5898BB00935FCE /* MBTISelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTISelectionView.swift; sourceTree = "<group>"; };
 		BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTracker.swift; sourceTree = "<group>"; };
 		BFAD2C3E2E3E7468004C748A /* StudyRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyRecord.swift; sourceTree = "<group>"; };
 		BFAD2C412E3E7521004C748A /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
@@ -217,6 +219,7 @@
 			isa = PBXGroup;
 			children = (
 				BFACD4972E588C6D00935FCE /* MBTIStatsView.swift */,
+				BFACD4992E5898BB00935FCE /* MBTISelectionView.swift */,
 				BFACD4952E5875F300935FCE /* StudyCalendarView.swift */,
 			);
 			path = Static;
@@ -402,6 +405,7 @@
 				BFC0F9E62E16505E00870CDD /* TimerView.swift in Sources */,
 				BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */,
 				BF7F8B972E150B2400DF3CFC /* MainViewModel.swift in Sources */,
+				BFACD49A2E5898BB00935FCE /* MBTISelectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

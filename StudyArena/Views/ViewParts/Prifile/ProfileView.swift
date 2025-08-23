@@ -11,6 +11,7 @@ struct ProfileView: View {
     @State private var userRank: Int? = nil
     @State private var alertMessage: String = ""
     @State private var alertType: AlertType = .success
+    @State private var showMBTISelection = false
     
     enum AlertType {
         case success
@@ -55,6 +56,58 @@ struct ProfileView: View {
                                                     .fontWeight(.semibold)
                                                     .foregroundColor(user.nickname.isEmpty ? .white.opacity(0.5) : .white)
                                                 Spacer()
+                                            }
+                                        }
+                                    }
+                                }
+                                // MBTI情報カード（ステータス情報のProfileCardの下に追加）
+                                ProfileCard {
+                                    VStack(spacing: 15) {
+                                        HStack {
+                                            Text("MBTIタイプ")
+                                                .font(.headline)
+                                                .foregroundColor(.white.opacity(0.7))
+                                            Spacer()
+                                            
+                                            Button(action: { showMBTISelection = true }) {
+                                                HStack(spacing: 4) {
+                                                    Image(systemName: "pencil.circle.fill")
+                                                        .font(.system(size: 16))
+                                                    Text("変更")
+                                                        .font(.caption)
+                                                }
+                                                .foregroundColor(.blue)
+                                            }
+                                        }
+                                        
+                                        if let mbti = user.mbtiType {
+                                            HStack {
+                                                Text(mbti)
+                                                    .font(.title)
+                                                    .fontWeight(.bold)
+                                                    .foregroundColor(.purple)
+                                                
+                                                Spacer()
+                                                
+                                                Image(systemName: "brain.head.profile")
+                                                    .font(.title2)
+                                                    .foregroundColor(.purple.opacity(0.6))
+                                            }
+                                        } else {
+                                            Button(action: { showMBTISelection = true }) {
+                                                HStack {
+                                                    Image(systemName: "plus.circle.fill")
+                                                        .font(.title3)
+                                                    Text("MBTIタイプを設定")
+                                                        .font(.headline)
+                                                }
+                                                .foregroundColor(.purple)
+                                                .frame(maxWidth: .infinity)
+                                                .padding()
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .fill(Color.purple.opacity(0.1))
+                                                )
                                             }
                                         }
                                     }
@@ -125,6 +178,10 @@ struct ProfileView: View {
                 type: alertType
             )
         )
+        .sheet(isPresented: $showMBTISelection) {
+            MBTISelectionView(selectedMBTI: .constant(viewModel.user?.mbtiType))
+                .environmentObject(viewModel)
+        }
         .onChange(of: showSaveAlert) { _, newValue in
             if newValue {
                 // 3秒後に自動的にアラートを閉じる

@@ -38,7 +38,8 @@ struct User: Identifiable, Codable {
         case nickname
         case unlockedPersonIDs
         case departments  // 追加
-        case primaryDepartmentId 
+        case primaryDepartmentId
+        case mbtiType  
     }
     
     // MARK: - 🎯 必要経験値の計算（レベル10000対応）

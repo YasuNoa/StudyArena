@@ -91,6 +91,60 @@ struct MBTIStatsView: View {
         }
     }
 }
+// 自分のMBTIカード
+struct MyMBTICard: View {
+    let mbti: String
+    let stats: (avgTime: String, rank: Int, description: String)?
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("あなたのタイプ")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    Text(mbti)
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(.yellow)
+                }
+                
+                Spacer()
+                
+                if let stats = stats {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("平均勉強時間")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                        Text(stats.avgTime)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.green)
+                        Text("#\(stats.rank)位")
+                            .font(.headline)
+                            .foregroundColor(.yellow)
+                    }
+                }
+            }
+            
+            if let stats = stats {
+                Text(stats.description)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.8))
+                    .padding(.top, 5)
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .fill(Color.yellow.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(Color.yellow.opacity(0.3), lineWidth: 2)
+                )
+        )
+    }
+}
 
 struct MBTIRankingRow: View {
     let rank: Int
