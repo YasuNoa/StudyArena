@@ -11,6 +11,7 @@ struct StudyRecord: Identifiable, Codable {
     let recordType: RecordType
     let beforeLevel: Int
     let afterLevel: Int
+    let mbtiType: String?
     
     enum RecordType: String, Codable {
         case study = "study"          // 通常の学習

@@ -575,6 +575,44 @@ class MainViewModel: ObservableObject {
         return records.sorted { $0.timestamp > $1.timestamp }
     }
     // MainViewModel.swift に追加するコード
+    // MainViewModel.swift に追加
+    @Published var mbtiStatistics: [String: MBTIStatData] = [:]
+    
+    func loadMBTIStatistics() async {
+        do {
+            let doc = try await db.collection("mbtiStatistics")
+                .document("global")
+                .getDocument()
+            
+            if let stats = doc.data()?["stats"] as? [String: [String: Any]] {
+                // データを変換
+                self.mbtiStatistics = stats.compactMapValues { data in
+                    guard let totalTime = data["totalTime"] as? Double,
+                          let userCount = data["userCount"] as? Int else { return nil }
+                    
+                    return MBTIStatData(
+                        totalTime: totalTime,
+                        userCount: userCount,
+                        avgTime: totalTime / Double(max(userCount, 1))
+                    )
+                }
+            }
+        } catch {
+            print("MBTI統計の取得エラー: \(error)")
+        }
+    }
+    // MainViewModel.swift に追加
+    func updateMBTIStatistics(studyTime: TimeInterval) async {
+        guard let mbti = user?.mbtiType else { return }
+        
+        // グローバル統計を更新
+        let statsRef = db.collection("mbtiStatistics").document("global")
+        
+        try? await statsRef.updateData([
+            "stats.\(mbti).totalTime": FieldValue.increment(Double(studyTime)),
+            "stats.\(mbti).userCount": FieldValue.increment(Int64(1))
+        ])
+    }
     
     // MARK: - 既存のプロパティの下に追加
     @Published var timelinePosts: [TimelinePost] = []
