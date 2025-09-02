@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		BF639EB12E48EC66004FCD52 /* RewardSystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */; };
 		BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */; };
-		BF6F37022E59AD2D00159804 /* MBTIPieChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6F37012E59AD2D00159804 /* MBTIPieChartView.swift */; };
+		BF6F37042E65953100159804 /* MBTIStatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6F37032E65953100159804 /* MBTIStatData.swift */; };
 		BF7F8B902E15099C00DF3CFC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8C2E15099C00DF3CFC /* ContentView.swift */; };
 		BF7F8B912E15099C00DF3CFC /* DataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */; };
 		BF7F8B922E15099C00DF3CFC /* producteneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8E2E15099C00DF3CFC /* producteneApp.swift */; };
@@ -69,7 +69,7 @@
 /* Begin PBXFileReference section */
 		BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardSystemView.swift; sourceTree = "<group>"; };
 		BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalDarkBackgroundView.swift; sourceTree = "<group>"; };
-		BF6F37012E59AD2D00159804 /* MBTIPieChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTIPieChartView.swift; sourceTree = "<group>"; };
+		BF6F37032E65953100159804 /* MBTIStatData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTIStatData.swift; sourceTree = "<group>"; };
 		BF7F8B792E13CCF400DF3CFC /* StudyArena.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyArena.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF7F8B8B2E15099C00DF3CFC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BF7F8B8C2E15099C00DF3CFC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -221,7 +221,7 @@
 			isa = PBXGroup;
 			children = (
 				BFACD4972E588C6D00935FCE /* MBTIStatsView.swift */,
-				BF6F37012E59AD2D00159804 /* MBTIPieChartView.swift */,
+				BF6F37032E65953100159804 /* MBTIStatData.swift */,
 				BFACD4992E5898BB00935FCE /* MBTISelectionView.swift */,
 				BFACD4952E5875F300935FCE /* StudyCalendarView.swift */,
 			);
@@ -389,6 +389,7 @@
 				BFACD4912E517C8800935FCE /* SideNavigationView.swift in Sources */,
 				BFC0F9EC2E16509A00870CDD /* TimerButton.swift in Sources */,
 				BFC0F9F22E1650D800870CDD /* RankingRow.swift in Sources */,
+				BF6F37042E65953100159804 /* MBTIStatData.swift in Sources */,
 				BFC0F9E82E16507900870CDD /* UserStatusCard.swift in Sources */,
 				BF7F8B902E15099C00DF3CFC /* ContentView.swift in Sources */,
 				BFC0F9E22E16503200870CDD /* ErrorView.swift in Sources */,
@@ -398,7 +399,6 @@
 				BFAD2C422E3E7521004C748A /* TimelineView.swift in Sources */,
 				BFC0F9F02E1650BF00870CDD /* RankingView.swift in Sources */,
 				BFC0F9F82E16511700870CDD /* ProfileView.swift in Sources */,
-				BF6F37022E59AD2D00159804 /* MBTIPieChartView.swift in Sources */,
 				BFC0F9EA2E16508800870CDD /* TimerDisplay.swift in Sources */,
 				BFACD48E2E517C1400935FCE /* Department.swift in Sources */,
 				BFACD4982E588C6D00935FCE /* MBTIStatsView.swift in Sources */,

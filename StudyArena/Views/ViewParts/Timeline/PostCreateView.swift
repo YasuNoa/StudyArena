@@ -87,37 +87,92 @@ struct PostCreateView: View {
             )
             .offset(y: 50)
         }
+        .onAppear {
+            // 残り投稿回数を計算
+            Task {
+                let todayCount = await viewModel.getTodayPostCount()
+                let limit = viewModel.user?.dailyPostLimit ?? 1
+                await MainActor.run {
+                    remainingPosts = limit - todayCount
+                }
+            }
+        }
         .alert("投稿エラー", isPresented: $showAlert) {
             Button("OK") { }
         } message: {
             Text(alertMessage)
         }
+        
     }
     
     private func postToTimeline() {
+        guard !isPosting else { return }
+        
+        isPosting = true
+        
         Task {
             do {
+                // 今日の投稿回数をチェック
                 let todayCount = await viewModel.getTodayPostCount()
                 let limit = viewModel.user?.dailyPostLimit ?? 1
                 
                 if todayCount >= limit {
                     await MainActor.run {
                         alertMessage = "本日の投稿回数(\(limit)回)に達しました。"
+                        if limit < 10 {
+                            let nextLimit = getNextPostLimitInfo()
+                            if let nextLimit = nextLimit {
+                                alertMessage += "\nLv.\(nextLimit.level)で\(nextLimit.posts)回投稿可能になります。"
+                            }
+                        }
                         showAlert = true
                         isPosting = false
                     }
                     return
                 }
                 
-                // 投稿処理...
+                // 投稿処理
                 try await viewModel.createTimelinePost(content: postContent)
                 
-                // 残り投稿数を更新
-                remainingPosts = limit - (todayCount + 1)
+                // 成功したら画面を閉じる
+                await MainActor.run {
+                    // 残り投稿数を更新
+                    remainingPosts = limit - (todayCount + 1)
+                    
+                    // タイムラインをリロード
+                    viewModel.loadTimelinePosts()
+                    
+                    // 画面を閉じる
+                    isPresented = false
+                }
+                
+            } catch {
+                await MainActor.run {
+                    alertMessage = "投稿に失敗しました: \(error.localizedDescription)"
+                    showAlert = true
+                    isPosting = false
+                }
             }
         }
     }
-}
+    private func getNextPostLimitInfo() -> (level: Int, posts: Int)? {
+        guard let currentLevel = viewModel.user?.level else { return nil }
+        
+        let milestones: [(level: Int, posts: Int)] = [
+            (50, 2),
+            (100, 3),
+            (500, 5),
+            (1000, 10)
+        ]
+        
+        for milestone in milestones {
+            if currentLevel < milestone.level {
+                return milestone
+            }
+        }
+        
+        return nil
+    }}
 
 // ヘッダーコンポーネント
 struct PostCreateHeader: View {

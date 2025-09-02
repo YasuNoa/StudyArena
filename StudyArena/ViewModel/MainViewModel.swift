@@ -460,7 +460,8 @@ class MainViewModel: ObservableObject {
             earnedExperience: earnedExp,
             recordType: recordType,
             beforeLevel: beforeLevel,
-            afterLevel: afterLevel
+            afterLevel: afterLevel,
+            mbtiType:
         )
         
         do {
