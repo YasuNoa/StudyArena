@@ -281,7 +281,6 @@ class MainViewModel: ObservableObject {
         isTimerRunning = false
         timer?.invalidate()
         timer = nil
-      
         
         let studyTime = timerValue
         
@@ -295,18 +294,20 @@ class MainViewModel: ObservableObject {
         // 通常通り経験値を付与
         timerValue = 0
         Task { @MainActor in
-            // ⭐️ レベル記録（変更前）
             let beforeLevel = self.user?.level ?? 1
             
             // 経験値を追加
             self.addExperience(from: studyTime)
-            //カレンダーに記録
+            // カレンダーに記録
             saveTodayStudyTime(studyTime)
-            // ⭐️ レベル記録（変更後）
+            
             let afterLevel = self.user?.level ?? 1
             let earnedExp = studyTime
             
-            // ⭐️ 学習記録を保存（これが抜けていた！）
+            // ⭐️ MBTI統計更新を追加
+            await self.updateMBTIStatistics(studyTime: studyTime)
+            
+            // 学習記録を保存
             do {
                 try await self.saveStudyRecord(
                     duration: studyTime,
@@ -461,11 +462,11 @@ class MainViewModel: ObservableObject {
             recordType: recordType,
             beforeLevel: beforeLevel,
             afterLevel: afterLevel,
-            mbtiType:
+            mbtiType: user?.mbtiType  // ← 追加
         )
         
         do {
-            // ⭐️ 修正: シンプルな辞書形式でデータを保存
+            // シンプルな辞書形式でデータを保存
             let data: [String: Any] = [
                 "userId": userId,
                 "timestamp": Timestamp(date: Date()),
@@ -473,7 +474,8 @@ class MainViewModel: ObservableObject {
                 "earnedExperience": earnedExp,
                 "recordType": recordType.rawValue,
                 "beforeLevel": beforeLevel,
-                "afterLevel": afterLevel
+                "afterLevel": afterLevel,
+                "mbtiType": user?.mbtiType ?? ""  // ← 追加
             ]
             
             try await db.collection("studyRecords").addDocument(data: data)
@@ -486,7 +488,6 @@ class MainViewModel: ObservableObject {
             throw error
         }
     }
-    // 統計情報の計算
     private func calculateStatistics() {
         guard !studyRecords.isEmpty else {
             studyStatistics = nil
@@ -555,7 +556,8 @@ class MainViewModel: ObservableObject {
                 earnedExperience: Double.random(in: 100...500),
                 recordType: .study,
                 beforeLevel: 10,
-                afterLevel: 10
+                afterLevel: 10,
+                mbtiType: "INTJ"  // ← 追加
             ))
             
             // レベルアップ記録（3回に1回）
@@ -568,7 +570,8 @@ class MainViewModel: ObservableObject {
                     earnedExperience: 0,
                     recordType: .levelUp,
                     beforeLevel: 10 - i/3,
-                    afterLevel: 11 - i/3
+                    afterLevel: 11 - i/3,
+                    mbtiType: "INTJ"  // ← 追加
                 ))
             }
         }
@@ -578,7 +581,7 @@ class MainViewModel: ObservableObject {
     // MainViewModel.swift に追加するコード
     // MainViewModel.swift に追加
     @Published var mbtiStatistics: [String: MBTIStatData] = [:]
-    
+    // MainViewModel.swift - loadMBTIStatistics修正版
     func loadMBTIStatistics() async {
         do {
             let doc = try await db.collection("mbtiStatistics")
@@ -586,17 +589,34 @@ class MainViewModel: ObservableObject {
                 .getDocument()
             
             if let stats = doc.data()?["stats"] as? [String: [String: Any]] {
-                // データを変換
-                self.mbtiStatistics = stats.compactMapValues { data in
+                // 修正: 明示的に型を指定
+                self.mbtiStatistics = stats.compactMapValues { data -> MBTIStatData? in
                     guard let totalTime = data["totalTime"] as? Double,
-                          let userCount = data["userCount"] as? Int else { return nil }
+                          let userCount = data["userCount"] as? Int else {
+                        return nil  // 型が明示されているのでnilを返せる
+                    }
                     
                     return MBTIStatData(
+                        mbtiType: "", // 後で設定
                         totalTime: totalTime,
                         userCount: userCount,
                         avgTime: totalTime / Double(max(userCount, 1))
                     )
                 }
+                
+                // mbtiTypeを設定し直す
+                var updatedStats: [String: MBTIStatData] = [:]
+                for (mbtiType, statData) in self.mbtiStatistics {
+                    var updatedData = statData
+                    updatedData = MBTIStatData(
+                        mbtiType: mbtiType,
+                        totalTime: statData.totalTime,
+                        userCount: statData.userCount,
+                        avgTime: statData.avgTime
+                    )
+                    updatedStats[mbtiType] = updatedData
+                }
+                self.mbtiStatistics = updatedStats
             }
         } catch {
             print("MBTI統計の取得エラー: \(error)")
