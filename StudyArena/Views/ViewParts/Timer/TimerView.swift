@@ -34,7 +34,6 @@ struct TimerView: View {
                 
                 Spacer()
                 
-                // ⭐️ スクリーンタイム&バックグラウンド追跡付きボタン
                 TimerButton(
                     isRunning: viewModel.isTimerRunning,
                     onTap: {

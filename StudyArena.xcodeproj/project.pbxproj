@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF38EDFC2E6B38D2007437B7 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EDFB2E6B38D2007437B7 /* FeedbackView.swift */; };
+		BF38EDFE2E6B392B007437B7 /* DepartmentBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EDFD2E6B392B007437B7 /* DepartmentBrowserView.swift */; };
+		BF38EE032E6B3969007437B7 /* DepartmentCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE022E6B3969007437B7 /* DepartmentCard.swift */; };
+		BF38EE052E6B39C3007437B7 /* CategoryChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE042E6B39C3007437B7 /* CategoryChip.swift */; };
+		BF38EE092E6B3D79007437B7 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE082E6B3D79007437B7 /* Feedback.swift */; };
 		BF639EB12E48EC66004FCD52 /* RewardSystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */; };
 		BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */; };
 		BF6F37042E65953100159804 /* MBTIStatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6F37032E65953100159804 /* MBTIStatData.swift */; };
@@ -67,6 +72,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BF38EDFB2E6B38D2007437B7 /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
+		BF38EDFD2E6B392B007437B7 /* DepartmentBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartmentBrowserView.swift; sourceTree = "<group>"; };
+		BF38EE022E6B3969007437B7 /* DepartmentCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartmentCard.swift; sourceTree = "<group>"; };
+		BF38EE042E6B39C3007437B7 /* CategoryChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryChip.swift; sourceTree = "<group>"; };
+		BF38EE082E6B3D79007437B7 /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
 		BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardSystemView.swift; sourceTree = "<group>"; };
 		BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalDarkBackgroundView.swift; sourceTree = "<group>"; };
 		BF6F37032E65953100159804 /* MBTIStatData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTIStatData.swift; sourceTree = "<group>"; };
@@ -138,6 +148,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BF38EE012E6B3950007437B7 /* Department */ = {
+			isa = PBXGroup;
+			children = (
+				BF38EDFD2E6B392B007437B7 /* DepartmentBrowserView.swift */,
+				BF38EE042E6B39C3007437B7 /* CategoryChip.swift */,
+				BF38EE022E6B3969007437B7 /* DepartmentCard.swift */,
+			);
+			path = Department;
+			sourceTree = "<group>";
+		};
+		BF38EE062E6B39FC007437B7 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				BF38EDFB2E6B38D2007437B7 /* FeedbackView.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		BF38EE072E6B3A45007437B7 /* Setting */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Setting;
+			sourceTree = "<group>";
+		};
 		BF7F8B702E13CCF400DF3CFC = {
 			isa = PBXGroup;
 			children = (
@@ -163,6 +198,7 @@
 				BFACD48D2E517C1400935FCE /* Department.swift */,
 				BFAD2C3C2E3E71CF004C748A /* BackgroundTracker.swift */,
 				BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */,
+				BF38EE082E6B3D79007437B7 /* Feedback.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -212,7 +248,10 @@
 			isa = PBXGroup;
 			children = (
 				BFACD4902E517C8800935FCE /* SideNavigationView.swift */,
+				BF38EE012E6B3950007437B7 /* Department */,
 				BFACD4942E5875E100935FCE /* Static */,
+				BF38EE072E6B3A45007437B7 /* Setting */,
+				BF38EE062E6B39FC007437B7 /* Support */,
 			);
 			path = Navigation;
 			sourceTree = "<group>";
@@ -383,11 +422,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				BFACD4962E5875F300935FCE /* StudyCalendarView.swift in Sources */,
+				BF38EDFC2E6B38D2007437B7 /* FeedbackView.swift in Sources */,
 				BFAD2C462E408728004C748A /* PostCreateView.swift in Sources */,
 				BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */,
 				BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */,
 				BFACD4912E517C8800935FCE /* SideNavigationView.swift in Sources */,
 				BFC0F9EC2E16509A00870CDD /* TimerButton.swift in Sources */,
+				BF38EDFE2E6B392B007437B7 /* DepartmentBrowserView.swift in Sources */,
 				BFC0F9F22E1650D800870CDD /* RankingRow.swift in Sources */,
 				BF6F37042E65953100159804 /* MBTIStatData.swift in Sources */,
 				BFC0F9E82E16507900870CDD /* UserStatusCard.swift in Sources */,
@@ -395,6 +436,7 @@
 				BFC0F9E22E16503200870CDD /* ErrorView.swift in Sources */,
 				BF639EB12E48EC66004FCD52 /* RewardSystemView.swift in Sources */,
 				BFAD2C442E408708004C748A /* TimelinePost.swift in Sources */,
+				BF38EE052E6B39C3007437B7 /* CategoryChip.swift in Sources */,
 				BF7F8B912E15099C00DF3CFC /* DataModel.swift in Sources */,
 				BFAD2C422E3E7521004C748A /* TimelineView.swift in Sources */,
 				BFC0F9F02E1650BF00870CDD /* RankingView.swift in Sources */,
@@ -405,9 +447,11 @@
 				BF7F8B922E15099C00DF3CFC /* producteneApp.swift in Sources */,
 				BFACD4882E49CDCC00935FCE /* TrophyDisplayCard.swift in Sources */,
 				BFC0F9E42E16504B00870CDD /* MainTabView.swift in Sources */,
+				BF38EE092E6B3D79007437B7 /* Feedback.swift in Sources */,
 				BFC0F9DE2E164FE300870CDD /* LoadingView.swift in Sources */,
 				BFC0F9E62E16505E00870CDD /* TimerView.swift in Sources */,
 				BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */,
+				BF38EE032E6B3969007437B7 /* DepartmentCard.swift in Sources */,
 				BF7F8B972E150B2400DF3CFC /* MainViewModel.swift in Sources */,
 				BFACD49A2E5898BB00935FCE /* MBTISelectionView.swift in Sources */,
 			);

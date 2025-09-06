@@ -968,3 +968,125 @@ extension MainViewModel {
         // 別のメソッド
     }
 }
+extension MainViewModel {
+    
+    // 今日すでにフィードバックを送信しているかチェック
+    func hasSubmittedFeedbackToday() async -> Bool {
+        guard let userId = self.userId else {
+            print("❌ userId が nil です")
+            return false
+        }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview {
+            print("📱 プレビューモード: 制限チェックをスキップ")
+            return false
+        }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        
+        print("🔍 フィードバック制限チェック開始")
+        print("   - userId: \(userId)")
+        print("   - today: \(today)")
+        print("   - tomorrow: \(tomorrow)")
+        
+        do {
+            let querySnapshot = try await db.collection("feedbacks")
+                .whereField("userId", isEqualTo: userId)
+                .whereField("timestamp", isGreaterThanOrEqualTo: Timestamp(date: today))
+                .whereField("timestamp", isLessThan: Timestamp(date: tomorrow))
+                .getDocuments()
+            
+            let count = querySnapshot.documents.count
+            print("✅ 今日のフィードバック件数: \(count)")
+            
+            return count > 0
+            
+        } catch {
+            print("❌ フィードバック制限チェックエラー: \(error)")
+            // エラー時は false を返す（送信を許可）
+            // ネットワークエラー等でユーザーが困らないように
+            return false
+        }
+    }
+    
+    // フィードバック送信機能（制限チェック付き）
+    func submitFeedback(
+        type: String,
+        content: String,
+        email: String
+    ) async throws {
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview { return }
+        
+        // 1日1回制限チェック
+        let hasSubmittedToday = await hasSubmittedFeedbackToday()
+        if hasSubmittedToday {
+            throw NSError(
+                domain: "FeedbackError",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "フィードバックは1日1回までです。明日以降に再度お試しください。"]
+            )
+        }
+        
+        // メールアドレスのバリデーション
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedEmail.isEmpty else {
+            throw NSError(domain: "FeedbackError", code: 1, userInfo: [NSLocalizedDescriptionKey: "メールアドレスは必須です"])
+        }
+        
+        guard isValidEmail(trimmedEmail) else {
+            throw NSError(domain: "FeedbackError", code: 2, userInfo: [NSLocalizedDescriptionKey: "正しいメールアドレスを入力してください"])
+        }
+        
+        // デバイス情報を取得
+        let deviceInfo = getDeviceInfo()
+        let appVersion = getAppVersion()
+        
+        do {
+            // Firestoreに保存
+            let data: [String: Any] = [
+                "userId": self.userId ?? "",
+                "userNickname": self.user?.nickname ?? "",
+                "userLevel": self.user?.level ?? 1,
+                "feedbackType": type,
+                "content": content,
+                "email": trimmedEmail,
+                "timestamp": Timestamp(date: Date()),
+                "deviceInfo": deviceInfo,
+                "appVersion": appVersion,
+                "status": "pending"
+            ]
+            
+            try await db.collection("feedbacks").addDocument(data: data)
+            print("✅ フィードバックを送信しました")
+            
+        } catch {
+            print("❌ フィードバック送信エラー: \(error)")
+            throw error
+        }
+    }
+    
+    private func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format:"SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
+    }
+    
+    private func getDeviceInfo() -> String {
+        let device = UIDevice.current
+        return "\(device.systemName) \(device.systemVersion) - \(device.model)"
+    }
+    
+    private func getAppVersion() -> String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        return "\(version) (\(build))"
+    }
+}
+
+
+// MARK: - 更新されたFeedbackView（制限チェック機能付き）
+
