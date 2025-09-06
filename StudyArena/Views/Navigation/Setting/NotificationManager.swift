@@ -2,16 +2,21 @@ import Foundation
 import UserNotifications
 import UIKit
 
+// ⭐️ 修正: NSObjectを継承し、UNUserNotificationCenterDelegateを直接実装
 @MainActor
-class NotificationManager: ObservableObject {
+class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationManager()
     
     @Published var isAuthorized = false
     @Published var notificationSettings: [NotificationSetting] = []
     
-    private init() {
+    override init() {
+        super.init()  // ⭐️ 追加: NSObjectの初期化
         checkAuthorizationStatus()
         loadDefaultSettings()
+        
+        // ⭐️ 追加: Delegateを設定
+        UNUserNotificationCenter.current().delegate = self
     }
     
     // MARK: - 権限管理
@@ -207,7 +212,7 @@ class NotificationManager: ObservableObject {
                 time: Calendar.current.dateComponents([.hour, .minute], from: Date())
             ),
             NotificationSetting(
-                id: "evening_reminder", 
+                id: "evening_reminder",
                 title: "夕方の学習リマインダー",
                 description: "毎夕18時に学習を促す通知",
                 isEnabled: false,
@@ -238,19 +243,10 @@ class NotificationManager: ObservableObject {
             }
         }
     }
-}
-
-// MARK: - 通知設定データモデル
-struct NotificationSetting: Identifiable {
-    let id: String
-    let title: String
-    let description: String
-    var isEnabled: Bool
-    var time: DateComponents?
-}
-
-// MARK: - UNUserNotificationCenterDelegate
-extension NotificationManager: UNUserNotificationCenterDelegate {
+    
+    // ⭐️ 修正: extensionではなく、クラス内でDelegate実装
+    
+    // MARK: - UNUserNotificationCenterDelegate
     
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
@@ -294,6 +290,15 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
         // アプリがフォアグラウンドでも通知を表示
         completionHandler([.banner, .sound])
     }
+}
+
+// MARK: - 通知設定データモデル
+struct NotificationSetting: Identifiable {
+    let id: String
+    let title: String
+    let description: String
+    var isEnabled: Bool
+    var time: DateComponents?
 }
 
 // MARK: - NotificationCenter Extension

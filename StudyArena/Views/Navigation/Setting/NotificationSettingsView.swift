@@ -1,3 +1,11 @@
+//
+//  NotificationSettingsView.swift
+//  StudyArena
+//
+//  Created by 田中正造 on 2025/09/06.
+//
+
+
 import SwiftUI
 
 struct NotificationSettingsView: View {

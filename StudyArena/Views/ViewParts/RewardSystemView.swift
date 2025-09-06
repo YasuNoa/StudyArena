@@ -1,5 +1,5 @@
 //
-//  RewardSystemView.swift - レベル10000対応版
+//  RewardSystemView.swift - ダイヤモンドまで版
 //  StudyArena
 //
 
@@ -58,15 +58,13 @@ struct RewardSystemView: View {
                     VStack(spacing: 20) {
                         switch selectedTab {
                         case 0:
-                            OverviewSection()
+                            OverviewSectionDiamond()
                         case 1:
-                            TrophySectionUpdated()
+                            TrophySectionDiamond()
                         case 2:
-                            CharacterLimitSectionUpdated()
+                            CharacterLimitSectionDiamond()
                         case 3:
-                            LikeLimitSectionUpdated()
-                        case 4:
-                            FormulaSectionUpdated()
+                            FormulaSectionDiamond()
                         default:
                             EmptyView()
                         }
@@ -79,17 +77,17 @@ struct RewardSystemView: View {
     }
 }
 
-// MARK: - 概要セクション（更新版）
-struct OverviewSection: View {
+// MARK: - 概要セクション（ダイヤモンド版）
+struct OverviewSectionDiamond: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             InfoCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    Label("無限のレベルアップシステム", systemImage: "arrow.up.circle.fill")
+                    Label("現実的なレベルアップシステム", systemImage: "arrow.up.circle.fill")
                         .font(.headline)
                         .foregroundColor(.yellow)
                     
-                    Text("レベル10000以上まで対応！学習時間に応じて経験値を獲得し、非線形でレベルが上がります。高レベルになるほど必要経験値が増加します。")
+                    Text("レベル200程度まで楽しめる現実的な設計。学習時間に応じて経験値を獲得し、適度な成長曲線でレベルアップします。")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -97,23 +95,11 @@ struct OverviewSection: View {
             
             InfoCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    Label("対数的成長システム", systemImage: "chart.line.uptrend.xyaxis")
-                        .font(.headline)
-                        .foregroundColor(.green)
-                    
-                    Text("報酬は対数関数や累乗関数で計算。初期は成長を実感しやすく、後半は壮大な目標として機能します。")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.8))
-                }
-            }
-            
-            InfoCard {
-                VStack(alignment: .leading, spacing: 12) {
-                    Label("10段階のトロフィー", systemImage: "trophy.fill")
+                    Label("5段階のトロフィー", systemImage: "trophy.fill")
                         .font(.headline)
                         .foregroundColor(.purple)
                     
-                    Text("ブロンズからエターナルまで10種類のトロフィー。各3段階で合計30のランクが存在します。")
+                    Text("ブロンズからダイヤモンドまで5種類のトロフィー。各3段階で合計15のランクが存在します。")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -127,15 +113,13 @@ struct OverviewSection: View {
                         .foregroundColor(.orange)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        MilestoneRow(level: 10, description: "ブロンズ卒業")
-                        MilestoneRow(level: 30, description: "シルバー卒業")
-                        MilestoneRow(level: 75, description: "ゴールド卒業")
-                        MilestoneRow(level: 175, description: "プラチナ卒業")
-                        MilestoneRow(level: 400, description: "ダイヤモンド卒業")
-                        MilestoneRow(level: 900, description: "マスター卒業")
-                        MilestoneRow(level: 2000, description: "グランドマスター卒業")
-                        MilestoneRow(level: 4500, description: "レジェンド卒業")
-                        MilestoneRow(level: 10000, description: "ミシック卒業→エターナル")
+                        MilestoneRow(level: 20, description: "ブロンズ卒業 → 10文字投稿")
+                        MilestoneRow(level: 50, description: "シルバー卒業 → 15文字投稿")
+                        MilestoneRow(level: 100, description: "ゴールド卒業 → 20文字投稿")
+                        MilestoneRow(level: 175, description: "プラチナ卒業 → 25文字投稿")
+                        MilestoneRow(level: 176, description: "ダイヤモンド到達！💎")
+                        MilestoneRow(level: 200, description: "ダイヤモンドII")
+                        MilestoneRow(level: 250, description: "ダイヤモンドIII")
                     }
                 }
             }
@@ -148,12 +132,12 @@ struct OverviewSection: View {
                     
                     VStack(alignment: .leading, spacing: 8) {
                         TimeEstimateRow(level: 10, time: User.estimatedTimeForLevel(10))
+                        TimeEstimateRow(level: 25, time: User.estimatedTimeForLevel(25))
                         TimeEstimateRow(level: 50, time: User.estimatedTimeForLevel(50))
                         TimeEstimateRow(level: 100, time: User.estimatedTimeForLevel(100))
-                        TimeEstimateRow(level: 500, time: User.estimatedTimeForLevel(500))
-                        TimeEstimateRow(level: 1000, time: User.estimatedTimeForLevel(1000))
-                        TimeEstimateRow(level: 5000, time: User.estimatedTimeForLevel(5000))
-                        TimeEstimateRow(level: 10000, time: User.estimatedTimeForLevel(10000))
+                        TimeEstimateRow(level: 150, time: User.estimatedTimeForLevel(150))
+                        TimeEstimateRow(level: 200, time: User.estimatedTimeForLevel(200))
+                        TimeEstimateRow(level: 250, time: User.estimatedTimeForLevel(250))
                     }
                     
                     Text("※1秒 = 1EXPで計算")
@@ -165,19 +149,14 @@ struct OverviewSection: View {
     }
 }
 
-// MARK: - トロフィーセクション（更新版）
-struct TrophySectionUpdated: View {
+// MARK: - トロフィーセクション（ダイヤモンド版）
+struct TrophySectionDiamond: View {
     let trophies: [(range: String, tier: String, color: Color, icon: String)] = [
-        ("Lv.1-10", "ブロンズ", Color(red: 0.8, green: 0.5, blue: 0.2), "shield.fill"),
-        ("Lv.11-30", "シルバー", Color(white: 0.7), "shield.lefthalf.filled"),
-        ("Lv.31-75", "ゴールド", Color.yellow, "crown.fill"),
-        ("Lv.76-175", "プラチナ", Color.cyan, "star.circle.fill"),
-        ("Lv.176-400", "ダイヤモンド", Color.purple, "rhombus.fill"),
-        ("Lv.401-900", "マスター", Color.red, "flame.fill"),
-        ("Lv.901-2000", "グランドマスター", Color(red: 1.0, green: 0.5, blue: 0.0), "bolt.circle.fill"),
-        ("Lv.2001-4500", "レジェンド", Color(red: 0.0, green: 1.0, blue: 0.5), "sparkles"),
-        ("Lv.4501-10000", "ミシック", Color(red: 0.8, green: 0.0, blue: 1.0), "moon.stars.fill"),
-        ("Lv.10001+", "エターナル", Color(red: 1.0, green: 0.84, blue: 0.0), "infinity.circle.fill")
+        ("Lv.1-20", "ブロンズ", Color(red: 0.8, green: 0.5, blue: 0.2), "shield.fill"),
+        ("Lv.21-50", "シルバー", Color(white: 0.7), "shield.lefthalf.filled"),
+        ("Lv.51-100", "ゴールド", Color.yellow, "crown.fill"),
+        ("Lv.101-175", "プラチナ", Color.cyan, "star.circle.fill"),
+        ("Lv.176+", "ダイヤモンド", Color.purple, "rhombus.fill")
     ]
     
     var body: some View {
@@ -217,6 +196,18 @@ struct TrophySectionUpdated: View {
                         }
                         
                         Spacer()
+                        
+                        // 特別な説明
+                        if trophy.tier == "ダイヤモンド" {
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("最高ランク")
+                                    .font(.caption2)
+                                    .foregroundColor(.purple)
+                                Text("Lv.176以上")
+                                    .font(.caption2)
+                                    .foregroundColor(.purple.opacity(0.7))
+                            }
+                        }
                     }
                 }
             }
@@ -224,8 +215,8 @@ struct TrophySectionUpdated: View {
     }
 }
 
-// MARK: - 文字数セクション（更新版）
-struct CharacterLimitSectionUpdated: View {
+// MARK: - 文字数セクション（ダイヤモンド版）
+struct CharacterLimitSectionDiamond: View {
     let milestones: [(level: Int, chars: Int)] = User.getCharacterMilestones()
     
     var body: some View {
@@ -236,11 +227,7 @@ struct CharacterLimitSectionUpdated: View {
                         .font(.headline)
                         .foregroundColor(.blue)
                     
-                    Text("計算式: 5 + log10(level+1) × 25 × level^0.15")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundColor(.blue.opacity(0.7))
-                    
-                    Text("対数関数による非線形増加。レベル10000で約300文字、最大500文字。")
+                    Text("レベルに応じて段階的に増加。最大150文字まで投稿可能になります。")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -274,7 +261,7 @@ struct CharacterLimitSectionUpdated: View {
                                                 endPoint: .trailing
                                             )
                                         )
-                                        .frame(width: geometry.size.width * CGFloat(milestone.chars) / 500)
+                                        .frame(width: geometry.size.width * CGFloat(milestone.chars) / 150)
                                 }
                             }
                             .frame(height: 16)
@@ -292,75 +279,13 @@ struct CharacterLimitSectionUpdated: View {
     }
 }
 
-// MARK: - いいねセクション（更新版）
-struct LikeLimitSectionUpdated: View {
-    let milestones: [(level: Int, likes: Int)] = User.getLikeMilestones()
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            InfoCard {
-                VStack(alignment: .leading, spacing: 12) {
-                    Label("いいね機能", systemImage: "heart.fill")
-                        .font(.headline)
-                        .foregroundColor(.pink)
-                    
-                    Text("計算式: 3 + √level × 5 + log10(level+1) × 10")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundColor(.pink.opacity(0.7))
-                    
-                    Text("平方根ベースの非線形増加。レベル10000で約800回/日、最大1000回。")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.8))
-                }
-            }
-            
-            InfoCard {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("いいね回数マイルストーン")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    ForEach(milestones, id: \.level) { milestone in
-                        HStack {
-                            Text("Lv.\(milestone.level)")
-                                .font(.system(.caption, design: .monospaced))
-                                .foregroundColor(.white.opacity(0.6))
-                                .frame(width: 60, alignment: .leading)
-                            
-                            // ハートアイコンで表示
-                            HStack(spacing: 2) {
-                                ForEach(0..<min(milestone.likes/50, 10), id: \.self) { _ in
-                                    Image(systemName: "heart.fill")
-                                        .font(.system(size: 8))
-                                        .foregroundColor(.pink.opacity(0.7))
-                                }
-                                Text("\(milestone.likes)")
-                                    .font(.caption2)
-                                    .foregroundColor(.pink.opacity(0.7))
-                            }
-                            
-                            Spacer()
-                            
-                            Text("\(milestone.likes)回/日")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.pink)
-                                .frame(width: 80, alignment: .trailing)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - 計算式セクション（更新版）
-struct FormulaSectionUpdated: View {
+// MARK: - 計算式セクション（ダイヤモンド版）
+struct FormulaSectionDiamond: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             InfoCard {
                 VStack(alignment: .leading, spacing: 16) {
-                    Label("報酬計算式（レベル10000対応）", systemImage: "function")
+                    Label("報酬計算式", systemImage: "function")
                         .font(.headline)
                         .foregroundColor(.green)
                     
@@ -371,11 +296,11 @@ struct FormulaSectionUpdated: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.yellow)
                         
-                        Text("EXP = level × 50 + level^1.8 × 10")
+                        Text("EXP = level × 100 + level^1.5 × 20")
                             .font(.system(.caption, design: .monospaced))
                             .foregroundColor(.white.opacity(0.8))
                         
-                        Text("累乗関数による非線形増加")
+                        Text("緩やかな累乗増加（現実的な成長）")
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.6))
                     }
@@ -391,37 +316,17 @@ struct FormulaSectionUpdated: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.blue)
                         
-                        Text("文字 = 5 + log10(lv+1) × 25 × lv^0.15")
+                        Text("文字数 = レベル段階に応じた固定値")
                             .font(.system(.caption, design: .monospaced))
                             .foregroundColor(.white.opacity(0.8))
                         
-                        Text("対数関数による緩やかな増加（最大500文字）")
+                        Text("段階的増加（最大150文字）")
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.6))
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
                     .background(Color.blue.opacity(0.1))
-                    .cornerRadius(8)
-                    
-                    // いいね
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("いいね回数")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.pink)
-                        
-                        Text("回数 = 3 + √lv × 5 + log10(lv+1) × 10")
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.white.opacity(0.8))
-                        
-                        Text("平方根による緩やかな増加（最大1000回）")
-                            .font(.caption2)
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(Color.pink.opacity(0.1))
                     .cornerRadius(8)
                 }
             }
@@ -432,7 +337,7 @@ struct FormulaSectionUpdated: View {
                         .font(.headline)
                         .foregroundColor(.orange)
                     
-                    Text("• 対数・累乗関数で無限スケール対応\n• 初期は急成長、後半は緩やかな成長\n• レベル10000以降も継続可能\n• 各要素が異なる成長曲線\n• 最大値で適切にキャップ")
+                    Text("• 現実的で達成可能な目標設定\n• 段階的で分かりやすい成長\n• レベル200程度まで楽しめる設計\n• 過度なインフレを避けた適度な報酬\n• 長期的なモチベーション維持")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                         .lineSpacing(4)

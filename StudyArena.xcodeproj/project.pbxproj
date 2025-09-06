@@ -12,6 +12,8 @@
 		BF38EE032E6B3969007437B7 /* DepartmentCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE022E6B3969007437B7 /* DepartmentCard.swift */; };
 		BF38EE052E6B39C3007437B7 /* CategoryChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE042E6B39C3007437B7 /* CategoryChip.swift */; };
 		BF38EE092E6B3D79007437B7 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE082E6B3D79007437B7 /* Feedback.swift */; };
+		BF38EE0B2E6C2555007437B7 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE0A2E6C2555007437B7 /* NotificationManager.swift */; };
+		BF38EE0D2E6C2574007437B7 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE0C2E6C2574007437B7 /* NotificationSettingsView.swift */; };
 		BF639EB12E48EC66004FCD52 /* RewardSystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */; };
 		BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */; };
 		BF6F37042E65953100159804 /* MBTIStatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6F37032E65953100159804 /* MBTIStatData.swift */; };
@@ -77,6 +79,8 @@
 		BF38EE022E6B3969007437B7 /* DepartmentCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartmentCard.swift; sourceTree = "<group>"; };
 		BF38EE042E6B39C3007437B7 /* CategoryChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryChip.swift; sourceTree = "<group>"; };
 		BF38EE082E6B3D79007437B7 /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
+		BF38EE0A2E6C2555007437B7 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		BF38EE0C2E6C2574007437B7 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardSystemView.swift; sourceTree = "<group>"; };
 		BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalDarkBackgroundView.swift; sourceTree = "<group>"; };
 		BF6F37032E65953100159804 /* MBTIStatData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTIStatData.swift; sourceTree = "<group>"; };
@@ -169,6 +173,8 @@
 		BF38EE072E6B3A45007437B7 /* Setting */ = {
 			isa = PBXGroup;
 			children = (
+				BF38EE0C2E6C2574007437B7 /* NotificationSettingsView.swift */,
+				BF38EE0A2E6C2555007437B7 /* NotificationManager.swift */,
 			);
 			path = Setting;
 			sourceTree = "<group>";
@@ -209,8 +215,8 @@
 				BF7F8B8A2E15099C00DF3CFC /* Model */,
 				BFACD48C2E50EFD300935FCE /* ViewModel */,
 				BF7F8B942E150A2A00DF3CFC /* Views */,
-				BF7F8B8B2E15099C00DF3CFC /* Assets.xcassets */,
 				BF7F8B8E2E15099C00DF3CFC /* producteneApp.swift */,
+				BF7F8B8B2E15099C00DF3CFC /* Assets.xcassets */,
 			);
 			path = StudyArena;
 			sourceTree = "<group>";
@@ -425,6 +431,7 @@
 				BF38EDFC2E6B38D2007437B7 /* FeedbackView.swift in Sources */,
 				BFAD2C462E408728004C748A /* PostCreateView.swift in Sources */,
 				BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */,
+				BF38EE0D2E6C2574007437B7 /* NotificationSettingsView.swift in Sources */,
 				BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */,
 				BFACD4912E517C8800935FCE /* SideNavigationView.swift in Sources */,
 				BFC0F9EC2E16509A00870CDD /* TimerButton.swift in Sources */,
@@ -439,6 +446,7 @@
 				BF38EE052E6B39C3007437B7 /* CategoryChip.swift in Sources */,
 				BF7F8B912E15099C00DF3CFC /* DataModel.swift in Sources */,
 				BFAD2C422E3E7521004C748A /* TimelineView.swift in Sources */,
+				BF38EE0B2E6C2555007437B7 /* NotificationManager.swift in Sources */,
 				BFC0F9F02E1650BF00870CDD /* RankingView.swift in Sources */,
 				BFC0F9F82E16511700870CDD /* ProfileView.swift in Sources */,
 				BFC0F9EA2E16508800870CDD /* TimerDisplay.swift in Sources */,

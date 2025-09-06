@@ -1,5 +1,5 @@
 //
-//  RankingView.swift - ミニマルダーク風バージョン
+//  RankingView.swift - ダイヤモンドまで版
 //  productene
 //
 //  Created by 田中正造 on 03/07/2025.
@@ -69,7 +69,7 @@ struct RankingView: View {
             ScrollView {
                 VStack(spacing: 8) {
                     ForEach(viewModel.ranking) { user in
-                        MinimalRankingRow(user: user)
+                        MinimalRankingRowDiamond(user: user)
                             .padding(.horizontal)
                     }
                 }
@@ -99,8 +99,9 @@ struct RankingView: View {
         }
     }
 }
-// ミニマルランキング行（トロフィー表示追加版）
-struct MinimalRankingRow: View {
+
+// ダイヤモンドまでのランキング行
+struct MinimalRankingRowDiamond: View {
     let user: User
     @EnvironmentObject var viewModel: MainViewModel
     
@@ -116,12 +117,10 @@ struct MinimalRankingRow: View {
             return (Color(white: 0.7), "shield.lefthalf.filled")
         case 51...100:
             return (Color.yellow, "crown.fill")
-        case 101...150:
+        case 101...175:
             return (Color.cyan, "star.circle.fill")
-        case 151...200:
+        default: // 176以上はダイヤモンド
             return (Color.purple, "rhombus.fill")
-        default:
-            return (Color.red, "flame.fill")
         }
     }
     
@@ -160,6 +159,12 @@ struct MinimalRankingRow: View {
                                         .stroke(trophyInfo.color.opacity(0.4), lineWidth: 0.5)
                                 )
                         )
+                    
+                    // ダイヤモンド特別表示
+                    if user.level >= 176 {
+                        Text("💎")
+                            .font(.system(size: 12))
+                    }
                 }
                 
                 // 学習時間

@@ -8,6 +8,8 @@
 	<string>com.googleusercontent.apps.319757628971-8mcj71ubht3e8a0bk6gmuufiuv16fnq3</string>
 	<key>API_KEY</key>
 	<string>AIzaSyAyuO5gfzlcXaflTa4e_MbaMv8tQ7t46v4</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>学習リマインダーやいいね、レベルアップ通知を送信するために通知機能を使用します</string>
 	<key>GCM_SENDER_ID</key>
 	<string>319757628971</string>
 	<key>PLIST_VERSION</key>
@@ -19,15 +21,15 @@
 	<key>STORAGE_BUCKET</key>
 	<string>timebattle.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_GCM_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:319757628971:ios:3988939b0008da10811c6e</string>
 </dict>

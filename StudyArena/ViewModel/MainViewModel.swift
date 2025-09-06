@@ -1087,6 +1087,290 @@ extension MainViewModel {
     }
 }
 
+extension MainViewModel {
+    
+    // MARK: - いいね機能
+    
+    /// 投稿にいいねを追加/削除
+    func toggleLike(for postId: String) async throws -> (isLiked: Bool, newCount: Int) {
+        guard let userId = self.userId else {
+            throw NSError(domain: "LikeError", code: 1, userInfo: [NSLocalizedDescriptionKey: "ユーザーIDが見つかりません"])
+        }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview {
+            // プレビュー用の模擬処理
+            return (isLiked: true, newCount: Int.random(in: 1...10))
+        }
+        
+        let postRef = db.collection("timelinePosts").document(postId)
+        
+        return try await db.runTransaction { transaction, errorPointer in
+            let postDocument: DocumentSnapshot
+            do {
+                postDocument = try transaction.getDocument(postRef)
+            } catch let fetchError as NSError {
+                errorPointer?.pointee = fetchError
+                return (isLiked: false, newCount: 0)
+            }
+            
+            guard var postData = postDocument.data() else {
+                let error = NSError(domain: "LikeError", code: 2, userInfo: [NSLocalizedDescriptionKey: "投稿が見つかりません"])
+                errorPointer?.pointee = error
+                return (isLiked: false, newCount: 0)
+            }
+            
+            // 現在のいいね情報を取得
+            var likedUserIds = postData["likedUserIds"] as? [String] ?? []
+            var likeCount = postData["likeCount"] as? Int ?? 0
+            
+            let isCurrentlyLiked = likedUserIds.contains(userId)
+            let newIsLiked: Bool
+            let newCount: Int
+            
+            if isCurrentlyLiked {
+                // いいねを取り消し
+                likedUserIds.removeAll { $0 == userId }
+                likeCount = max(0, likeCount - 1)
+                newIsLiked = false
+                newCount = likeCount
+            } else {
+                // いいねを追加
+                likedUserIds.append(userId)
+                likeCount += 1
+                newIsLiked = true
+                newCount = likeCount
+            }
+            
+            // Firestoreを更新
+            transaction.updateData([
+                "likedUserIds": likedUserIds,
+                "likeCount": likeCount
+            ], forDocument: postRef)
+            
+            return (isLiked: newIsLiked, newCount: newCount)
+        } as! (isLiked: Bool, newCount: Int)
+    }
+    
+    /// ユーザーが特定の投稿にいいね済みかチェック
+    func isPostLikedByUser(_ postId: String) async -> Bool {
+        guard let userId = self.userId else { return false }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview { return false }
+        
+        do {
+            let document = try await db.collection("timelinePosts").document(postId).getDocument()
+            let likedUserIds = document.data()?["likedUserIds"] as? [String] ?? []
+            return likedUserIds.contains(userId)
+        } catch {
+            print("いいね状態チェックエラー: \(error)")
+            return false
+        }
+    }
+    
+    /// 投稿のいいね数を取得
+    func getLikeCount(for postId: String) async -> Int {
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        if isPreview { return Int.random(in: 0...5) }
+        
+        do {
+            let document = try await db.collection("timelinePosts").document(postId).getDocument()
+            return document.data()?["likeCount"] as? Int ?? 0
+        } catch {
+            print("いいね数取得エラー: \(error)")
+            return 0
+        }
+    }
+    
+    /// タイムライン投稿をいいね情報付きで読み込み
+    func loadTimelinePostsWithLikes() {
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        
+        if isPreview {
+            // プレビュー用のモックデータ（いいね付き）
+            self.timelinePosts = createMockTimelinePostsWithLikes()
+            return
+        }
+        
+        Task { @MainActor in
+            do {
+                let querySnapshot = try await db.collection("timelinePosts")
+                    .order(by: "timestamp", descending: true)
+                    .limit(to: 30)
+                    .getDocuments()
+                
+                self.timelinePosts = querySnapshot.documents.compactMap { doc -> TimelinePost? in
+                    do {
+                        var post = try doc.data(as: TimelinePost.self)
+                        post.id = doc.documentID
+                        return post
+                    } catch {
+                        print("投稿のパースエラー: \(error)")
+                        return nil
+                    }
+                }
+            } catch {
+                print("投稿の取得エラー: \(error)")
+            }
+        }
+    }
+    
+    // MARK: - プライベートメソッド
+    
+    private func createMockTimelinePostsWithLikes() -> [TimelinePost] {
+        var posts: [TimelinePost] = []
+        let calendar = Calendar.current
+        
+        let mockUsers = [
+            ("田中太郎", 15),
+            ("鈴木花子", 23),
+            ("山田次郎", 8),
+            ("佐藤美咲", 42)
+        ]
+        
+        let mockContents = [
+            "今日も頑張って3時間勉強できた！明日も継続するぞ💪",
+            "レベルアップできて嬉しい！みんなも一緒に頑張ろう✨",
+            "数学の問題が解けるようになってきた。基礎って大事だね。",
+            "朝活始めました。早起きは三文の徳って本当だった！",
+            "プログラミングの勉強楽しい〜！エラーと格闘中だけど😅"
+        ]
+        
+        // 過去5日間の投稿を生成（いいね付き）
+        for i in 0..<5 {
+            let date = calendar.date(byAdding: .day, value: -i, to: Date())!
+            let user = mockUsers.randomElement()!
+            
+            var post = TimelinePost(
+                id: "mockPost\(i)",
+                userId: "mockUser\(i)",
+                nickname: user.0,
+                content: mockContents[i % mockContents.count],
+                timestamp: date,
+                level: user.1
+            )
+            
+            // いいね情報を追加
+            post.likeCount = Int.random(in: 0...8)
+            post.likedUserIds = (0..<(post.likeCount ?? 0)).map { "user\($0)" }
+            
+            posts.append(post)
+        }
+        
+        return posts
+    }
+}
+// MainViewModel.swift に追加する通知機能
 
-// MARK: - 更新されたFeedbackView（制限チェック機能付き）
+extension MainViewModel {
+    
+    // MARK: - 通知関連
+    
+    func setupNotifications() {
+        // 通知権限をリクエスト
+        Task {
+            let granted = await NotificationManager.shared.requestPermission()
+            print("通知権限: \(granted ? "許可" : "拒否")")
+        }
+        
+        // 通知からの学習開始を監視
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(startStudyFromNotification),
+            name: .startStudyFromNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func startStudyFromNotification() {
+        // 通知から学習開始
+        DispatchQueue.main.async {
+            if !self.isTimerRunning {
+                self.startTimerWithValidation()
+            }
+        }
+    }
+    
+    // タイマー停止時に通知送信
+    func stopTimerWithNotifications() {
+        guard isTimerRunning else { return }
+        
+        isTimerRunning = false
+        timer?.invalidate()
+        timer = nil
+        
+        let studyTime = timerValue
+        
+        // バックグラウンド時間チェック
+        if backgroundTracker.backgroundTimeExceeded {
+            validationWarning = "バックグラウンド時間が長すぎるため、今回の学習は記録されません"
+            timerValue = 0
+            return
+        }
+        
+        // 通常通り経験値を付与
+        timerValue = 0
+        Task { @MainActor in
+            let beforeLevel = self.user?.level ?? 1
+            
+            // 経験値を追加
+            self.addExperience(from: studyTime)
+            saveTodayStudyTime(studyTime)
+            
+            let afterLevel = self.user?.level ?? 1
+            let earnedExp = studyTime
+            
+            // MBTI統計更新
+            await self.updateMBTIStatistics(studyTime: studyTime)
+            
+            // 学習記録を保存
+            do {
+                try await self.saveStudyRecord(
+                    duration: studyTime,
+                    earnedExp: earnedExp,
+                    beforeLevel: beforeLevel,
+                    afterLevel: afterLevel
+                )
+            } catch {
+                print("学習記録の保存エラー: \(error)")
+            }
+            
+            // ⭐️ 通知送信
+            // 学習完了通知
+            NotificationManager.shared.sendStudyCompletedNotification(
+                duration: studyTime,
+                earnedExp: earnedExp
+            )
+            
+            // レベルアップ通知
+            if beforeLevel < afterLevel {
+                NotificationManager.shared.sendLevelUpNotification(newLevel: afterLevel)
+            }
+            
+            // 継続日数通知
+            if let stats = self.studyStatistics {
+                NotificationManager.shared.sendStreakNotification(days: stats.currentStreak)
+            }
+            
+            guard let userToSave = self.user else { return }
+            do {
+                try await self.saveUserData(userToSave: userToSave)
+                validationWarning = nil
+            } catch {
+                self.handleError("データの保存に失敗しました", error: error)
+            }
+        }
+    }
+}
 
+// MARK: - 初期化時に通知設定
+// MainViewModel の init() に追加
+/*
+ init() {
+ // 既存のコード...
+ 
+ // 通知設定
+ setupNotifications()
+ }
+ */

@@ -356,10 +356,22 @@ struct TimelineCard: View {
     }
 }
 
-// タイムライン投稿カード
+
+import SwiftUI
+
 struct TimelinePostCard: View {
     let post: TimelinePost
+    @EnvironmentObject var viewModel: MainViewModel
     @State private var isAnimated = false
+    @State private var isLiking = false
+    @State private var localLikeCount: Int
+    @State private var isLiked: Bool
+    
+    init(post: TimelinePost) {
+        self.post = post
+        self._localLikeCount = State(initialValue: post.likeCount ?? 0)
+        self._isLiked = State(initialValue: false)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -369,7 +381,7 @@ struct TimelinePostCard: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [.green, .mint],
+                            colors: [Color("StudyGreen"), Color("StudyMint")],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -389,8 +401,9 @@ struct TimelinePostCard: View {
                     HStack(spacing: 8) {
                         Text("Lv.\(post.level)")
                             .font(.caption)
-                            .foregroundColor(.green)
-                        // 学習時間を表示（X風）
+                            .foregroundColor(Color("StudyGreen"))
+                        
+                        // 学習時間を表示
                         if let duration = post.studyDuration {
                             Text("・")
                                 .foregroundColor(.white.opacity(0.3))
@@ -401,7 +414,7 @@ struct TimelinePostCard: View {
                                 Text(formatStudyTime(duration))
                             }
                             .font(.caption)
-                            .foregroundColor(.blue.opacity(0.8))
+                            .foregroundColor(Color("StudyBlue").opacity(0.8))
                         }
                         
                         Text("・")
@@ -418,15 +431,50 @@ struct TimelinePostCard: View {
                 // 投稿アイコン
                 Image(systemName: "bubble.left.fill")
                     .font(.caption)
-                    .foregroundColor(.green.opacity(0.5))
+                    .foregroundColor(Color("StudyGreen").opacity(0.5))
             }
             
             // 投稿内容
             Text(post.content)
                 .font(.system(size: 16))
                 .foregroundColor(.white.opacity(0.9))
-            .lineSpacing(4)
-
+                .lineSpacing(4)
+            
+            // いいねエリア
+            HStack {
+                Spacer()
+                
+                Button(action: toggleLike) {
+                    HStack(spacing: 6) {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .font(.system(size: 18))
+                            .foregroundColor(isLiked ? Color("StudyRed") : .white.opacity(0.6))
+                            .scaleEffect(isLiking ? 1.3 : 1.0)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isLiking)
+                        
+                        if localLikeCount > 0 {
+                            Text("\(localLikeCount)")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.white.opacity(0.05))
+                            .overlay(
+                                Capsule()
+                                    .stroke(
+                                        isLiked ? Color("StudyRed").opacity(0.3) : Color.white.opacity(0.1),
+                                        lineWidth: 1
+                                    )
+                            )
+                    )
+                }
+                .disabled(isLiking)
+                .buttonStyle(PlainButtonStyle())
+            }
         }
         .padding(16)
         .background(
@@ -436,7 +484,7 @@ struct TimelinePostCard: View {
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(
                             LinearGradient(
-                                colors: [.green.opacity(0.3), .mint.opacity(0.2)],
+                                colors: [Color("StudyGreen").opacity(0.3), Color("StudyMint").opacity(0.2)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
@@ -450,8 +498,59 @@ struct TimelinePostCard: View {
             withAnimation(.spring(response: 0.4)) {
                 isAnimated = true
             }
+            
+            // いいね状態を確認
+            loadLikeStatus()
         }
     }
+    
+    private func toggleLike() {
+        guard !isLiking, let postId = post.id else { return }
+        
+        isLiking = true
+        
+        // アニメーション
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            isLiked.toggle()
+            localLikeCount += isLiked ? 1 : -1
+        }
+        
+        // ⭐️ MainViewModelの実装済みメソッドを使用
+        Task {
+            do {
+                let result = try await viewModel.toggleLike(for: postId)
+                
+                await MainActor.run {
+                    // サーバーの結果で更新
+                    isLiked = result.isLiked
+                    localLikeCount = result.newCount
+                    isLiking = false
+                }
+            } catch {
+                // エラー時は元に戻す
+                await MainActor.run {
+                    withAnimation {
+                        isLiked.toggle()
+                        localLikeCount += isLiked ? 1 : -1
+                    }
+                    isLiking = false
+                }
+                print("いいね保存エラー: \(error)")
+            }
+        }
+    }
+    
+    private func loadLikeStatus() {
+        guard let postId = post.id else { return }
+        
+        Task {
+            let liked = await viewModel.isPostLikedByUser(postId)
+            await MainActor.run {
+                isLiked = liked
+            }
+        }
+    }
+    
     private func formatStudyTime(_ duration: TimeInterval) -> String {
         let hours = Int(duration) / 3600
         let minutes = Int(duration) / 60 % 60

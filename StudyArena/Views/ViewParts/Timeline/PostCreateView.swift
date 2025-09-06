@@ -10,14 +10,14 @@ struct PostCreateView: View {
     @State private var isPosting = false
     @State private var remainingPosts = 0
     
-    // ⭐️ レベルに応じた文字数制限を計算（新計算式版）
+    // ⭐️ レベルに応じた文字数制限を計算（現実的版）
     var postLimit: Int {
-        guard let user = viewModel.user else { return 5 }
+        guard let user = viewModel.user else { return 10 }
         return user.postCharacterLimit
     }
     
-    // 入力制限は投稿制限の3倍程度に設定
-    var inputLimit: Int { postLimit * 3 }
+    // 入力制限は投稿制限の2倍程度に設定（現実的に）
+    var inputLimit: Int { postLimit * 2 }
     
     var characterCount: Int { postContent.count }
     var remainingCharacters: Int { postLimit - characterCount }
@@ -57,8 +57,8 @@ struct PostCreateView: View {
                         remainingCharacters: remainingCharacters
                     )
                     
-                    // ⭐️ レベルと文字数制限の情報
-                    PostLevelInfoBanner(
+                    // ⭐️ レベルと文字数制限の情報（現実的版）
+                    PostLevelInfoBannerDiamond(
                         currentLevel: viewModel.user?.level ?? 1,
                         postLimit: postLimit
                     )
@@ -172,7 +172,8 @@ struct PostCreateView: View {
         }
         
         return nil
-    }}
+    }
+}
 
 // ヘッダーコンポーネント
 struct PostCreateHeader: View {
@@ -199,7 +200,7 @@ struct PostCreateHeader: View {
                 .font(.headline)
                 .foregroundColor(canPost ? .cyan : .white.opacity(0.3))
                 .disabled(!canPost)
-                .allowsHitTesting(canPost) // ⭐️ タップを物理的に無効化
+                .allowsHitTesting(canPost)
         }
         .padding()
         .background(Color(red: 0.1, green: 0.1, blue: 0.15))
@@ -238,13 +239,18 @@ struct PostUserInfo: View {
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.6))
                     
-                    // ⭐️ 文字数制限の表示を追加
                     Text("・")
                         .foregroundColor(.white.opacity(0.3))
                     
                     Text("最大\(postLimit)文字")
                         .font(.caption)
                         .foregroundColor(.cyan.opacity(0.8))
+                    
+                    // ダイヤモンド特別表示
+                    if (user?.level ?? 0) >= 176 {
+                        Text("💎")
+                            .font(.system(size: 10))
+                    }
                 }
             }
             
@@ -351,28 +357,18 @@ struct CharacterProgressCircle: View {
     }
 }
 
-// ⭐️ レベル情報バナー（非線形文字数増加対応版）
-struct PostLevelInfoBanner: View {
+// ⭐️ レベル情報バナー（現実的版）
+struct PostLevelInfoBannerDiamond: View {
     let currentLevel: Int
     let postLimit: Int
     
-    // 次の文字数増加を計算（動的版）
+    // 次の文字数増加を計算（現実的版）
     var nextCharacterIncrease: (level: Int, chars: Int)? {
-        // 現在の文字数
-        let currentChars = postLimit
+        let milestones = User.getCharacterMilestones()
         
-        // レベルを少しずつ上げて、文字数が増える地点を探す
-        for checkLevel in (currentLevel + 1)...(currentLevel + 1000) {
-            var tempUser = User(level: checkLevel)
-            let nextChars = tempUser.postCharacterLimit
-            
-            if nextChars > currentChars {
-                return (level: checkLevel, chars: nextChars)
-            }
-            
-            // 最大値に達した場合
-            if nextChars >= 500 {
-                return nil
+        for milestone in milestones {
+            if milestone.level > currentLevel && milestone.chars > postLimit {
+                return (level: milestone.level, chars: milestone.chars)
             }
         }
         
@@ -387,7 +383,7 @@ struct PostLevelInfoBanner: View {
                     .font(.caption)
                     .foregroundColor(.blue.opacity(0.7))
                 
-                Text("1日1回、\(postLimit)文字以内で投稿")
+                Text("1日\(getCurrentDailyLimit())回、\(postLimit)文字以内で投稿")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.6))
             }
@@ -414,17 +410,27 @@ struct PostLevelInfoBanner: View {
                         .font(.system(size: 11))
                         .foregroundColor(.yellow.opacity(0.7))
                 }
-            } else if postLimit >= 500 {
+            } else if postLimit >= 25 {
                 HStack(spacing: 4) {
                     Image(systemName: "crown.fill")
                         .font(.system(size: 11))
-                        .foregroundColor(.yellow)
+                        .foregroundColor(.purple)
                     
-                    Text("最大文字数（500文字）に到達！")
+                    Text("最大文字数（25文字）に到達！💎")
                         .font(.system(size: 11))
-                        .foregroundColor(.yellow)
+                        .foregroundColor(.purple)
                 }
             }
+        }
+    }
+    
+    private func getCurrentDailyLimit() -> Int {
+        switch currentLevel {
+        case 1...49: return 1
+        case 50...99: return 2
+        case 100...499: return 3
+        case 500...999: return 5
+        default: return 10
         }
     }
 }

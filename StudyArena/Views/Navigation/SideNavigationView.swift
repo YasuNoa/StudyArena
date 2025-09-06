@@ -20,6 +20,8 @@ struct SideNavigationView: View {
     @State private var showDepartmentJoin = false
     @State private var showStudyCalendar = false
     @State private var showMBTIStats = false
+    @State private var showRewardSystem = false
+    @State private var showNotificationSettings = false
     
     enum NavigationSection: String, CaseIterable {
         case main = "メイン"
@@ -139,11 +141,11 @@ struct SideNavigationView: View {
                                 NavigationItem(
                                     icon: "trophy.fill",
                                     title: "報酬システム",
-                                    color: .yellow
+                                    color: Color("yellow")
                                 ) {
-                                    // 報酬システム画面へ
+                                    showRewardSystem = true  // ⭐️ シートを表示
+                                    isShowing = false        // ⭐️ サイドメニューを閉じる
                                 }
-                                
                                 NavigationItem(
                                     icon: "calendar",
                                     title: "学習カレンダー",
@@ -156,30 +158,13 @@ struct SideNavigationView: View {
                             }
                             
                             // 設定
-                            MenuSection(title: "設定") {
-                                NavigationItem(
-                                    icon: "bell.fill",
-                                    title: "通知設定",
-                                    color: .orange
-                                ) {
-                                    // 通知設定へ
-                                }
-                                
-                                NavigationItem(
-                                    icon: "moon.fill",
-                                    title: "テーマ設定",
-                                    color: .indigo
-                                ) {
-                                    // テーマ設定へ
-                                }
-                                
-                                NavigationItem(
-                                    icon: "lock.fill",
-                                    title: "プライバシー",
-                                    color: .gray
-                                ) {
-                                    // プライバシー設定へ
-                                }
+                            NavigationItem(
+                                icon: "bell.fill",
+                                title: "通知設定",
+                                color: Color("orange")
+                            ) {
+                                showNotificationSettings = true  // 新しいState変数
+                                isShowing = false
                             }
                             
                             // サポート
@@ -261,6 +246,12 @@ struct SideNavigationView: View {
                         }
                     }
             }
+        }
+        .sheet(isPresented: $showRewardSystem) {
+            RewardSystemView()
+        }
+        .sheet(isPresented: $showNotificationSettings) {
+            NotificationSettingsView()
         }
     }
 }
