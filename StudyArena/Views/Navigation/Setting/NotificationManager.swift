@@ -290,6 +290,43 @@ class NotificationManager: NSObject, ObservableObject, UNUserNotificationCenterD
         // アプリがフォアグラウンドでも通知を表示
         completionHandler([.banner, .sound])
     }
+    /// タイマー自動停止通知
+    func sendTimerAutoStopNotification() {
+        guard isAuthorized else { return }
+        
+        let content = UNMutableNotificationContent()
+        content.title = "⏰ 学習タイマー停止"
+        content.body = "他のアプリを使用したため、学習タイマーを自動停止しました"
+        content.sound = .default
+        content.badge = 1
+        
+        // カスタムアクション（オプション）
+        let restartAction = UNNotificationAction(
+            identifier: "RESTART_TIMER",
+            title: "再開",
+            options: [.foreground]
+        )
+        
+        let category = UNNotificationCategory(
+            identifier: "TIMER_AUTO_STOP",
+            actions: [restartAction],
+            intentIdentifiers: []
+        )
+        
+        UNUserNotificationCenter.current().setNotificationCategories([category])
+        content.categoryIdentifier = "TIMER_AUTO_STOP"
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: "auto_stop", content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("自動停止通知エラー: \(error)")
+            } else {
+                print("自動停止通知送信完了")
+            }
+        }
+    }
 }
 
 // MARK: - 通知設定データモデル

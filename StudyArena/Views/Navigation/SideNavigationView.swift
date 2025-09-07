@@ -4,10 +4,6 @@
 //
 //  Created by 田中正造 on 17/08/2025.
 //
-
-
-// StudyArena/Views/Navigation/SideNavigationView.swift
-
 import SwiftUI
 
 // MARK: - メインのサイドナビゲーション
@@ -158,13 +154,15 @@ struct SideNavigationView: View {
                             }
                             
                             // 設定
-                            NavigationItem(
-                                icon: "bell.fill",
-                                title: "通知設定",
-                                color: Color("orange")
-                            ) {
-                                showNotificationSettings = true  // 新しいState変数
-                                isShowing = false
+                            MenuSection(title: "設定") {
+                                NavigationItem(
+                                    icon: "bell.fill",
+                                    title: "通知設定",
+                                    color: Color("orange")
+                                ) {
+                                    showNotificationSettings = true  // 新しいState変数
+                                    isShowing = false
+                                }
                             }
                             
                             // サポート

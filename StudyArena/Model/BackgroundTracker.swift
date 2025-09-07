@@ -14,8 +14,16 @@ class BackgroundTracker: ObservableObject {
     private var wasActiveBeforeBackground = false
     private var isScreenLocked = false
     
+    // MainViewModelへの参照（弱参照で循環参照を防ぐ）
+    private weak var viewModel: MainViewModel?
+    
     init() {
         setupNotifications()
+    }
+    
+    // MainViewModelを設定するメソッド
+    func setViewModel(_ viewModel: MainViewModel) {
+        self.viewModel = viewModel
     }
     
     private func setupNotifications() {
@@ -158,53 +166,5 @@ class BackgroundTracker: ObservableObject {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
-    }
-}
-
-// MARK: - View Modifier for Scene Phase Tracking
-struct BackgroundTrackingModifier: ViewModifier {
-    @EnvironmentObject var backgroundTracker: BackgroundTracker
-    @Environment(\.scenePhase) var scenePhase
-    @State private var lastPhase: ScenePhase = .active
-    
-    func body(content: Content) -> some View {
-        content
-            .onAppear {
-                print("📱 バックグラウンド追跡を開始")
-            }
-            .onChange(of: scenePhase) { oldPhase, newPhase in
-                handlePhaseChange(from: oldPhase, to: newPhase)
-            }
-    }
-    
-    private func handlePhaseChange(from oldPhase: ScenePhase, to newPhase: ScenePhase) {
-        print("📱 Scene Phase: \(oldPhase) → \(newPhase)")
-        
-        switch (oldPhase, newPhase) {
-        case (.active, .inactive):
-            // アクティブ → 非アクティブ（コントロールセンターや通知センターを開いた、電源ボタンを押した）
-            print("⏸ アプリが非アクティブになりました")
-            
-        case (.inactive, .background):
-            // 非アクティブ → バックグラウンド（他のアプリに切り替えた）
-            print("🔄 他のアプリに切り替えました")
-            
-        case (.inactive, .active):
-            // 非アクティブ → アクティブ（電源ボタンでのスリープから復帰、通知センターを閉じた）
-            print("▶️ アプリに戻りました（スリープ解除または通知センターから）")
-            
-        case (.background, .inactive):
-            // バックグラウンド → 非アクティブ（アプリスイッチャーを表示）
-            print("📱 アプリスイッチャー表示中")
-            
-        case (.background, .active):
-            // バックグラウンド → アクティブ（アプリに戻ってきた）
-            print("✅ アプリがフォアグラウンドに復帰")
-            
-        default:
-            print("📱 その他の遷移: \(oldPhase) → \(newPhase)")
-        }
-        
-        lastPhase = newPhase
     }
 }

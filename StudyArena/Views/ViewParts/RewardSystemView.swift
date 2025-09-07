@@ -47,8 +47,7 @@ struct RewardSystemView: View {
                     Text("概要").tag(0)
                     Text("トロフィー").tag(1)
                     Text("文字数").tag(2)
-                    Text("いいね").tag(3)
-                    Text("計算式").tag(4)
+                    Text("計算式").tag(3)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
@@ -261,11 +260,11 @@ struct CharacterLimitSectionDiamond: View {
                                                 endPoint: .trailing
                                             )
                                         )
-                                        .frame(width: geometry.size.width * CGFloat(milestone.chars) / 150)
+                                        .frame(width: geometry.size.width * CGFloat(milestone.chars) / 25)  // ← 500を25に変更
                                 }
                             }
                             .frame(height: 16)
-                            
+                           
                             Text("\(milestone.chars)文字")
                                 .font(.caption)
                                 .fontWeight(.semibold)
@@ -320,7 +319,7 @@ struct FormulaSectionDiamond: View {
                             .font(.system(.caption, design: .monospaced))
                             .foregroundColor(.white.opacity(0.8))
                         
-                        Text("段階的増加（最大150文字）")
+                        Text("段階的増加（最大25文字）")
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.6))
                     }

@@ -53,6 +53,7 @@ class MainViewModel: ObservableObject {
                 totalStudyTime: 3600
             )
         }
+        backgroundTracker.setViewModel(self)
     }
     
     deinit {
@@ -1291,7 +1292,42 @@ extension MainViewModel {
             }
         }
     }
-    
+    // MainViewModel.swift に追加
+    func forceStopTimer() {
+        guard isTimerRunning else { return }
+        
+        timer?.invalidate()
+        timer = nil
+        isTimerRunning = false
+        
+        // 現在までの時間を記録
+        let studyTime = timerValue
+        timerValue = 0
+        
+        // 通常の学習記録として保存
+        Task { @MainActor in
+            let beforeLevel = self.user?.level ?? 1
+            self.addExperience(from: studyTime)
+            let afterLevel = self.user?.level ?? 1
+            
+            // 学習記録保存
+            do {
+                try await self.saveStudyRecord(
+                    duration: studyTime,
+                    earnedExp: studyTime,
+                    beforeLevel: beforeLevel,
+                    afterLevel: afterLevel
+                )
+                
+                guard let userToSave = self.user else { return }
+                try await self.saveUserData(userToSave: userToSave)
+            } catch {
+                print("強制停止時の保存エラー: \(error)")
+            }
+        }
+        
+        print("タイマー強制停止: \(Int(studyTime))秒を記録")
+    }
     // タイマー停止時に通知送信
     func stopTimerWithNotifications() {
         guard isTimerRunning else { return }
@@ -1364,13 +1400,3 @@ extension MainViewModel {
     }
 }
 
-// MARK: - 初期化時に通知設定
-// MainViewModel の init() に追加
-/*
- init() {
- // 既存のコード...
- 
- // 通知設定
- setupNotifications()
- }
- */

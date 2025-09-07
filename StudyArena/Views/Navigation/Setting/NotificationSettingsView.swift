@@ -42,7 +42,6 @@ struct NotificationSettingsView: View {
                     .padding(.vertical)
                 }
             }
-            .navigationTitle("通知設定")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
