@@ -233,14 +233,25 @@ class MainViewModel: ObservableObject {
             }
         }
     }
+    // MainViewModel.swift の joinDepartment(_ departmentId: String) メソッド内の修正
     
     func joinDepartment(_ departmentId: String) async throws {
         guard let userId = self.userId else { return }
         
+        // 🔧 修正前（エラーになる）
+        /*
+         let membership = DepartmentMembership(
+         departmentId: departmentId,
+         departmentName: departments.first { $0.id == departmentId }?.name ?? "",
+         joinedAt: Date()
+         )
+         */
+        
+        // 🔧 修正後（正しい引数の順序）
         let membership = DepartmentMembership(
+            userId: userId,
             departmentId: departmentId,
-            departmentName: departments.first { $0.id == departmentId }?.name ?? "",
-            joinedAt: Date()
+            departmentName: departments.first { $0.id == departmentId }?.name ?? ""
         )
         
         // Firestoreに保存
@@ -1803,42 +1814,42 @@ struct MBTIPerformer {
 }
 // MainViewModel.
 // MainViewModel.swift の最後のextensionを以下で置き換え
+// MainViewModel.swift の修正版（最小限の変更）
+
+// 🔧 既存の最後のextensionを以下で置き換え（重複メソッドを整理）
 
 extension MainViewModel {
     
-    // MARK: - 部門関連機能
+    // MARK: - 部門関連機能（既存メソッドを活用）
     
-    // 部門作成権限チェック
-    func checkDepartmentCreationPermission() {
-        guard let user = self.user else {
-            // 既存プロパティに@Published var canCreateDepartment: Bool = false があることを前提
-            return
-        }
+    // 🔧 不足メソッド1: ユーザーの参加部門を取得
+    func fetchUserMemberships() async {
+        guard let userId = self.userId else { return }
         
-        // レベル10以上で部門作成可能（既存の部門関連プロパティを使用）
-        // canCreateDepartmentは既存のプロパティを使用
-    }
-    
-    // 部門一覧取得（新しい順）
-    func fetchDepartmentsNew() async {
         do {
-            let snapshot = try await db.collection("departments")
-                .order(by: "createdAt", descending: true)
+            let snapshot = try await db.collection("department_memberships")
+                .whereField("userId", isEqualTo: userId)
                 .getDocuments()
             
             await MainActor.run {
-                // 既存のdepartmentsプロパティを使用
-                self.departments = try! snapshot.documents.compactMap { document in
-                    try document.data(as: Department.self)
+                self.userDepartments = snapshot.documents.compactMap { document in
+                    try? document.data(as: DepartmentMembership.self)
                 }
             }
         } catch {
-            print("部門取得エラー: \(error)")
+            print("ユーザー参加部門取得エラー: \(error)")
         }
     }
     
-    // 部門作成
-    func createDepartmentNew(name: String, description: String) async throws {
+    // 🔧 不足メソッド2: 特定部門に参加しているかチェック
+    func isJoinedDepartment(_ departmentId: String) -> Bool {
+        return userDepartments.contains { membership in
+            membership.departmentId == departmentId
+        }
+    }
+    
+    // 🔧 不足メソッド3: 部門作成（2引数版）
+    func createDepartment(name: String, description: String) async throws {
         guard let user = self.user, user.level >= 10 else {
             throw NSError(domain: "DepartmentError", code: 1,
                           userInfo: [NSLocalizedDescriptionKey: "レベル10以上のユーザーのみ部門を作成できます"])
@@ -1859,7 +1870,6 @@ extension MainViewModel {
         do {
             let departmentRef = try await db.collection("departments").addDocument(from: newDepartment)
             
-            // roleパラメータを削除
             let membership = DepartmentMembership(
                 userId: userId,
                 departmentId: departmentRef.documentID,
@@ -1868,16 +1878,17 @@ extension MainViewModel {
             
             try await db.collection("department_memberships").document(membership.id).setData(from: membership)
             
-            await fetchDepartmentsNew()
-            await fetchUserMembershipsNew()
+            // 既存のメソッドを使用
+            loadDepartments()
+            await fetchUserMemberships()
             
         } catch {
             throw error
         }
     }
     
-    // 部門参加
-    func joinDepartmentNew(_ department: Department) async throws {
+    // 🔧 不足メソッド4: 部門参加（Department型版）
+    func joinDepartment(_ department: Department) async throws {
         guard let departmentId = department.id else {
             throw NSError(domain: "DepartmentError", code: 2,
                           userInfo: [NSLocalizedDescriptionKey: "部門IDが無効です"])
@@ -1888,7 +1899,6 @@ extension MainViewModel {
                           userInfo: [NSLocalizedDescriptionKey: "ユーザーIDが見つかりません"])
         }
         
-        // 既存のuserDepartmentsプロパティを使用
         let alreadyJoined = userDepartments.contains { membership in
             membership.departmentId == departmentId
         }
@@ -1911,39 +1921,12 @@ extension MainViewModel {
                 "memberCount": FieldValue.increment(Int64(1))
             ])
             
-            await fetchDepartmentsNew()
-            await fetchUserMembershipsNew()
+            // 既存のメソッドを使用
+            loadDepartments()
+            await fetchUserMemberships()
             
         } catch {
             throw error
-        }
-    }
-    
-    // ユーザーの参加部門取得
-    func fetchUserMembershipsNew() async {
-        guard let userId = self.userId else { return }
-        
-        do {
-            let snapshot = try await db.collection("department_memberships")
-                .whereField("userId", isEqualTo: userId)
-                .getDocuments()
-            
-            await MainActor.run {
-                // 既存のuserDepartmentsプロパティを使用
-                self.userDepartments = try! snapshot.documents.compactMap { document in
-                    try document.data(as: DepartmentMembership.self)
-                }
-            }
-        } catch {
-            print("ユーザー参加部門取得エラー: \(error)")
-        }
-    }
-    
-    // 特定部門に参加しているかチェック
-    func isJoinedDepartmentNew(_ departmentId: String) -> Bool {
-        // 既存のuserDepartmentsプロパティを使用
-        return userDepartments.contains { membership in
-            membership.departmentId == departmentId
         }
     }
 }

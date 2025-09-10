@@ -4,107 +4,67 @@ struct DepartmentBrowserView: View {
     @ObservedObject var viewModel: MainViewModel
     @State private var showingCreateDepartment = false
     @State private var searchText = ""
-    @State private var selectedCategory: DepartmentCategory? = nil
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         NavigationView {
-            VStack {
-                // 検索バー
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
-                    
-                    TextField("部門を検索...", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-                .padding(.horizontal)
+            ZStack {
+                MinimalDarkBackgroundView()
                 
-                // カテゴリフィルター
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        CategoryChip(
-                            category: .technology,
-                            isSelected: selectedCategory == .technology
-                        ) {
-                            selectedCategory = selectedCategory == .technology ? nil : .technology
-                        }
+                VStack(spacing: 0) {
+                    // 検索バー
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
                         
-                        CategoryChip(
-                            category: .language,
-                            isSelected: selectedCategory == .language
-                        ) {
-                            selectedCategory = selectedCategory == .language ? nil : .language
-                        }
-                        
-                        CategoryChip(
-                            category: .business,
-                            isSelected: selectedCategory == .business
-                        ) {
-                            selectedCategory = selectedCategory == .business ? nil : .business
-                        }
-                        
-                        CategoryChip(
-                            category: .science,
-                            isSelected: selectedCategory == .science
-                        ) {
-                            selectedCategory = selectedCategory == .science ? nil : .science
-                        }
-                        
-                        CategoryChip(
-                            category: .art,
-                            isSelected: selectedCategory == .art
-                        ) {
-                            selectedCategory = selectedCategory == .art ? nil : .art
-                        }
-                        
-                        CategoryChip(
-                            category: .health,
-                            isSelected: selectedCategory == .health
-                        ) {
-                            selectedCategory = selectedCategory == .health ? nil : .health
-                        }
-                        
-                        CategoryChip(
-                            category: .other,
-                            isSelected: selectedCategory == .other
-                        ) {
-                            selectedCategory = selectedCategory == .other ? nil : .other
-                        }
+                        TextField("部門を検索...", text: $searchText)
+                            .textFieldStyle(DarkTextFieldStyle())
                     }
                     .padding(.horizontal)
-                }
-                .padding(.vertical, 8)
-                
-                // 部門一覧
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(filteredDepartments) { department in
-                            DepartmentCard(
-                                department: department,
-                                isJoined: viewModel.isJoinedDepartment(department.id ?? ""),
-                                onJoin: {
-                                    Task {
-                                        do {
-                                            try await viewModel.joinDepartment(department)
-                                        } catch {
-                                            print("部門参加エラー: \(error)")
+                    .padding(.top)
+                    
+                    // 部門一覧
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(filteredDepartments) { department in
+                                DepartmentBrowserCard(
+                                    department: department,
+                                    isJoined: viewModel.isJoinedDepartment(department.id ?? ""),
+                                    onJoin: {
+                                        Task {
+                                            do {
+                                                try await viewModel.joinDepartment(department)
+                                            } catch {
+                                                print("部門参加エラー: \(error)")
+                                            }
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
+                        .padding(.horizontal)
+                        .padding(.top)
                     }
-                    .padding(.horizontal)
                 }
             }
             .navigationTitle("部門を探す")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("閉じる") {
+                        dismiss()
+                    }
+                    .foregroundColor(.white)
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if viewModel.canCreateDepartment {
+                    // 🔧 修正: canCreateDepartmentプロパティが存在しない場合のチェック
+                    if (viewModel.user?.level ?? 0) >= 10 {
                         Button(action: {
                             showingCreateDepartment = true
                         }) {
                             Image(systemName: "plus")
+                                .foregroundColor(.white)
                         }
                     }
                 }
@@ -114,94 +74,64 @@ struct DepartmentBrowserView: View {
             CreateDepartmentView(viewModel: viewModel)
         }
         .task {
-            await viewModel.fetchDepartments()
+            // 🔧 修正: 既存のメソッド名を使用
+            await viewModel.loadDepartments()
             await viewModel.fetchUserMemberships()
-            viewModel.checkDepartmentCreationPermission()
         }
     }
     
     private var filteredDepartments: [Department] {
-        var filtered = viewModel.departments
-        
-        // 検索テキストでフィルター
-        if !searchText.isEmpty {
-            filtered = filtered.filter { department in
+        if searchText.isEmpty {
+            return viewModel.departments
+        } else {
+            return viewModel.departments.filter { department in
                 department.name.localizedCaseInsensitiveContains(searchText) ||
-                department.description.localizedCaseInsensitiveContains(searchText)
+                department.description.localizedCaseInsensitiveContains(searchText) ||
+                department.creatorName.localizedCaseInsensitiveContains(searchText)
             }
         }
-        
-        // カテゴリでフィルター
-        if let selectedCategory = selectedCategory {
-            filtered = filtered.filter { department in
-                department.category == selectedCategory
-            }
-        }
-        
-        return filtered
     }
 }
 
-struct DepartmentCard: View {
+// 🔧 新しい名前の部門カード（重複回避）
+struct DepartmentBrowserCard: View {
     let department: Department
     let isJoined: Bool
     let onJoin: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             // ヘッダー
             HStack {
-                // アイコン
-                Image(systemName: department.icon)
-                    .font(.title2)
-                    .foregroundColor(Color(hex: department.color) ?? .blue)
-                
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(department.name)
                         .font(.headline)
                         .fontWeight(.bold)
+                        .foregroundColor(.white)
                     
                     Text("作成者: \(department.creatorName)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.6))
                 }
                 
                 Spacer()
                 
-                VStack(alignment: .trailing) {
+                VStack(alignment: .trailing, spacing: 2) {
                     Text("\(department.memberCount)人")
                         .font(.caption)
                         .foregroundColor(.blue)
                     
                     Text(formatDate(department.createdAt))
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.5))
                 }
             }
             
             // 説明
             Text(department.description)
                 .font(.body)
+                .foregroundColor(.white.opacity(0.8))
                 .lineLimit(3)
-            
-            // タグ
-            if !department.tags.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(department.tags, id: \.self) { tag in
-                            Text("#\(tag)")
-                                .font(.caption2)
-                                .foregroundColor(.white.opacity(0.6))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.white.opacity(0.1))
-                                )
-                        }
-                    }
-                }
-            }
             
             // 参加ボタン
             HStack {
@@ -211,6 +141,12 @@ struct DepartmentCard: View {
                     Text("参加済み")
                         .font(.caption)
                         .foregroundColor(.green)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.green.opacity(0.2))
+                        )
                 } else {
                     Button("参加する", action: onJoin)
                         .font(.caption)
@@ -223,8 +159,14 @@ struct DepartmentCard: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .fill(Color.white.opacity(0.05))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+        )
     }
     
     private func formatDate(_ date: Date) -> String {
@@ -235,50 +177,55 @@ struct DepartmentCard: View {
     }
 }
 
+// 🔧 シンプルな部門作成ビュー
 struct CreateDepartmentView: View {
     @ObservedObject var viewModel: MainViewModel
     @Environment(\.dismiss) private var dismiss
     
     @State private var departmentName = ""
     @State private var departmentDescription = ""
-    @State private var selectedCategory: DepartmentCategory = .other
     @State private var isCreating = false
     
     var body: some View {
         NavigationView {
-            Form {
-                Section("部門情報") {
-                    TextField("部門名", text: $departmentName)
-                    
-                    TextField("部門の説明", text: $departmentDescription, axis: .vertical)
-                        .lineLimit(3...6)
-                }
+            ZStack {
+                MinimalDarkBackgroundView()
                 
-                Section("カテゴリ") {
-                    Picker("カテゴリ", selection: $selectedCategory) {
-                        ForEach(DepartmentCategory.allCases, id: \.self) { category in
-                            HStack {
-                                Image(systemName: category.icon)
-                                Text(category.displayName)
-                            }
-                            .tag(category)
-                        }
+                VStack(spacing: 20) {
+                    Text("新しい部門を作成")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.top)
+                    
+                    VStack(spacing: 16) {
+                        TextField("部門名", text: $departmentName)
+                            .textFieldStyle(DarkTextFieldStyle())
+                        
+                        TextField("部門の説明", text: $departmentDescription, axis: .vertical)
+                            .textFieldStyle(DarkTextFieldStyle())
+                            .lineLimit(3...6)
                     }
+                    .padding(.horizontal)
+                    
+                    Spacer()
                 }
             }
-            .navigationTitle("部門を作成")
+            .navigationTitle("部門作成")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("キャンセル") {
                         dismiss()
                     }
+                    .foregroundColor(.white)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("作成") {
                         createDepartment()
                     }
+                    .foregroundColor(.blue)
                     .disabled(departmentName.isEmpty || departmentDescription.isEmpty || isCreating)
                 }
             }
@@ -290,6 +237,7 @@ struct CreateDepartmentView: View {
         
         Task {
             do {
+                // 🔧 修正: 既存のメソッドを使用
                 try await viewModel.createDepartment(
                     name: departmentName,
                     description: departmentDescription
@@ -305,23 +253,5 @@ struct CreateDepartmentView: View {
                 isCreating = false
             }
         }
-    }
-}
-
-// MARK: - Color Extension (既存の拡張)
-extension Color {
-    init?(hex: String) {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
-        
-        var rgb: UInt64 = 0
-        
-        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else { return nil }
-        
-        self.init(
-            red: Double((rgb & 0xFF0000) >> 16) / 255.0,
-            green: Double((rgb & 0x00FF00) >> 8) / 255.0,
-            blue: Double(rgb & 0x0000FF) / 255.0
-        )
     }
 }

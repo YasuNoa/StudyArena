@@ -13,10 +13,10 @@ struct DepartmentCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                // アイコン
-                Image(systemName: department.icon)
+                // デフォルトアイコン（DepartmentCategoryがないため）
+                Image(systemName: "building.2.fill")
                     .font(.title2)
-                    .foregroundColor(Color(hex: department.color) ?? .blue)
+                    .foregroundColor(.blue)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(department.name)
@@ -46,31 +46,33 @@ struct DepartmentCard: View {
                 }
             }
             
-            // タグ
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(department.tags, id: \.self) { tag in
-                        Text("#\(tag)")
-                            .font(.caption2)
-                            .foregroundColor(.white.opacity(0.6))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white.opacity(0.1))
-                            )
-                    }
-                }
+            // 作成者情報
+            HStack {
+                Image(systemName: "person.fill")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.5))
+                
+                Text("作成者: \(department.creatorName)")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
             }
             
-            // メンバー数
+            // メンバー数と作成日
             HStack {
-                Image(systemName: "person.3.fill")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.5))
-                Text("\(department.memberCount)人参加中")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.5))
+                HStack {
+                    Image(systemName: "person.3.fill")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                    Text("\(department.memberCount)人参加中")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                
+                Spacer()
+                
+                Text(formatDate(department.createdAt))
+                    .font(.caption2)
+                    .foregroundColor(.white.opacity(0.4))
             }
         }
         .padding()
@@ -88,5 +90,12 @@ struct DepartmentCard: View {
         withAnimation(.spring()) {
             isJoined.toggle()
         }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.locale = Locale(identifier: "ja_JP")
+        return formatter.string(from: date)
     }
 }

@@ -226,7 +226,7 @@ struct SideNavigationView: View {
             FeedbackView()
         }
         .sheet(isPresented: $showDepartmentJoin) {
-            DepartmentBrowserView()
+            DepartmentBrowserView(viewModel: viewModel)
         }
         .sheet(isPresented: $showStudyCalendar) {
             NavigationView {
