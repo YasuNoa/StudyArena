@@ -15,6 +15,7 @@ struct SideNavigationView: View {
     @State private var showMBTIPatterns = false
     @State private var showRewardSystem = false
     @State private var showNotificationSettings = false
+    @State private var showCreateDepartment = false
     
     enum NavigationSection: String, CaseIterable {
         case main = "メイン"
@@ -102,6 +103,24 @@ struct SideNavigationView: View {
                                     color: .mint
                                 ) {
                                     showDepartmentJoin = true
+                                }
+                                if canCreateDepartment() {
+                                    NavigationItem(
+                                        icon: "plus.circle.fill",
+                                        title: "部門を作成",
+                                        color: .blue
+                                    ) {
+                                        showCreateDepartment = true
+                                        isShowing = false  // サイドメニューを閉じる
+                                    }
+                                } else {
+                                    NavigationItem(
+                                        icon: "lock.fill",
+                                        title: "部門作成（Lv.10で解放）",
+                                        color: .gray
+                                    ) {
+                                        // 何もしない（レベル不足）
+                                    }
                                 }
                                 
                                 NavigationItem(
@@ -228,6 +247,9 @@ struct SideNavigationView: View {
         .sheet(isPresented: $showDepartmentJoin) {
             DepartmentBrowserView(viewModel: viewModel)
         }
+        .sheet(isPresented: $showCreateDepartment) {
+            CreateDepartmentView(viewModel: viewModel)
+        }
         .sheet(isPresented: $showStudyCalendar) {
             NavigationView {
                 StudyCalendarView()
@@ -270,12 +292,17 @@ struct SideNavigationView: View {
         .sheet(isPresented: $showNotificationSettings) {
             NotificationSettingsView()
         }
+        
     }
     
     // 🔧 修正: MBTIデータ存在チェック関数をより安全に
     private func hasMBTIData() -> Bool {
         guard let mbtiType = viewModel.user?.mbtiType else { return false }
         return !mbtiType.isEmpty
+    }
+    private func canCreateDepartment() -> Bool {
+        guard let user = viewModel.user else { return false }
+        return user.level >= 10
     }
 }
 
