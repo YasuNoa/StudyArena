@@ -2,7 +2,8 @@
 
 import SwiftUI
 import FirebaseCore
-import FirebaseAppCheck // ▼▼▼ 追加 ▼▼▼
+import FirebaseAppCheck
+import UserNotifications// ▼▼▼ 追加 ▼▼▼
 
 // ▼▼▼▼▼ ここからApp Checkの「設計図」クラスをまるごと追加 ▼▼▼▼▼
 class MyAppCheckProviderFactory: NSObject, AppCheckProviderFactory {
@@ -41,13 +42,31 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 @main
-struct ProducteneApp: App {
+struct StudyArenaApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
+    init() {
+        // 🆕 通知権限を要求
+        requestNotificationPermission()
+    }
     var body: some Scene {
         WindowGroup {
             // ContentView()を直接表示するように修正
             ContentView()
+        }
+    }
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            DispatchQueue.main.async {
+                if granted {
+                    print("✅ 通知権限が許可されました")
+                } else {
+                    print("❌ 通知権限が拒否されました")
+                }
+                
+                if let error = error {
+                    print("通知権限エラー: \(error)")
+                }
+            }
         }
     }
 }

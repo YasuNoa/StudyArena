@@ -14,12 +14,13 @@
 		BF38EE092E6B3D79007437B7 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE082E6B3D79007437B7 /* Feedback.swift */; };
 		BF38EE0B2E6C2555007437B7 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE0A2E6C2555007437B7 /* NotificationManager.swift */; };
 		BF38EE0D2E6C2574007437B7 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE0C2E6C2574007437B7 /* NotificationSettingsView.swift */; };
+		BF38EE0F2E7079A1007437B7 /* MBTILearningPatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE0E2E7079A1007437B7 /* MBTILearningPatternView.swift */; };
 		BF639EB12E48EC66004FCD52 /* RewardSystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */; };
 		BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */; };
 		BF6F37042E65953100159804 /* MBTIStatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6F37032E65953100159804 /* MBTIStatData.swift */; };
 		BF7F8B902E15099C00DF3CFC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8C2E15099C00DF3CFC /* ContentView.swift */; };
 		BF7F8B912E15099C00DF3CFC /* DataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */; };
-		BF7F8B922E15099C00DF3CFC /* producteneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8E2E15099C00DF3CFC /* producteneApp.swift */; };
+		BF7F8B922E15099C00DF3CFC /* StudyArena.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B8E2E15099C00DF3CFC /* StudyArena.swift */; };
 		BF7F8B932E15099C00DF3CFC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BF7F8B8B2E15099C00DF3CFC /* Assets.xcassets */; };
 		BF7F8B972E150B2400DF3CFC /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7F8B962E150B2400DF3CFC /* MainViewModel.swift */; };
 		BF7F8B9C2E15988E00DF3CFC /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8B9B2E15988E00DF3CFC /* FirebaseAI */; };
@@ -81,6 +82,7 @@
 		BF38EE082E6B3D79007437B7 /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
 		BF38EE0A2E6C2555007437B7 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		BF38EE0C2E6C2574007437B7 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
+		BF38EE0E2E7079A1007437B7 /* MBTILearningPatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTILearningPatternView.swift; sourceTree = "<group>"; };
 		BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardSystemView.swift; sourceTree = "<group>"; };
 		BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalDarkBackgroundView.swift; sourceTree = "<group>"; };
 		BF6F37032E65953100159804 /* MBTIStatData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTIStatData.swift; sourceTree = "<group>"; };
@@ -88,7 +90,7 @@
 		BF7F8B8B2E15099C00DF3CFC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BF7F8B8C2E15099C00DF3CFC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		BF7F8B8D2E15099C00DF3CFC /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
-		BF7F8B8E2E15099C00DF3CFC /* producteneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = producteneApp.swift; sourceTree = "<group>"; };
+		BF7F8B8E2E15099C00DF3CFC /* StudyArena.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyArena.swift; sourceTree = "<group>"; };
 		BF7F8B962E150B2400DF3CFC /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrophyDisplayCard.swift; sourceTree = "<group>"; };
 		BFACD48D2E517C1400935FCE /* Department.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Department.swift; sourceTree = "<group>"; };
@@ -215,7 +217,7 @@
 				BF7F8B8A2E15099C00DF3CFC /* Model */,
 				BFACD48C2E50EFD300935FCE /* ViewModel */,
 				BF7F8B942E150A2A00DF3CFC /* Views */,
-				BF7F8B8E2E15099C00DF3CFC /* producteneApp.swift */,
+				BF7F8B8E2E15099C00DF3CFC /* StudyArena.swift */,
 				BF7F8B8B2E15099C00DF3CFC /* Assets.xcassets */,
 			);
 			path = StudyArena;
@@ -269,6 +271,7 @@
 				BF6F37032E65953100159804 /* MBTIStatData.swift */,
 				BFACD4992E5898BB00935FCE /* MBTISelectionView.swift */,
 				BFACD4952E5875F300935FCE /* StudyCalendarView.swift */,
+				BF38EE0E2E7079A1007437B7 /* MBTILearningPatternView.swift */,
 			);
 			path = Static;
 			sourceTree = "<group>";
@@ -452,7 +455,7 @@
 				BFC0F9EA2E16508800870CDD /* TimerDisplay.swift in Sources */,
 				BFACD48E2E517C1400935FCE /* Department.swift in Sources */,
 				BFACD4982E588C6D00935FCE /* MBTIStatsView.swift in Sources */,
-				BF7F8B922E15099C00DF3CFC /* producteneApp.swift in Sources */,
+				BF7F8B922E15099C00DF3CFC /* StudyArena.swift in Sources */,
 				BFACD4882E49CDCC00935FCE /* TrophyDisplayCard.swift in Sources */,
 				BFC0F9E42E16504B00870CDD /* MainTabView.swift in Sources */,
 				BF38EE092E6B3D79007437B7 /* Feedback.swift in Sources */,
@@ -460,6 +463,7 @@
 				BFC0F9E62E16505E00870CDD /* TimerView.swift in Sources */,
 				BFAD2C3D2E3E71CF004C748A /* BackgroundTracker.swift in Sources */,
 				BF38EE032E6B3969007437B7 /* DepartmentCard.swift in Sources */,
+				BF38EE0F2E7079A1007437B7 /* MBTILearningPatternView.swift in Sources */,
 				BF7F8B972E150B2400DF3CFC /* MainViewModel.swift in Sources */,
 				BFACD49A2E5898BB00935FCE /* MBTISelectionView.swift in Sources */,
 			);

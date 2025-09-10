@@ -25,6 +25,7 @@ class MainViewModel: ObservableObject {
     @Published var studyRecords: [StudyRecord] = []
     @Published var studyStatistics: StudyStatistics?
     
+    
     // 日別の学習データ
     @Published var dailyStudyData: [Date: TimeInterval] = [:]
     
@@ -1400,3 +1401,549 @@ extension MainViewModel {
     }
 }
 
+// MainViewModel.swift に追加する拡張機能
+
+extension MainViewModel {
+    
+    // MARK: - Enhanced MBTI Statistics
+    
+    /// MBTI統計を詳細に読み込む
+    func loadDetailedMBTIStatistics() async {
+        print("🧠 詳細なMBTI統計を読み込み中...")
+        
+        do {
+            // 1. 全ユーザーのMBTI分布を取得
+            let usersSnapshot = try await db.collection("users")
+                .whereField("mbtiType", isNotEqualTo: "")
+                .getDocuments()
+            
+            // 2. 学習記録からMBTI別統計を集計
+            let recordsSnapshot = try await db.collection("studyRecords")
+                .whereField("mbtiType", isNotEqualTo: "")
+                .whereField("recordType", isEqualTo: "study")
+                .getDocuments()
+            
+            // 3. 統計を集計
+            var mbtiStats: [String: MBTIStatData] = [:]
+            
+            // ユーザー数を集計
+            var userCounts: [String: Int] = [:]
+            for document in usersSnapshot.documents {
+                if let mbti = document.data()["mbtiType"] as? String, !mbti.isEmpty {
+                    userCounts[mbti, default: 0] += 1
+                }
+            }
+            
+            // 学習時間を集計
+            var totalTimes: [String: Double] = [:]
+            var studyCounts: [String: Int] = [:]
+            
+            for document in recordsSnapshot.documents {
+                let data = document.data()
+                if let mbti = data["mbtiType"] as? String,
+                   let duration = data["duration"] as? TimeInterval,
+                   !mbti.isEmpty {
+                    totalTimes[mbti, default: 0] += duration
+                    studyCounts[mbti, default: 0] += 1
+                }
+            }
+            
+            // 4. 統計データを作成
+            let allMBTITypes = [
+                "INTJ", "INTP", "ENTJ", "ENTP",
+                "INFJ", "INFP", "ENFJ", "ENFP",
+                "ISTJ", "ISFJ", "ESTJ", "ESFJ",
+                "ISTP", "ISFP", "ESTP", "ESFP"
+            ]
+            
+            for mbti in allMBTITypes {
+                let userCount = userCounts[mbti] ?? 0
+                let totalTime = totalTimes[mbti] ?? 0
+                let avgTime = userCount > 0 ? totalTime / Double(userCount) : 0
+                
+                mbtiStats[mbti] = MBTIStatData(
+                    mbtiType: mbti,
+                    totalTime: totalTime,
+                    userCount: userCount,
+                    avgTime: avgTime
+                )
+            }
+            
+            await MainActor.run {
+                self.mbtiStatistics = mbtiStats
+                print("✅ MBTI統計読み込み完了: \(mbtiStats.count)タイプ")
+            }
+            
+        } catch {
+            print("❌ MBTI統計読み込みエラー: \(error)")
+        }
+    }
+    
+    /// 学習記録保存時にMBTI統計を更新（強化版）
+    func updateDetailedMBTIStatistics(studyTime: TimeInterval) async {
+        guard let mbti = user?.mbtiType, !mbti.isEmpty else {
+            print("⚠️ MBTI未設定のため統計更新をスキップ")
+            return
+        }
+        
+        print("📊 MBTI統計更新: \(mbti), 時間: \(studyTime)秒")
+        
+        // グローバル統計とユーザー別統計を並行更新
+        async let globalUpdate = updateGlobalMBTIStatistics(mbti: mbti, studyTime: studyTime)
+        async let userUpdate = updateUserMBTIProfile(mbti: mbti, studyTime: studyTime)
+        
+        do {
+            let (_, _) = try await (globalUpdate, userUpdate)
+            print("✅ MBTI統計更新完了")
+        } catch {
+            print("❌ MBTI統計更新エラー: \(error)")
+        }
+    }
+    
+    /// グローバルMBTI統計を更新
+    private func updateGlobalMBTIStatistics(mbti: String, studyTime: TimeInterval) async throws {
+        let statsRef = db.collection("mbtiStatistics").document("global")
+        
+        try await statsRef.updateData([
+            "stats.\(mbti).totalTime": FieldValue.increment(Double(studyTime)),
+            "stats.\(mbti).sessionCount": FieldValue.increment(Int64(1)),
+            "lastUpdated": Timestamp(date: Date())
+        ])
+    }
+    
+    /// ユーザー個別のMBTI学習記録を更新
+    private func updateUserMBTIProfile(mbti: String, studyTime: TimeInterval) async throws {
+        guard let userId = self.userId else { return }
+        
+        let userStatsRef = db.collection("userMBTIStats").document(userId)
+        
+        try await userStatsRef.setData([
+            "userId": userId,
+            "mbtiType": mbti,
+            "totalStudyTime": FieldValue.increment(Double(studyTime)),
+            "totalSessions": FieldValue.increment(Int64(1)),
+            "lastStudyDate": Timestamp(date: Date()),
+            "averageSessionTime": studyTime // これは後で集計時に再計算
+        ], merge: true)
+    }
+    
+    /// 月別MBTI統計を取得
+    func loadMonthlyMBTIStatistics(for month: Date) async -> [String: MBTIStatData] {
+        let calendar = Calendar.current
+        let startOfMonth = calendar.dateInterval(of: .month, for: month)!.start
+        let endOfMonth = calendar.dateInterval(of: .month, for: month)!.end
+        
+        do {
+            let recordsSnapshot = try await db.collection("studyRecords")
+                .whereField("timestamp", isGreaterThanOrEqualTo: Timestamp(date: startOfMonth))
+                .whereField("timestamp", isLessThan: Timestamp(date: endOfMonth))
+                .whereField("mbtiType", isNotEqualTo: "")
+                .whereField("recordType", isEqualTo: "study")
+                .getDocuments()
+            
+            var monthlyStats: [String: MBTIStatData] = [:]
+            var totalTimes: [String: Double] = [:]
+            var sessionCounts: [String: Int] = [:]
+            
+            for document in recordsSnapshot.documents {
+                let data = document.data()
+                if let mbti = data["mbtiType"] as? String,
+                   let duration = data["duration"] as? TimeInterval {
+                    totalTimes[mbti, default: 0] += duration
+                    sessionCounts[mbti, default: 0] += 1
+                }
+            }
+            
+            for mbti in totalTimes.keys {
+                let totalTime = totalTimes[mbti] ?? 0
+                let sessions = sessionCounts[mbti] ?? 0
+                let avgTime = sessions > 0 ? totalTime / Double(sessions) : 0
+                
+                monthlyStats[mbti] = MBTIStatData(
+                    mbtiType: mbti,
+                    totalTime: totalTime,
+                    userCount: sessions, // 月別では実際にはセッション数
+                    avgTime: avgTime
+                )
+            }
+            
+            return monthlyStats
+            
+        } catch {
+            print("月別MBTI統計エラー: \(error)")
+            return [:]
+        }
+    }
+    
+    /// MBTI別の学習パターン分析
+    func analyzeMBTILearningPatterns() async -> [String: LearningPattern] {
+        do {
+            let recordsSnapshot = try await db.collection("studyRecords")
+                .whereField("mbtiType", isNotEqualTo: "")
+                .whereField("recordType", isEqualTo: "study")
+                .order(by: "timestamp", descending: false)
+                .getDocuments()
+            
+            var patterns: [String: LearningPattern] = [:]
+            var mbtiSessions: [String: [StudySession]] = [:]
+            
+            // データを整理
+            for document in recordsSnapshot.documents {
+                let data = document.data()
+                if let mbti = data["mbtiType"] as? String,
+                   let duration = data["duration"] as? TimeInterval,
+                   let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() {
+                    
+                    let session = StudySession(
+                        duration: duration,
+                        timestamp: timestamp
+                    )
+                    
+                    mbtiSessions[mbti, default: []].append(session)
+                }
+            }
+            
+            // パターンを分析
+            for (mbti, sessions) in mbtiSessions {
+                patterns[mbti] = analyzeLearningPattern(from: sessions)
+            }
+            
+            return patterns
+            
+        } catch {
+            print("学習パターン分析エラー: \(error)")
+            return [:]
+        }
+    }
+    
+    /// 個別の学習パターンを分析
+    private func analyzeLearningPattern(from sessions: [StudySession]) -> LearningPattern {
+        guard !sessions.isEmpty else {
+            return LearningPattern(
+                averageSessionDuration: 0,
+                preferredStudyHour: 0,
+                consistencyScore: 0,
+                totalSessions: 0
+            )
+        }
+        
+        let calendar = Calendar.current
+        
+        // 平均セッション時間
+        let avgDuration = sessions.reduce(0) { $0 + $1.duration } / Double(sessions.count)
+        
+        // 好む学習時間帯
+        let hourCounts: [Int: Int] = sessions.reduce(into: [:]) { result, session in
+            let hour = calendar.component(.hour, from: session.timestamp)
+            result[hour, default: 0] += 1
+        }
+        let preferredHour = hourCounts.max(by: { $0.value < $1.value })?.key ?? 0
+        
+        // 継続性スコア（連続学習日数の標準偏差の逆数）
+        let dailySessions = Dictionary(grouping: sessions) { session in
+            calendar.startOfDay(for: session.timestamp)
+        }
+        let consistencyScore = calculateConsistencyScore(from: Array(dailySessions.keys))
+        
+        return LearningPattern(
+            averageSessionDuration: avgDuration,
+            preferredStudyHour: preferredHour,
+            consistencyScore: consistencyScore,
+            totalSessions: sessions.count
+        )
+    }
+    
+    /// 継続性スコアを計算
+    private func calculateConsistencyScore(from studyDates: [Date]) -> Double {
+        guard studyDates.count > 1 else { return 0 }
+        
+        let sortedDates = studyDates.sorted()
+        let intervals: [TimeInterval] = zip(sortedDates, sortedDates.dropFirst()).map { $1.timeIntervalSince($0) }
+        
+        let avgInterval = intervals.reduce(0, +) / Double(intervals.count)
+        let variance = intervals.reduce(0) { sum, interval in
+            sum + pow(interval - avgInterval, 2)
+        } / Double(intervals.count)
+        
+        let standardDeviation = sqrt(variance)
+        
+        // 標準偏差の逆数を正規化（0-1の範囲）
+        return standardDeviation > 0 ? min(1.0, 1.0 / (standardDeviation / 86400)) : 1.0
+    }
+    
+    /// トップパフォーマーを取得
+    func getTopMBTIPerformers(limit: Int = 5) async -> [MBTIPerformer] {
+        var performers: [MBTIPerformer] = []
+        
+        do {
+            // 各MBTIタイプのトップユーザーを取得
+            for mbti in ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP",
+                         "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"] {
+                
+                let usersSnapshot = try await db.collection("users")
+                    .whereField("mbtiType", isEqualTo: mbti)
+                    .order(by: "totalStudyTime", descending: true)
+                    .limit(to: 1)
+                    .getDocuments()
+                
+                if let topUser = usersSnapshot.documents.first {
+                    let data = topUser.data()
+                    let performer = MBTIPerformer(
+                        mbti: mbti,
+                        nickname: data["nickname"] as? String ?? "Anonymous",
+                        totalStudyTime: data["totalStudyTime"] as? TimeInterval ?? 0,
+                        level: data["level"] as? Int ?? 1
+                    )
+                    performers.append(performer)
+                }
+            }
+            
+            return performers.sorted { $0.totalStudyTime > $1.totalStudyTime }
+            
+        } catch {
+            print("トップパフォーマー取得エラー: \(error)")
+            return []
+        }
+    }
+    
+    /// MBTI統計の初期化（開発・テスト用）
+    func initializeMBTIStatistics() async {
+        print("🔄 MBTI統計を初期化中...")
+        
+        let allMBTITypes = [
+            "INTJ", "INTP", "ENTJ", "ENTP",
+            "INFJ", "INFP", "ENFJ", "ENFP",
+            "ISTJ", "ISFJ", "ESTJ", "ESFJ",
+            "ISTP", "ISFP", "ESTP", "ESFP"
+        ]
+        
+        let statsRef = db.collection("mbtiStatistics").document("global")
+        var initialStats: [String: Any] = [:]
+        
+        for mbti in allMBTITypes {
+            initialStats["stats.\(mbti).totalTime"] = 0.0
+            initialStats["stats.\(mbti).userCount"] = 0
+            initialStats["stats.\(mbti).sessionCount"] = 0
+        }
+        
+        initialStats["lastUpdated"] = Timestamp(date: Date())
+        initialStats["version"] = 1
+        
+        do {
+            try await statsRef.setData(initialStats, merge: true)
+            print("✅ MBTI統計初期化完了")
+        } catch {
+            print("❌ MBTI統計初期化エラー: \(error)")
+        }
+    }
+}
+
+// MARK: - MBTI分析用のデータ構造体
+
+/// 学習セッション
+struct StudySession {
+    let duration: TimeInterval
+    let timestamp: Date
+}
+
+/// 学習パターン
+struct LearningPattern {
+    let averageSessionDuration: TimeInterval // 平均セッション時間
+    let preferredStudyHour: Int // 好む学習時間帯（0-23時）
+    let consistencyScore: Double // 継続性スコア（0-1）
+    let totalSessions: Int // 総セッション数
+    
+    var formattedAverageSession: String {
+        let hours = Int(averageSessionDuration) / 3600
+        let minutes = Int(averageSessionDuration) / 60 % 60
+        if hours > 0 {
+            return "\(hours)時間\(minutes)分"
+        } else {
+            return "\(minutes)分"
+        }
+    }
+    
+    var formattedPreferredTime: String {
+        return String(format: "%02d:00", preferredStudyHour)
+    }
+    
+    var consistencyRating: String {
+        switch consistencyScore {
+        case 0.8...:
+            return "非常に規則的"
+        case 0.6..<0.8:
+            return "規則的"
+        case 0.4..<0.6:
+            return "やや規則的"
+        case 0.2..<0.4:
+            return "不規則"
+        default:
+            return "非常に不規則"
+        }
+    }
+}
+
+/// MBTIパフォーマー
+struct MBTIPerformer {
+    let mbti: String
+    let nickname: String
+    let totalStudyTime: TimeInterval
+    let level: Int
+    
+    var formattedStudyTime: String {
+        let hours = Int(totalStudyTime) / 3600
+        if hours > 24 {
+            let days = hours / 24
+            let remainingHours = hours % 24
+            return "\(days)日\(remainingHours)時間"
+        } else {
+            return "\(hours)時間"
+        }
+    }
+}
+// MainViewModel.
+// MainViewModel.swift の最後のextensionを以下で置き換え
+
+extension MainViewModel {
+    
+    // MARK: - 部門関連機能
+    
+    // 部門作成権限チェック
+    func checkDepartmentCreationPermission() {
+        guard let user = self.user else {
+            // 既存プロパティに@Published var canCreateDepartment: Bool = false があることを前提
+            return
+        }
+        
+        // レベル10以上で部門作成可能（既存の部門関連プロパティを使用）
+        // canCreateDepartmentは既存のプロパティを使用
+    }
+    
+    // 部門一覧取得（新しい順）
+    func fetchDepartmentsNew() async {
+        do {
+            let snapshot = try await db.collection("departments")
+                .order(by: "createdAt", descending: true)
+                .getDocuments()
+            
+            await MainActor.run {
+                // 既存のdepartmentsプロパティを使用
+                self.departments = try! snapshot.documents.compactMap { document in
+                    try document.data(as: Department.self)
+                }
+            }
+        } catch {
+            print("部門取得エラー: \(error)")
+        }
+    }
+    
+    // 部門作成
+    func createDepartmentNew(name: String, description: String) async throws {
+        guard let user = self.user, user.level >= 10 else {
+            throw NSError(domain: "DepartmentError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "レベル10以上のユーザーのみ部門を作成できます"])
+        }
+        
+        guard let userId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 4,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        let newDepartment = Department(
+            name: name,
+            description: description,
+            creatorName: user.nickname,
+            creatorId: userId
+        )
+        
+        do {
+            let departmentRef = try await db.collection("departments").addDocument(from: newDepartment)
+            
+            // roleパラメータを削除
+            let membership = DepartmentMembership(
+                userId: userId,
+                departmentId: departmentRef.documentID,
+                departmentName: name
+            )
+            
+            try await db.collection("department_memberships").document(membership.id).setData(from: membership)
+            
+            await fetchDepartmentsNew()
+            await fetchUserMembershipsNew()
+            
+        } catch {
+            throw error
+        }
+    }
+    
+    // 部門参加
+    func joinDepartmentNew(_ department: Department) async throws {
+        guard let departmentId = department.id else {
+            throw NSError(domain: "DepartmentError", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "部門IDが無効です"])
+        }
+        
+        guard let userId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 5,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザーIDが見つかりません"])
+        }
+        
+        // 既存のuserDepartmentsプロパティを使用
+        let alreadyJoined = userDepartments.contains { membership in
+            membership.departmentId == departmentId
+        }
+        
+        guard !alreadyJoined else {
+            throw NSError(domain: "DepartmentError", code: 3,
+                          userInfo: [NSLocalizedDescriptionKey: "既にこの部門に参加しています"])
+        }
+        
+        do {
+            let membership = DepartmentMembership(
+                userId: userId,
+                departmentId: departmentId,
+                departmentName: department.name
+            )
+            
+            try await db.collection("department_memberships").document(membership.id).setData(from: membership)
+            
+            try await db.collection("departments").document(departmentId).updateData([
+                "memberCount": FieldValue.increment(Int64(1))
+            ])
+            
+            await fetchDepartmentsNew()
+            await fetchUserMembershipsNew()
+            
+        } catch {
+            throw error
+        }
+    }
+    
+    // ユーザーの参加部門取得
+    func fetchUserMembershipsNew() async {
+        guard let userId = self.userId else { return }
+        
+        do {
+            let snapshot = try await db.collection("department_memberships")
+                .whereField("userId", isEqualTo: userId)
+                .getDocuments()
+            
+            await MainActor.run {
+                // 既存のuserDepartmentsプロパティを使用
+                self.userDepartments = try! snapshot.documents.compactMap { document in
+                    try document.data(as: DepartmentMembership.self)
+                }
+            }
+        } catch {
+            print("ユーザー参加部門取得エラー: \(error)")
+        }
+    }
+    
+    // 特定部門に参加しているかチェック
+    func isJoinedDepartmentNew(_ departmentId: String) -> Bool {
+        // 既存のuserDepartmentsプロパティを使用
+        return userDepartments.contains { membership in
+            membership.departmentId == departmentId
+        }
+    }
+}

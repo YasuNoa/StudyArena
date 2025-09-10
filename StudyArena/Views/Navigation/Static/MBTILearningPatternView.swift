@@ -1,3 +1,11 @@
+//
+//  MBTILearningPatternView.swift
+//  StudyArena
+//
+//  Created by 田中正造 on 2025/09/10.
+//
+
+
 import SwiftUI
 import Charts
 

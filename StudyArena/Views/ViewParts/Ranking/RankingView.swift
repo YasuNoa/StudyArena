@@ -1,71 +1,48 @@
 //
-//  RankingView.swift - ダイヤモンドまで版
+//  RankingView.swift - シンプル版（ソート機能なし）
 //  productene
 //
 //  Created by 田中正造 on 03/07/2025.
 //
 import SwiftUI
 
-struct FilterChip: View {
-    let filter: RankingFilter
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(filter.rawValue)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? Color.blue : Color.gray.opacity(0.3))
-                .foregroundColor(.white)
-                .cornerRadius(15)
-        }
-    }
-}
-struct DepartmentSelector: View {
-    let departments: [Department]
-    @Binding var selectedDepartment: Department?
-    
-    var body: some View {
-        // 部門選択UIの実装
-        Text("部門選択")
-    }
-}
-
 struct RankingView: View {
     @EnvironmentObject var viewModel: MainViewModel
-    @State private var selectedFilter: RankingFilter = .all
-    @State private var selectedDepartment: Department? = nil
+    // 🔧 削除: フィルター関連の状態変数をコメントアウト
+    // @State private var selectedFilter: RankingFilter = .all
+    // @State private var selectedDepartment: Department? = nil
     
     var body: some View {
         VStack(spacing: 0) {
-            // フィルター選択
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(RankingFilter.allCases, id: \.self) { filter in
-                        FilterChip(
-                            filter: filter,
-                            isSelected: selectedFilter == filter,
-                            action: {
-                                selectedFilter = filter
-                                loadFilteredRanking()
-                            }
-                        )
-                    }
-                }
-                .padding()
-            }
+            // 🔧 削除: フィルター選択セクションをコメントアウト
+            /*
+             // フィルター選択
+             ScrollView(.horizontal, showsIndicators: false) {
+             HStack(spacing: 10) {
+             ForEach(RankingFilter.allCases, id: \.self) { filter in
+             FilterChip(
+             filter: filter,
+             isSelected: selectedFilter == filter,
+             action: {
+             selectedFilter = filter
+             loadFilteredRanking()
+             }
+             )
+             }
+             }
+             .padding()
+             }
+             
+             // 部門選択（部門フィルターの場合）
+             if selectedFilter == .department {
+             DepartmentSelector(
+             departments: viewModel.departments,
+             selectedDepartment: $selectedDepartment
+             )
+             }
+             */
             
-            // 部門選択（部門フィルターの場合）
-            if selectedFilter == .department {
-                DepartmentSelector(
-                    departments: viewModel.departments,
-                    selectedDepartment: $selectedDepartment
-                )
-            }
-            
-            
-            // ランキングリスト
+            // ランキングリスト（シンプル版）
             ScrollView {
                 VStack(spacing: 8) {
                     ForEach(viewModel.ranking) { user in
@@ -79,28 +56,35 @@ struct RankingView: View {
                 viewModel.loadRanking()
             }
         }
-    }
-    
-    private func loadFilteredRanking() {
-        switch selectedFilter {
-        case .all:
+        .onAppear {
+            // 🔧 シンプル化: デフォルトで全体ランキングのみ読み込み
             viewModel.loadRanking()
-        case .department:
-            if let deptId = selectedDepartment?.id {
-                Task {
-                    // 部門ランキング読み込み
-                }
-            }
-        case .monthly:
-            // 今月のランキング
-            break
-        default:
-            break
         }
     }
+    
+    // 🔧 削除: フィルター関連のメソッドをコメントアウト
+    /*
+     private func loadFilteredRanking() {
+     switch selectedFilter {
+     case .all:
+     viewModel.loadRanking()
+     case .department:
+     if let deptId = selectedDepartment?.id {
+     Task {
+     // 部門ランキング読み込み
+     }
+     }
+     case .monthly:
+     // 今月のランキング
+     break
+     default:
+     break
+     }
+     }
+     */
 }
 
-// ダイヤモンドまでのランキング行
+// ダイヤモンドまでのランキング行（変更なし）
 struct MinimalRankingRowDiamond: View {
     let user: User
     @EnvironmentObject var viewModel: MainViewModel
@@ -210,6 +194,36 @@ struct MinimalRankingRowDiamond: View {
         }
     }
 }
+
+// 🔧 コメントアウト: フィルター関連のコンポーネント
+/*
+ struct FilterChip: View {
+ let filter: RankingFilter
+ let isSelected: Bool
+ let action: () -> Void
+ 
+ var body: some View {
+ Button(action: action) {
+ Text(filter.rawValue)
+ .padding(.horizontal, 12)
+ .padding(.vertical, 6)
+ .background(isSelected ? Color.blue : Color.gray.opacity(0.3))
+ .foregroundColor(.white)
+ .cornerRadius(15)
+ }
+ }
+ }
+ 
+ struct DepartmentSelector: View {
+ let departments: [Department]
+ @Binding var selectedDepartment: Department?
+ 
+ var body: some View {
+ // 部門選択UIの実装
+ Text("部門選択")
+ }
+ }
+ */
 
 #if DEBUG
 #Preview(traits: .sizeThatFitsLayout) {

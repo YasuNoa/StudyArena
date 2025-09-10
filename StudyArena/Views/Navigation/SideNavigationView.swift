@@ -1,9 +1,5 @@
-//
-//  SideNavigationView.swift
-//  StudyArena
-//
-//  Created by 田中正造 on 17/08/2025.
-//
+// StudyArena/Views/Navigation/SideNavigationView.swift - エラー修正版
+
 import SwiftUI
 
 // MARK: - メインのサイドナビゲーション
@@ -16,6 +12,7 @@ struct SideNavigationView: View {
     @State private var showDepartmentJoin = false
     @State private var showStudyCalendar = false
     @State private var showMBTIStats = false
+    @State private var showMBTIPatterns = false
     @State private var showRewardSystem = false
     @State private var showNotificationSettings = false
     
@@ -87,12 +84,12 @@ struct SideNavigationView: View {
                                 }
                             }
                             
-                            
                             // 部門関連
                             MenuSection(title: "部門") {
                                 NavigationItem(
                                     icon: "person.3.fill",
                                     title: "所属部門",
+                                    // 🔧 修正: badge引数をcolor引数の前に移動
                                     badge: viewModel.user?.departments?.count ?? 0,
                                     color: .cyan
                                 ) {
@@ -116,7 +113,7 @@ struct SideNavigationView: View {
                                 }
                             }
                             
-                            // 統計・記録
+                            // 統計・記録セクション
                             MenuSection(title: "統計・記録") {
                                 NavigationItem(
                                     icon: "chart.line.uptrend.xyaxis",
@@ -125,30 +122,48 @@ struct SideNavigationView: View {
                                 ) {
                                     // 統計画面へ
                                 }
+                                
+                                NavigationItem(
+                                    icon: "calendar",
+                                    title: "学習カレンダー",
+                                    color: .red
+                                ) {
+                                    showStudyCalendar = true
+                                    isShowing = false
+                                }
+                                
                                 NavigationItem(
                                     icon: "brain.head.profile",
-                                    title: "MBTI別統計",
+                                    title: "MBTI統計",
                                     color: .purple
                                 ) {
                                     showMBTIStats = true
                                     isShowing = false
                                 }
                                 
+                                // 🔧 修正: hasMBTIData()をより安全に実装
+                                NavigationItem(
+                                    icon: "waveform.path.ecg",
+                                    title: "MBTI学習分析",
+                                    // 🔧 修正: 三項演算子でnilの場合の処理を明確に
+                                    badge: hasMBTIData() ? nil : 0,
+                                    color: Color(red: 0.8, green: 0.4, blue: 0.9)
+                                ) {
+                                    if hasMBTIData() {
+                                        showMBTIPatterns = true
+                                        isShowing = false
+                                    } else {
+                                        selectedTab = .profile
+                                        isShowing = false
+                                    }
+                                }
+                                
                                 NavigationItem(
                                     icon: "trophy.fill",
                                     title: "報酬システム",
-                                    color: Color("yellow")
+                                    color: Color.yellow
                                 ) {
-                                    showRewardSystem = true  // ⭐️ シートを表示
-                                    isShowing = false        // ⭐️ サイドメニューを閉じる
-                                }
-                                NavigationItem(
-                                    icon: "calendar",
-                                    title: "学習カレンダー",
-                                    color: .red
-                                ) {
-                                    // カレンダー画面へ
-                                    showStudyCalendar = true  // ⭐️ シートを表示
+                                    showRewardSystem = true
                                     isShowing = false
                                 }
                             }
@@ -158,9 +173,9 @@ struct SideNavigationView: View {
                                 NavigationItem(
                                     icon: "bell.fill",
                                     title: "通知設定",
-                                    color: Color("orange")
+                                    color: Color.orange
                                 ) {
-                                    showNotificationSettings = true  // 新しいState変数
+                                    showNotificationSettings = true
                                     isShowing = false
                                 }
                             }
@@ -213,7 +228,7 @@ struct SideNavigationView: View {
         .sheet(isPresented: $showDepartmentJoin) {
             DepartmentBrowserView()
         }
-        .sheet(isPresented: $showStudyCalendar) {  // ⭐️ カレンダーシート追加
+        .sheet(isPresented: $showStudyCalendar) {
             NavigationView {
                 StudyCalendarView()
                     .environmentObject(viewModel)
@@ -245,12 +260,22 @@ struct SideNavigationView: View {
                     }
             }
         }
+        .sheet(isPresented: $showMBTIPatterns) {
+            MBTILearningPatternView()
+                .environmentObject(viewModel)
+        }
         .sheet(isPresented: $showRewardSystem) {
             RewardSystemView()
         }
         .sheet(isPresented: $showNotificationSettings) {
             NotificationSettingsView()
         }
+    }
+    
+    // 🔧 修正: MBTIデータ存在チェック関数をより安全に
+    private func hasMBTIData() -> Bool {
+        guard let mbtiType = viewModel.user?.mbtiType else { return false }
+        return !mbtiType.isEmpty
     }
 }
 
@@ -289,6 +314,13 @@ struct UserHeaderView: View {
                     Label("Lv.\(viewModel.user?.level ?? 1)", systemImage: "star.fill")
                         .font(.caption)
                         .foregroundColor(.yellow)
+                    
+                    // MBTI表示
+                    if let mbti = viewModel.user?.mbtiType, !mbti.isEmpty {
+                        Label(mbti, systemImage: "brain.head.profile")
+                            .font(.caption)
+                            .foregroundColor(.purple.opacity(0.8))
+                    }
                     
                     // 所属部門数
                     if let deptCount = viewModel.user?.departments?.count, deptCount > 0 {
@@ -341,12 +373,11 @@ struct MenuSection<Content: View>: View {
     }
 }
 
-// MARK: - ナビゲーションアイテム
-
+// MARK: - ナビゲーションアイテム（修正版）
 struct NavigationItem: View {
     let icon: String
     let title: String
-    var badge: Int? = nil
+    var badge: Int? = nil  // 🔧 修正: badge引数をcolor引数より前に定義
     let color: Color
     let action: () -> Void
     
@@ -364,17 +395,24 @@ struct NavigationItem: View {
                 
                 Spacer()
                 
-                if let badge = badge, badge > 0 {
-                    Text("\(badge)")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(
-                            Capsule()
-                                .fill(color.opacity(0.3))
-                        )
+                // 🔧 修正: バッジ表示ロジックを簡潔に
+                if let badge = badge {
+                    if badge > 0 {
+                        Text("\(badge)")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(
+                                Capsule()
+                                    .fill(color.opacity(0.3))
+                            )
+                    } else {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.orange.opacity(0.8))
+                    }
                 }
                 
                 Image(systemName: "chevron.right")
@@ -391,8 +429,6 @@ struct NavigationItem: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
-
-
 
 // MARK: - Color Extension
 extension Color {

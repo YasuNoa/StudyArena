@@ -16,7 +16,7 @@ struct MainTabView: View {
         var title: String {
             switch self {
             case .timer: return "タイマー"
-            case .ranking: return "ランキング"
+            case .ranking: return "全国ランキング"
             case .timeline: return "タイムライン"
             case .profile: return "プロフィール"
             }

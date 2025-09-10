@@ -17,6 +17,9 @@ class BackgroundTracker: ObservableObject {
     // MainViewModelへの参照（弱参照で循環参照を防ぐ）
     private weak var viewModel: MainViewModel?
     
+    // 🆕 自動停止用タイマー
+    private var autoStopTimer: Timer?
+    
     init() {
         setupNotifications()
     }
@@ -73,18 +76,17 @@ class BackgroundTracker: ObservableObject {
     }
     
     @objc private func handleScenePhaseChange() {
-        // アプリが非アクティブになる（コントロールセンター、通知センター、画面ロックなど）
         wasActiveBeforeBackground = true
     }
     
     @objc private func handleDidBecomeActive() {
-        // アプリがアクティブに戻った
+        // 🆕 自動停止タイマーを停止
+        stopAutoStopTimer()
+        
         if isInBackground {
-            // バックグラウンドから復帰
             if let enteredTime = backgroundEnteredTime {
                 let backgroundDuration = Date().timeIntervalSince(enteredTime)
                 
-                // スリープ状態だった場合は加算しない
                 if !isScreenLocked {
                     totalBackgroundTime += backgroundDuration
                     checkBackgroundTime()
@@ -98,40 +100,102 @@ class BackgroundTracker: ObservableObject {
     }
     
     @objc private func handleDidEnterBackground() {
-        // アプリが完全にバックグラウンドへ（他のアプリに切り替えた場合）
         if !isScreenLocked {
-            // 画面ロックではなく、アプリ切り替えの場合のみカウント開始
             isInBackground = true
             backgroundEnteredTime = Date()
-            print("⚠️ アプリがバックグラウンドに移行しました（カウント開始）")
+            
+            // 🆕 自動停止タイマーを開始
+            startAutoStopTimer()
+            
+            print("⚠️ アプリがバックグラウンドに移行しました（自動停止タイマー開始）")
         }
     }
     
     @objc private func handleWillEnterForeground() {
-        // アプリがフォアグラウンドに戻る直前
         // ここでは特に処理しない（handleDidBecomeActiveで処理）
     }
     
     @objc private func handleScreenLocked() {
-        // 画面がロックされた
         isScreenLocked = true
         print("🔒 画面がロックされました（カウント停止）")
         
-        // 画面ロック時はバックグラウンド時間をカウントしない
+        // 🆕 画面ロック時は自動停止タイマーも停止
+        stopAutoStopTimer()
+        
         if isInBackground && backgroundEnteredTime != nil {
-            // 一時的にバックグラウンド計測を停止
             backgroundEnteredTime = nil
         }
     }
     
     @objc private func handleScreenUnlocked() {
-        // 画面のロックが解除された
         isScreenLocked = false
         print("🔓 画面のロックが解除されました")
         
-        // アプリがバックグラウンドにいる場合は計測を再開
         if isInBackground && backgroundEnteredTime == nil {
             backgroundEnteredTime = Date()
+            // 🆕 画面ロック解除後もバックグラウンドなら自動停止タイマー再開
+            startAutoStopTimer()
+        }
+    }
+    
+    // 🆕 自動停止タイマーを開始
+    private func startAutoStopTimer() {
+        // 既存のタイマーがあれば停止
+        stopAutoStopTimer()
+        
+        // タイマーが動いているかチェック（メインアクター上で実行）
+        Task { @MainActor in
+            guard self.viewModel?.isTimerRunning == true else { return }
+            
+            self.autoStopTimer = Timer.scheduledTimer(withTimeInterval: self.maxBackgroundTime, repeats: false) { [weak self] _ in
+                Task { @MainActor in
+                    self?.handleAutoStop()
+                }
+            }
+            
+            print("⏰ 自動停止タイマー開始（\(Int(self.maxBackgroundTime))秒後に停止）")
+        }
+    }
+    
+    // 🆕 自動停止タイマーを停止
+    private func stopAutoStopTimer() {
+        autoStopTimer?.invalidate()
+        autoStopTimer = nil
+    }
+    
+    // 🆕 自動停止処理
+    private func handleAutoStop() {
+        print("⏹️ バックグラウンド時間超過により自動停止")
+        
+        backgroundTimeExceeded = true
+        warningMessage = "他のアプリを\(Int(maxBackgroundTime))秒間使用したため、学習タイマーを自動停止しました。"
+        
+        // MainViewModelのタイマーを強制停止（メインアクター上で実行）
+        Task { @MainActor in
+            self.viewModel?.forceStopTimer()
+        }
+        
+        // 🆕 通知を送信
+        sendBackgroundTimeoutNotification()
+    }
+    
+    // 🆕 バックグラウンド時間超過通知
+    private func sendBackgroundTimeoutNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "学習タイマー自動停止"
+        content.body = "他のアプリを\(Int(maxBackgroundTime))秒間使用したため、タイマーを停止しました。"
+        content.sound = .default
+        
+        let request = UNNotificationRequest(
+            identifier: "backgroundTimeout",
+            content: content,
+            trigger: nil // 即座に通知
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("通知送信エラー: \(error)")
+            }
         }
     }
     
@@ -147,6 +211,9 @@ class BackgroundTracker: ObservableObject {
     }
     
     func resetSession() {
+        // 🆕 自動停止タイマーも停止
+        stopAutoStopTimer()
+        
         backgroundTimeExceeded = false
         isInBackground = false
         backgroundEnteredTime = nil
@@ -165,6 +232,7 @@ class BackgroundTracker: ObservableObject {
     }
     
     deinit {
+        stopAutoStopTimer()
         NotificationCenter.default.removeObserver(self)
     }
 }

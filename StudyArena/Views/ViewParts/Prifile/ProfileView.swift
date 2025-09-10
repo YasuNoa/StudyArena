@@ -1,3 +1,5 @@
+// StudyArena/Views/ViewParts/Profile/ProfileView.swift - 脳アイコン削除版
+
 import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
@@ -60,7 +62,8 @@ struct ProfileView: View {
                                         }
                                     }
                                 }
-                                // MBTI情報カード（ステータス情報のProfileCardの下に追加）
+                                
+                                // 🔧 修正: 脳アイコンを削除したMBTI情報カード
                                 ProfileCard {
                                     VStack(spacing: 15) {
                                         HStack {
@@ -70,13 +73,9 @@ struct ProfileView: View {
                                             Spacer()
                                             
                                             Button(action: { showMBTISelection = true }) {
-                                                HStack(spacing: 4) {
-                                                    Image(systemName: "pencil.circle.fill")
-                                                        .font(.system(size: 16))
-                                                    Text("変更")
-                                                        .font(.caption)
-                                                }
-                                                .foregroundColor(.blue)
+                                                Text("変更")
+                                                    .font(.caption)
+                                                    .foregroundColor(.blue)
                                             }
                                         }
                                         
@@ -89,9 +88,10 @@ struct ProfileView: View {
                                                 
                                                 Spacer()
                                                 
-                                                Image(systemName: "brain.head.profile")
-                                                    .font(.title2)
-                                                    .foregroundColor(.purple.opacity(0.6))
+                                                // 🔧 修正: この行を削除またはコメントアウト
+                                                // Image(systemName: "brain.head.profile")
+                                                //     .font(.title2)
+                                                //     .foregroundColor(.purple.opacity(0.6))
                                             }
                                         } else {
                                             Button(action: { showMBTISelection = true }) {
