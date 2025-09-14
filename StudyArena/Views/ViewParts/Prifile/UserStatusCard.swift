@@ -23,28 +23,42 @@ struct UserStatusCard: View {
         return (Color.gray, "questionmark.circle", nil)
     }
     
+    // ローマ数字の色をトロフィーと被らないように調整
+    var romanNumeralColor: Color {
+        switch trophyInfo.color {
+        case .yellow, .orange: // 明るい色のトロフィー
+            return .black
+        default: // 暗い色のトロフィー
+            return .white
+        }
+    }
+    
     var body: some View {
         HStack(spacing: 12) {
-            // 左側：トロフィーとローマ数字ランク
-            VStack(spacing: 2) {
-                // ローマ数字ランク（トロフィーの上）
-                if let rank = trophyInfo.rank {
-                    Text(rank)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .foregroundColor(trophyInfo.color)
-                        .frame(height: 12)
-                } else {
-                    Spacer()
-                        .frame(height: 12)
-                }
-                
+            // 左側：トロフィーとローマ数字ランク（重ねて表示）
+            ZStack {
                 // トロフィーアイコン
                 Image(systemName: trophyInfo.icon)
                     .font(.system(size: 32))
                     .foregroundColor(trophyInfo.color.opacity(0.8))
                     .shadow(color: trophyInfo.color.opacity(0.3), radius: 3)
+                
+                // ローマ数字ランク（トロフィーの上に重ねて表示）
+                if let rank = trophyInfo.rank {
+                    Text(rank)
+                        .font(.system(size: 12, weight: .bold, design: .serif))
+                        .foregroundColor(romanNumeralColor)
+                        .background(
+                            // 可読性を高めるための背景
+                            Circle()
+                                .fill(trophyInfo.color.opacity(0.2))
+                                .frame(width: 20, height: 20)
+                        )
+                        .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
+                        .offset(y: -2) // トロフィーの中央より少し上に配置
+                }
             }
-            .frame(width: 48)
+            .frame(width: 48, height: 40)
             
             // 中央：トロフィー名とニックネーム
             VStack(alignment: .leading, spacing: 2) {

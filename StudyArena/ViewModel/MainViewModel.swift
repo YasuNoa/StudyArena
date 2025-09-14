@@ -237,17 +237,7 @@ class MainViewModel: ObservableObject {
     
     func joinDepartment(_ departmentId: String) async throws {
         guard let userId = self.userId else { return }
-        
-        // 🔧 修正前（エラーになる）
-        /*
-         let membership = DepartmentMembership(
-         departmentId: departmentId,
-         departmentName: departments.first { $0.id == departmentId }?.name ?? "",
-         joinedAt: Date()
-         )
-         */
-        
-        // 🔧 修正後（正しい引数の順序）
+      
         let membership = DepartmentMembership(
             userId: userId,
             departmentId: departmentId,
@@ -1112,57 +1102,103 @@ extension MainViewModel {
         
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         if isPreview {
-            // プレビュー用の模擬処理
             return (isLiked: true, newCount: Int.random(in: 1...10))
         }
         
         let postRef = db.collection("timelinePosts").document(postId)
         
-        return try await db.runTransaction { transaction, errorPointer in
-            let postDocument: DocumentSnapshot
-            do {
-                postDocument = try transaction.getDocument(postRef)
-            } catch let fetchError as NSError {
-                errorPointer?.pointee = fetchError
-                return (isLiked: false, newCount: 0)
+        return try await withCheckedThrowingContinuation { continuation in
+            db.runTransaction({ transaction, errorPointer in
+                let postDocument: DocumentSnapshot
+                do {
+                    postDocument = try transaction.getDocument(postRef)
+                } catch let fetchError as NSError {
+                    errorPointer?.pointee = fetchError
+                    return nil
+                }
+                
+                guard postDocument.exists,
+                      let postData = postDocument.data() else {
+                    let error = NSError(domain: "LikeError", code: 2, userInfo: [NSLocalizedDescriptionKey: "投稿が見つかりません"])
+                    errorPointer?.pointee = error
+                    return nil
+                }
+                
+                // 現在のいいね情報を取得
+                var likedUserIds = postData["likedUserIds"] as? [String] ?? []
+                var likeCount = postData["likeCount"] as? Int ?? 0
+                
+                let isCurrentlyLiked = likedUserIds.contains(userId)
+                let newIsLiked: Bool
+                let newCount: Int
+                
+                if isCurrentlyLiked {
+                    // いいねを取り消し
+                    likedUserIds.removeAll { $0 == userId }
+                    likeCount = max(0, likeCount - 1)
+                    newIsLiked = false
+                    newCount = likeCount
+                } else {
+                    // いいねを追加
+                    likedUserIds.append(userId)
+                    likeCount += 1
+                    newIsLiked = true
+                    newCount = likeCount
+                }
+                
+                // Firestoreを更新
+                transaction.updateData([
+                    "likedUserIds": likedUserIds,
+                    "likeCount": likeCount
+                ], forDocument: postRef)
+                
+                // 戻り値として辞書を返す（強制キャストを避ける）
+                return [
+                    "isLiked": newIsLiked,
+                    "newCount": newCount
+                ]
+                
+            }) { result, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else if let resultDict = result as? [String: Any],
+                          let isLiked = resultDict["isLiked"] as? Bool,
+                          let newCount = resultDict["newCount"] as? Int {
+                    
+                    // ローカルデータも更新
+                    Task { @MainActor in
+                        self.updateLocalPostLike(postId: postId, isLiked: isLiked, newCount: newCount)
+                    }
+                    
+                    continuation.resume(returning: (isLiked: isLiked, newCount: newCount))
+                } else {
+                    let unknownError = NSError(domain: "LikeError", code: 3,
+                                               userInfo: [NSLocalizedDescriptionKey: "不明なエラー"])
+                    continuation.resume(throwing: unknownError)
+                }
             }
-            
-            guard var postData = postDocument.data() else {
-                let error = NSError(domain: "LikeError", code: 2, userInfo: [NSLocalizedDescriptionKey: "投稿が見つかりません"])
-                errorPointer?.pointee = error
-                return (isLiked: false, newCount: 0)
+        }
+    }
+    // 📝 updateLocalPostLike メソッドも同じextension内に追加（存在しない場合）
+    @MainActor
+    private func updateLocalPostLike(postId: String, isLiked: Bool, newCount: Int) {
+        guard let userId = self.userId,
+              let index = timelinePosts.firstIndex(where: { $0.id == postId }) else {
+            return
+        }
+        
+        var updatedPost = timelinePosts[index]
+        updatedPost.likeCount = newCount
+        
+        if isLiked {
+            if updatedPost.likedUserIds?.contains(userId) != true {
+                updatedPost.likedUserIds = (updatedPost.likedUserIds ?? []) + [userId]
             }
-            
-            // 現在のいいね情報を取得
-            var likedUserIds = postData["likedUserIds"] as? [String] ?? []
-            var likeCount = postData["likeCount"] as? Int ?? 0
-            
-            let isCurrentlyLiked = likedUserIds.contains(userId)
-            let newIsLiked: Bool
-            let newCount: Int
-            
-            if isCurrentlyLiked {
-                // いいねを取り消し
-                likedUserIds.removeAll { $0 == userId }
-                likeCount = max(0, likeCount - 1)
-                newIsLiked = false
-                newCount = likeCount
-            } else {
-                // いいねを追加
-                likedUserIds.append(userId)
-                likeCount += 1
-                newIsLiked = true
-                newCount = likeCount
-            }
-            
-            // Firestoreを更新
-            transaction.updateData([
-                "likedUserIds": likedUserIds,
-                "likeCount": likeCount
-            ], forDocument: postRef)
-            
-            return (isLiked: newIsLiked, newCount: newCount)
-        } as! (isLiked: Bool, newCount: Int)
+        } else {
+            updatedPost.likedUserIds = updatedPost.likedUserIds?.filter { $0 != userId }
+        }
+        
+        timelinePosts[index] = updatedPost
     }
     
     /// ユーザーが特定の投稿にいいね済みかチェック

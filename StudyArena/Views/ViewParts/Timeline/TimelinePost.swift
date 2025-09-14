@@ -5,7 +5,6 @@
 //  Created by 田中正造 on 04/08/2025.
 //
 
-
 import Foundation
 import FirebaseFirestore
 
@@ -52,8 +51,10 @@ struct TimelinePost: Identifiable, Codable {
         return formatter.localizedString(for: timestamp, relativeTo: Date())
     }
     
-    // 特定のユーザーがいいね済みかチェック
+    // 🔧 修正: 特定のユーザーがいいね済みかチェック
     func isLikedBy(userId: String) -> Bool {
-        return ((likedUserIds?.contains(userId)) != nil)
+        // 🚨 元のコード: return ((likedUserIds?.contains(userId)) != nil) // これは常にtrueになる
+        // ✅ 修正版:
+        return likedUserIds?.contains(userId) ?? false
     }
 }
