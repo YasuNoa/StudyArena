@@ -15,6 +15,7 @@
 		BF38EE0B2E6C2555007437B7 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE0A2E6C2555007437B7 /* NotificationManager.swift */; };
 		BF38EE0D2E6C2574007437B7 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE0C2E6C2574007437B7 /* NotificationSettingsView.swift */; };
 		BF38EE0F2E7079A1007437B7 /* MBTILearningPatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE0E2E7079A1007437B7 /* MBTILearningPatternView.swift */; };
+		BF38EE122E76CC63007437B7 /* StudyStatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF38EE112E76CC63007437B7 /* StudyStatisticsView.swift */; };
 		BF639EB12E48EC66004FCD52 /* RewardSystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */; };
 		BF639EB32E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */; };
 		BF6F37042E65953100159804 /* MBTIStatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6F37032E65953100159804 /* MBTIStatData.swift */; };
@@ -83,6 +84,7 @@
 		BF38EE0A2E6C2555007437B7 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		BF38EE0C2E6C2574007437B7 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		BF38EE0E2E7079A1007437B7 /* MBTILearningPatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTILearningPatternView.swift; sourceTree = "<group>"; };
+		BF38EE112E76CC63007437B7 /* StudyStatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyStatisticsView.swift; sourceTree = "<group>"; };
 		BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardSystemView.swift; sourceTree = "<group>"; };
 		BF639EB22E48EDC3004FCD52 /* MinimalDarkBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalDarkBackgroundView.swift; sourceTree = "<group>"; };
 		BF6F37032E65953100159804 /* MBTIStatData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MBTIStatData.swift; sourceTree = "<group>"; };
@@ -181,6 +183,14 @@
 			path = Setting;
 			sourceTree = "<group>";
 		};
+		BF38EE102E76CC17007437B7 /* StudyStatic */ = {
+			isa = PBXGroup;
+			children = (
+				BF38EE112E76CC63007437B7 /* StudyStatisticsView.swift */,
+			);
+			path = StudyStatic;
+			sourceTree = "<group>";
+		};
 		BF7F8B702E13CCF400DF3CFC = {
 			isa = PBXGroup;
 			children = (
@@ -256,6 +266,7 @@
 			isa = PBXGroup;
 			children = (
 				BFACD4902E517C8800935FCE /* SideNavigationView.swift */,
+				BF38EE102E76CC17007437B7 /* StudyStatic */,
 				BF38EE012E6B3950007437B7 /* Department */,
 				BFACD4942E5875E100935FCE /* Static */,
 				BF38EE072E6B3A45007437B7 /* Setting */,
@@ -458,6 +469,7 @@
 				BF7F8B922E15099C00DF3CFC /* StudyArena.swift in Sources */,
 				BFACD4882E49CDCC00935FCE /* TrophyDisplayCard.swift in Sources */,
 				BFC0F9E42E16504B00870CDD /* MainTabView.swift in Sources */,
+				BF38EE122E76CC63007437B7 /* StudyStatisticsView.swift in Sources */,
 				BF38EE092E6B3D79007437B7 /* Feedback.swift in Sources */,
 				BFC0F9DE2E164FE300870CDD /* LoadingView.swift in Sources */,
 				BFC0F9E62E16505E00870CDD /* TimerView.swift in Sources */,

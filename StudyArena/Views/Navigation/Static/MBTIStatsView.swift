@@ -590,7 +590,7 @@ struct MBTILegacyChart: View {
 }
 
 // MARK: - 統計カード
-struct StatCard: View {
+struct  StatCard: View {
     let title: String
     let value: String
     let icon: String

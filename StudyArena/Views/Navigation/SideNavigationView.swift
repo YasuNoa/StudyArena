@@ -16,6 +16,7 @@ struct SideNavigationView: View {
     @State private var showRewardSystem = false
     @State private var showNotificationSettings = false
     @State private var showCreateDepartment = false
+    @State private var showStudyStatistics = false  // ⭐️ 追加
     
     enum NavigationSection: String, CaseIterable {
         case main = "メイン"
@@ -139,7 +140,8 @@ struct SideNavigationView: View {
                                     title: "学習統計",
                                     color: .green
                                 ) {
-                                    // 統計画面へ
+                                    showStudyStatistics = true  // ⭐️ 変更
+                                    isShowing = false          // ⭐️ 変更
                                 }
                                 
                                 NavigationItem(
@@ -291,6 +293,10 @@ struct SideNavigationView: View {
         }
         .sheet(isPresented: $showNotificationSettings) {
             NotificationSettingsView()
+        }
+        .sheet(isPresented: $showStudyStatistics) {  // ⭐️ 追加
+            StudyStatisticsView()
+                .environmentObject(viewModel)
         }
         
     }
