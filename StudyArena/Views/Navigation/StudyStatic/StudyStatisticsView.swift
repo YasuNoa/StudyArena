@@ -330,7 +330,8 @@ struct StudyStatisticsView: View {
 }
 
 // MARK: - サポート構造体
-struct ChartDataItem {
+struct ChartDataItem: Identifiable {
+    var id: Date { date }
     let date: Date
     let hours: Int
 }

@@ -291,28 +291,28 @@ struct MBTIStatsView: View {
                 GridItem(.flexible()),
                 GridItem(.flexible())
             ], spacing: 15) {
-                StatCard(
+                MBTIStatCard(
                     title: "総ユーザー数",
                     value: "\(getTotalUsers())人",
                     icon: "person.3.fill",
                     color: .blue
                 )
                 
-                StatCard(
+                MBTIStatCard(
                     title: "総学習時間",
                     value: formatTime(getTotalStudyTime()),
                     icon: "clock.fill",
                     color: .green
                 )
                 
-                StatCard(
+                MBTIStatCard(
                     title: "平均学習時間",
                     value: formatTime(getAverageStudyTime()),
                     icon: "chart.bar.fill",
                     color: .orange
                 )
                 
-                StatCard(
+                MBTIStatCard(
                     title: "最も多いタイプ",
                     value: getMostPopularMBTI(),
                     icon: "crown.fill",
@@ -590,7 +590,7 @@ struct MBTILegacyChart: View {
 }
 
 // MARK: - 統計カード
-struct  StatCard: View {
+struct  MBTIStatCard: View {
     let title: String
     let value: String
     let icon: String

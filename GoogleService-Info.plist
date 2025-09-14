@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>CLIENT_ID</key>
 	<string>319757628971-8mcj71ubht3e8a0bk6gmuufiuv16fnq3.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>

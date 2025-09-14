@@ -211,21 +211,21 @@ struct SideNavigationView: View {
                                     showFeedback = true
                                 }
                                 
-                                NavigationItem(
-                                    icon: "questionmark.circle.fill",
-                                    title: "ヘルプ",
-                                    color: .mint
-                                ) {
+                                //NavigationItem(
+                                    //icon: "questionmark.circle.fill",
+                                    //title: "ヘルプ",
+                                   // color: .mint
+                                //) {
                                     // ヘルプへ
-                                }
+                                //}
                                 
-                                NavigationItem(
-                                    icon: "info.circle.fill",
-                                    title: "このアプリについて",
-                                    color: .gray
-                                ) {
+                                //NavigationItem(
+                                    //icon: "info.circle.fill",
+                                    //title: "このアプリについて",
+                                   // color: .gray
+                                //) {
                                     // アプリ情報へ
-                                }
+                               // }
                             }
                         }
                         .padding()
