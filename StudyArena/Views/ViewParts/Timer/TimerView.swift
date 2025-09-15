@@ -1,5 +1,5 @@
 //
-//  TimerView.swift - スクリーンタイム&バックグラウンド追跡版
+//  TimerView.swift - バックグラウンド追跡版
 //  productene
 //
 //  Created by 田中正造 on 03/07/2025.
