@@ -687,28 +687,38 @@ class MainViewModel: ObservableObject {
             content: content,
             timestamp: Date(),
             level: user.level,
-            studyDuration: todayStudyTime  // 学習時間を追加
+            likeCount: 0,           // ✅ 追加: いいね数を初期化
+            likedUserIds: [],       // ✅ 追加: いいねユーザーIDを初期化
+            studyDuration: todayStudyTime
         )
         
         do {
-            // Firestoreに保存
+            // ✅ 修正: いいね関連フィールドを含める
             let data: [String: Any] = [
                 "userId": userId,
                 "nickname": user.nickname,
                 "content": content,
                 "timestamp": Timestamp(date: Date()),
-                "level": user.level
+                "level": user.level,
+                "likeCount": 0,         // ✅ 追加
+                "likedUserIds": [],     // ✅ 追加
+                "studyDuration": todayStudyTime ?? NSNull()
             ]
             
-            try await db.collection("timelinePosts").addDocument(data: data)
+            // ✅ 修正: ドキュメントIDを取得して設定
+            let docRef = try await db.collection("timelinePosts").addDocument(data: data)
             
-            // ローカルの配列にも追加
-            self.timelinePosts.insert(post, at: 0)
+            // ローカルの配列にも追加（IDを設定）
+            var postWithId = post
+            postWithId.id = docRef.documentID
+            self.timelinePosts.insert(postWithId, at: 0)
+            
         } catch {
             print("投稿の作成エラー: \(error)")
             throw error
         }
     }
+
     
     private func getTodayStudyTime() async -> TimeInterval? {
         guard let userId = self.userId else { return nil }
@@ -1963,6 +1973,66 @@ extension MainViewModel {
             
         } catch {
             throw error
+        }
+    }
+}
+extension MainViewModel {
+    
+    // MARK: - MBTI設定機能（不足している部分）
+    
+    /// MBTI を設定・保存する
+    func updateMBTIType(_ mbtiType: String?) async throws {
+        guard var updatedUser = self.user else {
+            throw NSError(domain: "UserError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        
+        // ユーザー情報を更新
+        updatedUser.mbtiType = mbtiType
+        self.user = updatedUser
+        
+        if !isPreview {
+            // Firestoreに保存
+            do {
+                try await saveUserData(userToSave: updatedUser)
+                print("✅ MBTI設定を保存しました: \(mbtiType ?? "未設定")")
+            } catch {
+                print("❌ MBTI設定保存エラー: \(error)")
+                throw error
+            }
+        }
+    }
+    
+    /// 全MBTIタイプのリストを取得
+    static let allMBTITypes = [
+        "INTJ", "INTP", "ENTJ", "ENTP",
+        "INFJ", "INFP", "ENFJ", "ENFP",
+        "ISTJ", "ISFJ", "ESTJ", "ESFJ",
+        "ISTP", "ISFP", "ESTP", "ESFP"
+    ]
+    
+    /// MBTI詳細情報を取得
+    static func getMBTIInfo(_ type: String) -> (name: String, description: String) {
+        switch type {
+        case "INTJ": return ("建築家", "独創的で戦略的な思考を持つ完璧主義者")
+        case "INTP": return ("論理学者", "知識欲旺盛で革新的な発明家")
+        case "ENTJ": return ("指揮官", "大胆で想像力豊かな強力なリーダー")
+        case "ENTP": return ("討論者", "賢明で好奇心旺盛な思想家")
+        case "INFJ": return ("提唱者", "静かで神秘的だが人々を励ますリーダー")
+        case "INFP": return ("仲介者", "詩的で親切、利他的な人")
+        case "ENFJ": return ("主人公", "カリスマ的で人々を導くリーダー")
+        case "ENFP": return ("広報運動家", "情熱的で創造性豊かな社交家")
+        case "ISTJ": return ("管理者", "実用的で事実重視の信頼できる人")
+        case "ISFJ": return ("擁護者", "とても献身的で心優しい守護者")
+        case "ESTJ": return ("幹部", "優秀な管理者で物事を成し遂げる人")
+        case "ESFJ": return ("領事", "非常に思いやりがあり社交的で人気者")
+        case "ISTP": return ("巨匠", "大胆で実践的な実験者")
+        case "ISFP": return ("冒険家", "柔軟性があり魅力的な芸術家")
+        case "ESTP": return ("起業家", "エネルギッシュで認知力がある人")
+        case "ESFP": return ("エンターテイナー", "自発的でエネルギッシュな人")
+        default: return ("不明", "")
         }
     }
 }

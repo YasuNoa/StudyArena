@@ -64,6 +64,7 @@ struct ProfileView: View {
                                 }
                                 
                                 // 🔧 修正: 脳アイコンを削除したMBTI情報カード
+                                
                                 ProfileCard {
                                     VStack(spacing: 15) {
                                         HStack {
@@ -80,18 +81,26 @@ struct ProfileView: View {
                                         }
                                         
                                         if let mbti = user.mbtiType {
-                                            HStack {
-                                                Text(mbti)
-                                                    .font(.title)
-                                                    .fontWeight(.bold)
-                                                    .foregroundColor(.purple)
+                                            HStack(spacing: 15) {
+                                                // MBTIタイプ表示
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text(mbti)
+                                                        .font(.title)
+                                                        .fontWeight(.bold)
+                                                        .foregroundColor(.purple)
+                                                    
+                                                    let info = MainViewModel.getMBTIInfo(mbti)
+                                                    Text(info.name)
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.purple.opacity(0.8))
+                                                    
+                                                    Text(info.description)
+                                                        .font(.caption)
+                                                        .foregroundColor(.white.opacity(0.6))
+                                                        .lineLimit(2)
+                                                }
                                                 
                                                 Spacer()
-                                                
-                                                // 🔧 修正: この行を削除またはコメントアウト
-                                                // Image(systemName: "brain.head.profile")
-                                                //     .font(.title2)
-                                                //     .foregroundColor(.purple.opacity(0.6))
                                             }
                                         } else {
                                             Button(action: { showMBTISelection = true }) {
@@ -181,6 +190,9 @@ struct ProfileView: View {
         .sheet(isPresented: $showMBTISelection) {
             MBTISelectionView(selectedMBTI: .constant(viewModel.user?.mbtiType))
                 .environmentObject(viewModel)
+                .onDisappear {
+                    // MBTIが変更された場合の追加処理があれば記述
+                }
         }
         .onChange(of: showSaveAlert) { _, newValue in
             if newValue {

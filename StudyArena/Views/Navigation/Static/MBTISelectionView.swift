@@ -1,10 +1,3 @@
-//
-//  MBTISelectionView.swift
-//  StudyArena
-//
-//  Created by 田中正造 on 22/08/2025.
-//
-
 
 import SwiftUI
 
@@ -13,7 +6,10 @@ struct MBTISelectionView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: MainViewModel
     @State private var isSaving = false
+    @State private var tempSelectedMBTI: String? = nil
+    @State private var errorMessage: String? = nil
     
+    // 既存のallMBTITypesと同じ配列構造を使用
     let mbtiTypes = [
         ["INTJ", "INTP", "ENTJ", "ENTP"],
         ["INFJ", "INFP", "ENFJ", "ENFP"],
@@ -28,22 +24,29 @@ struct MBTISelectionView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        Text("あなたのMBTIタイプを選択")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding(.top)
+                        // ヘッダー
+                        VStack(spacing: 8) {
+                            Text("MBTIタイプを選択")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            
+                            Text("あなたの性格タイプを選んでください")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        .padding(.top)
                         
-                        // MBTIグリッド
+                        // MBTIグリッド（既存のレイアウトを改良）
                         VStack(spacing: 15) {
                             ForEach(mbtiTypes, id: \.self) { row in
-                                HStack(spacing: 15) {
+                                HStack(spacing: 12) {
                                     ForEach(row, id: \.self) { type in
-                                        MBTITypeCard(
+                                        EnhancedMBTITypeCard(
                                             type: type,
-                                            isSelected: selectedMBTI == type,
+                                            isSelected: tempSelectedMBTI == type,
                                             action: {
-                                                selectedMBTI = type
+                                                tempSelectedMBTI = type
                                             }
                                         )
                                     }
@@ -52,77 +55,153 @@ struct MBTISelectionView: View {
                         }
                         .padding(.horizontal)
                         
-                        // 保存ボタン
-                        if selectedMBTI != nil {
-                            Button(action: saveMBTIType) {
-                                Text("保存する")
+                        // 未設定オプション
+                        Button(action: {
+                            tempSelectedMBTI = nil
+                        }) {
+                            HStack {
+                                Image(systemName: tempSelectedMBTI == nil ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(tempSelectedMBTI == nil ? .blue : .gray)
+                                Text("未設定にする")
                                     .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.purple)
-                                    .cornerRadius(12)
+                                Spacer()
                             }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(tempSelectedMBTI == nil ? Color.blue.opacity(0.1) : Color.white.opacity(0.05))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(tempSelectedMBTI == nil ? Color.blue : Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                            )
+                        }
+                        .padding(.horizontal)
+                        
+                        // エラーメッセージ
+                        if let errorMessage = errorMessage {
+                            Text(errorMessage)
+                                .foregroundColor(.red)
+                                .font(.caption)
+                                .padding(.horizontal)
+                        }
+                        
+                        // 保存ボタン（変更がある場合のみ表示）
+                        if tempSelectedMBTI != selectedMBTI {
+                            Button(action: saveMBTIType) {
+                                HStack {
+                                    if isSaving {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                            .scaleEffect(0.8)
+                                    }
+                                    Text(isSaving ? "保存中..." : "保存する")
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [Color.purple, Color.purple.opacity(0.8)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                )
+                                .shadow(color: .purple.opacity(0.3), radius: 5)
+                            }
+                            .disabled(isSaving)
                             .padding(.horizontal)
                         }
                     }
+                    .padding(.bottom, 30)
                 }
             }
-            .navigationTitle("MBTIタイプ選択")
+            .navigationTitle("MBTI選択")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("キャンセル") { dismiss() }
-                        .foregroundColor(.white)
+                    Button("キャンセル") {
+                        dismiss()
+                    }
+                    .foregroundColor(.white)
                 }
+            }
+            .onAppear {
+                // 初期値を現在のMBTIに設定
+                tempSelectedMBTI = selectedMBTI
             }
         }
     }
     
     private func saveMBTIType() {
-        guard let mbti = selectedMBTI else { return }
-        
-        isSaving = true  // ← 保存中フラグを追加
+        isSaving = true
+        errorMessage = nil
         
         Task {
             do {
-                // ユーザー情報を更新
-                guard var user = viewModel.user else { return }
-                user.mbtiType = mbti
-                viewModel.user = user  // ← ViewModelのuserを更新
-                
-                // Firestoreに保存
-                try await viewModel.saveUserData(userToSave: user)
+                // 新しい統合メソッドを使用
+                try await viewModel.updateMBTIType(tempSelectedMBTI)
                 
                 await MainActor.run {
+                    selectedMBTI = tempSelectedMBTI
+                    isSaving = false
                     dismiss()
                 }
             } catch {
-                print("MBTI保存エラー: \(error)")
                 await MainActor.run {
                     isSaving = false
+                    errorMessage = "保存に失敗しました: \(error.localizedDescription)"
                 }
             }
         }
     }
 }
 
-// MBTIタイプカード
-struct MBTITypeCard: View {
+// 3. 強化されたMBTIカード
+
+struct EnhancedMBTITypeCard: View {
     let type: String
     let isSelected: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            Text(type)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(isSelected ? .white : .purple)
-                .frame(maxWidth: .infinity)
-                .frame(height: 80)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? Color.purple : Color.purple.opacity(0.1))
-                )
+            VStack(spacing: 6) {
+                Text(type)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(isSelected ? .white : .purple)
+                
+                let info = MainViewModel.getMBTIInfo(type)
+                Text(info.name)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(isSelected ? .white.opacity(0.9) : .purple.opacity(0.8))
+                
+                Text(info.description)
+                    .font(.system(size: 8))
+                    .foregroundColor(isSelected ? .white.opacity(0.8) : .gray.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity, minHeight: 85)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(isSelected ? Color.purple : Color.purple.opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(
+                                isSelected ? Color.purple : Color.purple.opacity(0.3),
+                                lineWidth: isSelected ? 2 : 1
+                            )
+                    )
+            )
         }
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isSelected)
     }
 }

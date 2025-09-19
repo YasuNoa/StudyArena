@@ -135,7 +135,7 @@ struct TimelineView: View {
         }
         .onAppear {
             viewModel.loadStudyRecords()
-            viewModel.loadTimelinePosts()
+            viewModel.loadTimelinePostsWithLikes() 
         }
         .sheet(isPresented: $showPostCreate) {
             PostCreateView(isPresented: $showPostCreate)
