@@ -21,7 +21,6 @@ class MainViewModel: ObservableObject {
     @Published var selectedDepartmentId: String? = nil
     @Published var backgroundTracker = BackgroundTracker()
     @Published var validationWarning: String?
-    
     @Published var studyRecords: [StudyRecord] = []
     @Published var studyStatistics: StudyStatistics?
     
@@ -127,6 +126,12 @@ class MainViewModel: ObservableObject {
                 self.user = newUser
                 try await self.saveUserData(userToSave: newUser)
             }
+            
+            // 🔧 ユーザー情報取得後に部門関連データも取得
+            print("🏢 部門情報を取得中...")
+            await self.loadDepartments()
+            await self.fetchUserMemberships()
+            print("✅ 部門情報取得完了")
             
             print("✅ isLoading を false に設定します")
             self.isLoading = false

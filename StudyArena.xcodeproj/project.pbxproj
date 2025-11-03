@@ -73,6 +73,7 @@
 		BFC0F9F02E1650BF00870CDD /* RankingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC0F9EF2E1650BF00870CDD /* RankingView.swift */; };
 		BFC0F9F22E1650D800870CDD /* RankingRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC0F9F12E1650D800870CDD /* RankingRow.swift */; };
 		BFC0F9F82E16511700870CDD /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC0F9F72E16511700870CDD /* ProfileView.swift */; };
+		BFC3B6E52EB8FDFB004959CE /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = BFC3B6E42EB8FDFB004959CE /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -117,6 +118,7 @@
 		BFC0F9EF2E1650BF00870CDD /* RankingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RankingView.swift; sourceTree = "<group>"; };
 		BFC0F9F12E1650D800870CDD /* RankingRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RankingRow.swift; sourceTree = "<group>"; };
 		BFC0F9F72E16511700870CDD /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		BFC3B6E42EB8FDFB004959CE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,6 +201,7 @@
 				BFC0F9DB2E159B1800870CDD /* Frameworks */,
 				BF7F8B7A2E13CCF400DF3CFC /* Products */,
 				BFACD4922E58285200935FCE /* GoogleService-Info.plist */,
+				BFC3B6E42EB8FDFB004959CE /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -432,6 +435,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFC3B6E52EB8FDFB004959CE /* README.md in Resources */,
 				BF7F8B932E15099C00DF3CFC /* Assets.xcassets in Resources */,
 				BFACD4932E58285200935FCE /* GoogleService-Info.plist in Resources */,
 			);
