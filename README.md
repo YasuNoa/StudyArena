@@ -35,68 +35,8 @@ StudyArenaは、学習時間を記録・管理し、他のユーザーと競い�
 - **@MainActor**: メインスレッドでの安全な更新
 - **Swift Concurrency**: async/awaitによる非同期処理
 
-## プロジェクト構成
 
-```
-StudyArena/
-├── StudyArena.swift           # メインアプリエントリーポイント
-├── ContentView.swift          # ルートビュー
-├── MainTabView.swift          # タブベースのメインビュー
-├── MainViewModel.swift        # メインのビジネスロジック
-├── Views/
-│   ├── TimerView.swift       # 学習タイマー画面
-│   ├── RankingView.swift     # ランキング表示
-│   ├── ProfileView.swift     # プロフィール管理
-│   ├── RewardSystemView.swift # 報酬システム
-│   ├── PostCreateView.swift  # 投稿作成
-│   └── UserStatusCard.swift  # ユーザーステータス表示
-├── Components/
-│   ├── BackgroundTracker.swift    # バックグラウンド追跡
-│   ├── NotificationManager.swift  # 通知管理
-│   ├── FeedbackView.swift         # フィードバック
-│   └── SideNavigationView.swift   # サイドメニュー
-└── Utils/
-    └── Constants.swift        # 定数定義
-```
 
-## セットアップ
-
-### 前提条件
-- Xcode 15.0以上
-- iOS 17.0以上
-- Firebase プロジェクト
-
-### インストール手順
-
-1. **リポジトリのクローン**
-   ```bash
-   git clone [repository-url]
-   cd StudyArena
-   ```
-
-2. **Firebase設定**
-   - [Firebase Console](https://console.firebase.google.com/)でプロジェクトを作成
-   - `GoogleService-Info.plist`をダウンロードしてプロジェクトに追加
-   - Firestore、Firebase Authを有効化
-
-3. **Xcode設定**
-   - `StudyArena.xcodeproj`をXcodeで開く
-   - Bundle Identifierを設定
-   - Signing & Capabilitiesを設定
-
-4. **ビルドと実行**
-   ```bash
-   # シミュレーター
-   cmd + R でビルド・実行
-   
-   # 実機デバイス
-   開発者アカウントでコード署名後に実行
-   ```
-
-## Firebase設定
-
-### Firestoreデータベース構造
-```
 users/
   ├── {userId}/
   │   ├── nickname: String
@@ -182,6 +122,4 @@ struct StudyArenaTests {
 問題や質問がある場合は、[Issues](../../issues)にて報告してください。
 
 ---
-
-**開発者**: StudyArena Team  
-**最終更新**: 2024年11月
+開発者:Yasu
