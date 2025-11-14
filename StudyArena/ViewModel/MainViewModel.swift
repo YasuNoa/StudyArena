@@ -133,6 +133,7 @@ class MainViewModel: ObservableObject {
             await self.fetchUserMemberships()
             print("✅ 部門情報取得完了")
             
+            
             print("✅ isLoading を false に設定します")
             self.isLoading = false
             
@@ -212,7 +213,7 @@ class MainViewModel: ObservableObject {
         
         // バックグラウンド追跡リセット
         backgroundTracker.resetSession()
-      
+        
         
         isTimerRunning = true
         timer?.invalidate()
@@ -242,7 +243,7 @@ class MainViewModel: ObservableObject {
     
     func joinDepartment(_ departmentId: String) async throws {
         guard let userId = self.userId else { return }
-      
+        
         let membership = DepartmentMembership(
             userId: userId,
             departmentId: departmentId,
@@ -453,7 +454,7 @@ class MainViewModel: ObservableObject {
         }
     }
     
-
+    
     private func saveStudyRecord(duration: TimeInterval, earnedExp: Double, beforeLevel: Int, afterLevel: Int) async throws {
         guard let userId = self.userId else { return }
         
@@ -723,7 +724,7 @@ class MainViewModel: ObservableObject {
             throw error
         }
     }
-
+    
     
     private func getTodayStudyTime() async -> TimeInterval? {
         guard let userId = self.userId else { return nil }
@@ -879,7 +880,7 @@ class MainViewModel: ObservableObject {
             throw error
         }
     }
-
+    
     // loadMonthlyDataを実装（studyRecordsから集計）
     
     func loadMonthlyData(for month: Date) async {
@@ -1881,12 +1882,15 @@ extension MainViewModel {
             let snapshot = try await db.collection("department_memberships")
                 .whereField("userId", isEqualTo: userId)
                 .getDocuments()
+            //department_memberships コレクションから、ユーザの所属部門を検索
+            print("Userの所属部門情報を取得しました")
             
             await MainActor.run {
                 self.userDepartments = snapshot.documents.compactMap { document in
                     try? document.data(as: DepartmentMembership.self)
                 }
             }
+            print("compactMap でFirestoreドキュメントを `DepartmentMembership` 型に変換self.userDepartments` に格納しました")
         } catch {
             print("ユーザー参加部門取得エラー: \(error)")
         }
@@ -1899,12 +1903,15 @@ extension MainViewModel {
         }
     }
     
-    // 🔧 不足メソッド3: 部門作成（2引数版）
+    //  不足メソッド3: 部門作成（2引数版）
+    //本番環境では、//user.level >= 1 else {に変更。
+    
     func createDepartment(name: String, description: String) async throws {
-        guard let user = self.user, user.level >= 10 else {
-            throw NSError(domain: "DepartmentError", code: 1,
-                          userInfo: [NSLocalizedDescriptionKey: "レベル10以上のユーザーのみ部門を作成できます"])
+        guard let user = self.user else {
+            throw NSError(domain: "DepartmentError", code: 10,
+                          userInfo: [NSLocalizedDescriptionKey: "レベル10以上のユーザーのみ部門を作成できます"])//今回はテスト用で1に設定。
         }
+        print("部門作成処理を開始しました")
         
         guard let userId = self.userId else {
             throw NSError(domain: "DepartmentError", code: 4,
@@ -1921,12 +1928,16 @@ extension MainViewModel {
         do {
             let departmentRef = try await db.collection("departments").addDocument(from: newDepartment)
             
+            print("新規部門の追加に成功しました: \(departmentRef.documentID)")
+            
             let membership = DepartmentMembership(
                 userId: userId,
                 departmentId: departmentRef.documentID,
                 departmentName: name
             )
+            print("メンバー情報を作成")
             
+            //コレクションにメンバーシップ情報を保存。document(membership.id)で特定のIDを指定して保存。
             try await db.collection("department_memberships").document(membership.id).setData(from: membership)
             
             // 既存のメソッドを使用
@@ -1934,6 +1945,8 @@ extension MainViewModel {
             await fetchUserMemberships()
             
         } catch {
+            print("❌ 部門作成エラー: \(error.localizedDescription)")
+
             throw error
         }
     }
@@ -1944,11 +1957,13 @@ extension MainViewModel {
             throw NSError(domain: "DepartmentError", code: 2,
                           userInfo: [NSLocalizedDescriptionKey: "部門IDが無効です"])
         }
+        //まず部門IDがあるかどうか調べる。
         
         guard let userId = self.userId else {
             throw NSError(domain: "DepartmentError", code: 5,
                           userInfo: [NSLocalizedDescriptionKey: "ユーザーIDが見つかりません"])
         }
+        //ユーザIDと、自分が使っている端末のIDがあるか＝すでにアカウント作ってるか確認。
         
         let alreadyJoined = userDepartments.contains { membership in
             membership.departmentId == departmentId
@@ -1965,12 +1980,15 @@ extension MainViewModel {
                 departmentId: departmentId,
                 departmentName: department.name
             )
-            
+            //メンバーシップ情報に、部門メンバーとしての情報を入れる。
+            //参加していないばあいは、メンバーへ参加。
             try await db.collection("department_memberships").document(membership.id).setData(from: membership)
+            print("DBのコレクションにメンバーが追加されました。")
             
             try await db.collection("departments").document(departmentId).updateData([
                 "memberCount": FieldValue.increment(Int64(1))
             ])
+            print("メンバー数が増えました。")
             
             // 既存のメソッドを使用
             loadDepartments()

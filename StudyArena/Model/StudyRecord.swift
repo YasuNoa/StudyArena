@@ -8,7 +8,7 @@ struct StudyRecord: Identifiable, Codable {
     let timestamp: Date
     let duration: TimeInterval
     let earnedExperience: Double
-    let recordType: RecordType
+    let recordType: RecordType //recordtypeの中に、Recordtype型のなんらかの文字が入っている。
     let beforeLevel: Int
     let afterLevel: Int
     let mbtiType: String?

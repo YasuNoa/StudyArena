@@ -16,7 +16,7 @@ struct DepartmentBrowserView: View {
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
-                        
+                        //部門検索ビュー
                         TextField("部門を検索...", text: $searchText)
                             .textFieldStyle(DarkTextFieldStyle())
                     }
@@ -59,7 +59,8 @@ struct DepartmentBrowserView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     // 🔧 修正: canCreateDepartmentプロパティが存在しない場合のチェック
-                    if (viewModel.user?.level ?? 0) >= 10 {
+                    //ここ、本番では10にしてレベル制限をかける。
+                    if (viewModel.user?.level ?? 0) >= 1 {
                         Button(action: {
                             showingCreateDepartment = true
                         }) {

@@ -308,7 +308,7 @@ struct SideNavigationView: View {
     }
     private func canCreateDepartment() -> Bool {
         guard let user = viewModel.user else { return false }
-        return user.level >= 10
+        return user.level >= 1
     }
 }
 
