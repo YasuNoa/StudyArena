@@ -117,7 +117,8 @@ struct StudyArenaTests {
 
 このプロジェクトはMITライセンスの下で公開されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。
 
-## サポート
+##
+https://apps.apple.com/jp/app/studyarena/id6748235227?l=en-US
 
 問題や質問がある場合は、[Issues](../../issues)にて報告してください。
 
