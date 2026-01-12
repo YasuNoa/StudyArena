@@ -1,3 +1,6 @@
+//部門を検索するためのview
+//部門一覧がDepartment型？にしてたから、型の不一致に注意
+
 import SwiftUI
 
 struct DepartmentBrowserView: View {

@@ -1,3 +1,6 @@
+//学習
+
+
 import Foundation
 import FirebaseFirestore
 
@@ -95,5 +98,45 @@ struct StudyStatistics {
     var formattedAverageTime: String {
         let minutes = Int(averageStudyTime) / 60
         return "\(minutes)分"
+    }
+}
+/// 学習セッション（分析用の一時データ）
+struct StudySession {
+    let duration: TimeInterval
+    let timestamp: Date
+}
+
+/// 学習パターン（分析結果）
+struct LearningPattern {
+    let averageSessionDuration: TimeInterval // 平均セッション時間
+    let preferredStudyHour: Int              // 
+    let consistencyScore: Double             // 継続性スコア（0-1）
+    let totalSessions: Int                   // 総セッション数
+    
+    // 表示用のフォーマット済み平均時間
+    var formattedAverageSession: String {
+        let hours = Int(averageSessionDuration) / 3600
+        let minutes = Int(averageSessionDuration) / 60 % 60
+        if hours > 0 {
+            return "\(hours)時間\(minutes)分"
+        } else {
+            return "\(minutes)分"
+        }
+    }
+    
+    // 表示用のフォーマット済み時間帯
+    var formattedPreferredTime: String {
+        return String(format: "%02d:00", preferredStudyHour)
+    }
+    
+    // 継続性の評価テキスト
+    var consistencyRating: String {
+        switch consistencyScore {
+        case 0.8...: return "非常に規則的"
+        case 0.6..<0.8: return "規則的"
+        case 0.4..<0.6: return "やや規則的"
+        case 0.2..<0.4: return "不規則"
+        default: return "非常に不規則"
+        }
     }
 }

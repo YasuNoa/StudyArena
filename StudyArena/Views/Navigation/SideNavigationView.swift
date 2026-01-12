@@ -91,11 +91,10 @@ struct SideNavigationView: View {
                                 NavigationItem(
                                     icon: "person.3.fill",
                                     title: "所属部門",
-                                    // 🔧 修正: badge引数をcolor引数の前に移動
                                     badge: viewModel.user?.departments?.count ?? 0,
                                     color: .cyan
                                 ) {
-                                    showingSection = .department
+                                    showingSection = .department//これ遷移しないから修正したいんだけど、先に太り過ぎmainViewmodelをリファクタリングする
                                 }
                                 
                                 NavigationItem(

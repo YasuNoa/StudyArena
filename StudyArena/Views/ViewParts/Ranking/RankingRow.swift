@@ -9,7 +9,7 @@ import SwiftUI
 // 既存のRankingViewで使用されている場合のために残しておく
 struct RankingRow: View {
     let user: User
-    @EnvironmentObject var viewModel: MainViewModel
+    @EnvironmentObject var viewmodel:MainViewModel
     
     var body: some View {
         HStack {
@@ -29,10 +29,11 @@ struct RankingRow: View {
             
             Spacer()
             
-            Text(viewModel.formatTime(user.totalStudyTime))
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.secondary)
+                Text(timerManager.formatTime(user.totalStudyTime))
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+            
         }
         .padding(.vertical, 4)
     }

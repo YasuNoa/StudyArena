@@ -159,21 +159,21 @@ struct StudyStatsCard: View {
     
     var body: some View {
         HStack(spacing: 20) {
-            StatItem(
+            TimelineStatItem(
                 icon: "flame.fill",
                 value: "\(statistics.currentStreak)",
                 label: "連続日数",
                 color: .orange
             )
             
-            StatItem(
+            TimelineStatItem(
                 icon: "calendar",
                 value: "\(statistics.totalStudyDays)",
                 label: "総学習日数",
                 color: .blue
             )
             
-            StatItem(
+            TimelineStatItem(
                 icon: "clock.fill",
                 value: statistics.formattedAverageTime,
                 label: "平均時間",
@@ -192,7 +192,7 @@ struct StudyStatsCard: View {
     }
 }
 
-struct StatItem: View {
+struct TimelineStatItem: View {
     let icon: String
     let value: String
     let label: String

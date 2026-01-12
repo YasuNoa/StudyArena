@@ -167,9 +167,9 @@ struct DepartmentDetailView: View {
             
             // 統計情報
             HStack(spacing: 20) {
-                StatItem(icon: "person.fill", title: "作成者", value: department.creatorName)
+                DepartmentStatItem(icon: "person.fill", title: "作成者", value: department.creatorName)
                 Spacer()
-                StatItem(icon: "calendar", title: "作成日", value: formatDate(department.createdAt))
+                DepartmentStatItem(icon: "calendar", title: "作成日", value: formatDate(department.createdAt))
             }
         }
         .padding()
@@ -233,12 +233,17 @@ struct DepartmentDetailView: View {
     private func loadMembers() async {
         isLoading = true
         
-        // TODO: ViewModelにメンバー取得メソッドを追加する必要があります
-        // 仮のデータで表示
-        await MainActor.run {
-            // 実際はFirestoreから取得
-            members = []
-            isLoading = false
+        do {
+            let loadedMembers = try await viewModel.getDepartmentMembers(departmentId: department.id ?? "")
+            await MainActor.run {
+                members = loadedMembers
+                isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = "メンバー情報の取得に失敗しました: \(error.localizedDescription)"
+                isLoading = false
+            }
         }
     }
     
@@ -257,9 +262,7 @@ struct DepartmentDetailView: View {
         Task {
             do {
                 guard let departmentId = department.id else { return }
-                // TODO: ViewModelに脱退メソッドを追加する必要があります
-                // try await viewModel.leaveDepartment(departmentId)
-                errorMessage = "脱退機能は実装中です"
+                try await viewModel.leaveDepartment(departmentId)
             } catch {
                 errorMessage = "脱退に失敗しました: \(error.localizedDescription)"
             }
@@ -275,7 +278,7 @@ struct DepartmentDetailView: View {
 }
 
 // MARK: - 統計アイテム
-struct StatItem: View {
+struct DepartmentStatItem: View {
     let icon: String
     let title: String
     let value: String

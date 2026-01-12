@@ -1,86 +1,36 @@
-//
-//  AuthManager.swift
-//  StudyArena
-//
-//  Created by 田中正造 on 2026/01/10.
-//
-
+// AuthManager.swift
 import Foundation
+import Combine
+import FirebaseAuth
 
-@Published private var userId: String?
-@Published var isLoading: Bool = true
-
-
-func retryAuthentication() {
+class AuthManager: ObservableObject {
+    @Published var userId: String?
+    @Published var isLoading: Bool = true
+    @Published var errorMessage: String?
     
-    isLoading = true
-    errorMessage = nil
-    authenticateUser()
-}
-
-
-
-private func authenticateUser() {
-    
-    print("🔐 authenticateUser() が呼ばれました")
-    
-    print("🔥 Firebase Auth の状態を確認中...")
-    
-    
-    
-    Auth.auth().signInAnonymously { [weak self] (authResult, error) in
+    func signInAnonymously() {
+        print("🔥 Firebase Auth の状態を確認中...")
+        isLoading = true
         
-        print("🔐 signInAnonymously のコールバックが呼ばれました")
-        
-        
-        
-        Task { @MainActor in
-            
-            guard let self = self else {
+        Auth.auth().signInAnonymously { [weak self] (authResult, error) in
+            DispatchQueue.main.async {
+                self?.isLoading = false
                 
-                print("❌ self が nil です")
+                if let error = error {
+                    print("❌ 認証エラー: \(error.localizedDescription)")
+                    self?.errorMessage = "認証に失敗しました: \(error.localizedDescription)"
+                    return
+                }
                 
-                return
-                
+                if let authUser = authResult?.user {
+                    print("✅ 認証成功! UID: \(authUser.uid)")
+                    self?.userId = authUser.uid
+                }
             }
-            
-            
-            
-            if let error = error {
-                
-                print("❌ 認証エラー: \(error.localizedDescription)")
-                
-                print("   エラー詳細: \(error)")
-                
-                self.handleError("認証に失敗しました", error: error)
-                
-                return
-                
-            }
-            
-            
-            
-            guard let authUser = authResult?.user else {
-                
-                print("❌ authResult.user が nil です")
-                
-                self.handleError("認証に失敗しました", error: nil)
-                
-                return
-                
-            }
-            
-            
-            
-            print("✅ 認証成功! UID: \(authUser.uid)")
-            
-            self.userId = authUser.uid
-            
-            await self.loadUserData(uid: authUser.uid)
-            
         }
-        
     }
     
+    func retryAuthentication() {
+        signInAnonymously()
+    }
 }
-
