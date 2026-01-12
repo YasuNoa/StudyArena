@@ -1999,6 +1999,340 @@ extension MainViewModel {
         }
     }
 }
+
+// MARK: - 🏢 部門管理メソッド（追加）
+extension MainViewModel {
+    
+    /// 部門のメンバー一覧を取得
+    func getDepartmentMembers(departmentId: String) async throws -> [DepartmentMember] {
+        print("📋 部門メンバー取得開始: \(departmentId)")
+        
+        // 1. メンバーシップ情報を取得
+        let membershipsSnapshot = try await db.collection("department_memberships")
+            .whereField("departmentId", isEqualTo: departmentId)
+            .getDocuments()
+        
+        var members: [DepartmentMember] = []
+        
+        // 2. 各メンバーシップからユーザー情報を取得
+        for doc in membershipsSnapshot.documents {
+            guard let membership = try? doc.data(as: DepartmentMembership.self) else {
+                continue
+            }
+            
+            // ユーザー情報を取得
+            let userDoc = try await db.collection("users").document(membership.userId).getDocument()
+            
+            if let userData = try? userDoc.data(as: User.self) {
+                let member = DepartmentMember(
+                    id: membership.userId,
+                    nickname: userData.nickname,
+                    level: userData.level,
+                    role: membership.role,
+                    joinedAt: membership.joinedAt,
+                    totalStudyTime: userData.totalStudyTime
+                )
+                members.append(member)
+            }
+        }
+        
+        // 役割順にソート
+        members.sort { $0.role.sortOrder < $1.role.sortOrder }
+        
+        print("✅ \(members.count)人のメンバーを取得しました")
+        return members
+    }
+    
+    /// 部門から脱退
+    func leaveDepartment(_ departmentId: String) async throws {
+        guard let userId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        // メンバーシップを取得して役割を確認
+        guard let membership = userDepartments.first(where: { $0.departmentId == departmentId }) else {
+            throw NSError(domain: "DepartmentError", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "この部門に参加していません"])
+        }
+        
+        // リーダーの場合、他のメンバーがいないか確認
+        if membership.role == .leader {
+            let departmentDoc = try await db.collection("departments").document(departmentId).getDocument()
+            if let department = try? departmentDoc.data(as: Department.self),
+               department.memberCount > 1 {
+                throw NSError(domain: "DepartmentError", code: 3,
+                              userInfo: [NSLocalizedDescriptionKey: "リーダーは他のメンバーがいる間は脱退できません。先にリーダーを譲渡してください。"])
+            }
+        }
+        
+        print("🚪 部門脱退処理開始: \(departmentId)")
+        
+        // メンバーシップを削除
+        try await db.collection("department_memberships").document(membership.id).delete()
+        
+        // 部門のメンバー数を減らす
+        try await db.collection("departments").document(departmentId).updateData([
+            "memberCount": FieldValue.increment(Int64(-1))
+        ])
+        
+        // ローカルデータを更新
+        await MainActor.run {
+            userDepartments.removeAll { $0.departmentId == departmentId }
+        }
+        
+        // 部門一覧を再読み込み
+        loadDepartments()
+        
+        print("✅ 部門から脱退しました")
+    }
+    
+    /// メンバーの役割を変更（リーダーのみ）
+    func changeMemberRole(userId: String, departmentId: String, newRole: MemberRole) async throws {
+        guard let currentUserId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        // 自分がリーダーか確認
+        guard let myMembership = userDepartments.first(where: { $0.departmentId == departmentId }),
+              myMembership.role == .leader else {
+            throw NSError(domain: "DepartmentError", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "リーダーのみが役割を変更できます"])
+        }
+        
+        // 自分自身の役割は変更できない
+        guard userId != currentUserId else {
+            throw NSError(domain: "DepartmentError", code: 3,
+                          userInfo: [NSLocalizedDescriptionKey: "自分自身の役割は変更できません"])
+        }
+        
+        // リーダーには昇格できない（譲渡のみ）
+        guard newRole != .leader else {
+            throw NSError(domain: "DepartmentError", code: 4,
+                          userInfo: [NSLocalizedDescriptionKey: "リーダーへの昇格は譲渡機能を使用してください"])
+        }
+        
+        print("🔄 役割変更処理開始: \(userId) -> \(newRole.displayName)")
+        
+        // メンバーシップIDを構築
+        let membershipId = "\(userId)_\(departmentId)"
+        
+        // Firestoreで役割を更新
+        try await db.collection("department_memberships").document(membershipId).updateData([
+            "role": newRole.rawValue
+        ])
+        
+        print("✅ 役割を変更しました")
+    }
+    
+    /// リーダーを譲渡
+    func transferLeadership(departmentId: String, newLeaderId: String) async throws {
+        guard let currentUserId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        // 自分がリーダーか確認
+        guard let myMembership = userDepartments.first(where: { $0.departmentId == departmentId }),
+              myMembership.role == .leader else {
+            throw NSError(domain: "DepartmentError", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "リーダーのみがリーダーを譲渡できます"])
+        }
+        
+        // 自分自身には譲渡できない
+        guard newLeaderId != currentUserId else {
+            throw NSError(domain: "DepartmentError", code: 3,
+                          userInfo: [NSLocalizedDescriptionKey: "自分自身にリーダーを譲渡することはできません"])
+        }
+        
+        print("👑 リーダー譲渡処理開始: \(currentUserId) -> \(newLeaderId)")
+        
+        // バッチ処理で両方のメンバーシップを更新
+        let batch = db.batch()
+        
+        // 現在のリーダーをサブリーダーに降格
+        let currentLeadershipRef = db.collection("department_memberships")
+            .document("\(currentUserId)_\(departmentId)")
+        batch.updateData(["role": MemberRole.subLeader.rawValue], forDocument: currentLeadershipRef)
+        
+        // 新しいリーダーに昇格
+        let newLeadershipRef = db.collection("department_memberships")
+            .document("\(newLeaderId)_\(departmentId)")
+        batch.updateData(["role": MemberRole.leader.rawValue], forDocument: newLeadershipRef)
+        
+        // 部門のcreatorIdを更新
+        let departmentRef = db.collection("departments").document(departmentId)
+        batch.updateData(["creatorId": newLeaderId], forDocument: departmentRef)
+        
+        try await batch.commit()
+        
+        // ローカルデータを更新
+        await fetchUserMemberships()
+        loadDepartments()
+        
+        print("✅ リーダーを譲渡しました（元リーダー → サブリーダー）")
+    }
+    
+    /// メンバーを追放（リーダー・サブリーダー）
+    func kickMember(userId: String, departmentId: String) async throws {
+        guard let currentUserId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        // 自分がリーダーまたはサブリーダーか確認
+        guard let myMembership = userDepartments.first(where: { $0.departmentId == departmentId }),
+              myMembership.role == .leader || myMembership.role == .subLeader else {
+            throw NSError(domain: "DepartmentError", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "リーダーまたはサブリーダーのみがメンバーを追放できます"])
+        }
+        
+        // 自分自身は追放できない
+        guard userId != currentUserId else {
+            throw NSError(domain: "DepartmentError", code: 3,
+                          userInfo: [NSLocalizedDescriptionKey: "自分自身を追放することはできません"])
+        }
+        
+        // 追放対象のメンバーシップを取得
+        let targetMembershipId = "\(userId)_\(departmentId)"
+        let targetMembershipDoc = try await db.collection("department_memberships").document(targetMembershipId).getDocument()
+        
+        guard let targetMembership = try? targetMembershipDoc.data(as: DepartmentMembership.self) else {
+            throw NSError(domain: "DepartmentError", code: 4,
+                          userInfo: [NSLocalizedDescriptionKey: "対象メンバーが見つかりません"])
+        }
+        
+        // サブリーダーはリーダーとサブリーダーを追放できない
+        if myMembership.role == .subLeader {
+            guard targetMembership.role != .leader && targetMembership.role != .subLeader else {
+                throw NSError(domain: "DepartmentError", code: 5,
+                              userInfo: [NSLocalizedDescriptionKey: "サブリーダーはリーダーやサブリーダーを追放できません"])
+            }
+        }
+        
+        print("⚠️ メンバー追放処理開始: \(userId)")
+        
+        // メンバーシップを削除
+        try await db.collection("department_memberships").document(targetMembershipId).delete()
+        
+        // 部門のメンバー数を減らす
+        try await db.collection("departments").document(departmentId).updateData([
+            "memberCount": FieldValue.increment(Int64(-1))
+        ])
+        
+        // 部門一覧を再読み込み
+        loadDepartments()
+        
+        print("✅ メンバーを追放しました")
+    }
+    
+    /// 参加リクエストを送信（承認制の部門用）
+    func requestToJoinDepartment(departmentId: String) async throws {
+        guard let userId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        // 既に参加していないか確認
+        guard !isJoinedDepartment(departmentId) else {
+            throw NSError(domain: "DepartmentError", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "既にこの部門に参加しています"])
+        }
+        
+        print("📬 参加リクエスト送信: \(departmentId)")
+        
+        // 部門のpendingRequestsに追加
+        try await db.collection("departments").document(departmentId).updateData([
+            "pendingRequests": FieldValue.arrayUnion([userId])
+        ])
+        
+        // TODO: 部門のリーダー/エルダーに通知を送る
+        
+        print("✅ 参加リクエストを送信しました")
+    }
+    
+    /// 参加リクエストを承認
+    func approveJoinRequest(userId: String, departmentId: String) async throws {
+        guard let currentUserId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        // 承認権限があるか確認（エルダー以上）
+        guard let myMembership = userDepartments.first(where: { $0.departmentId == departmentId }),
+              myMembership.role.canInvite else {
+            throw NSError(domain: "DepartmentError", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "承認する権限がありません"])
+        }
+        
+        print("✅ 参加リクエスト承認: \(userId)")
+        
+        // 部門情報を取得
+        let departmentDoc = try await db.collection("departments").document(departmentId).getDocument()
+        guard let department = try? departmentDoc.data(as: Department.self) else {
+            throw NSError(domain: "DepartmentError", code: 3,
+                          userInfo: [NSLocalizedDescriptionKey: "部門が見つかりません"])
+        }
+        
+        // メンバーシップを作成
+        let membership = DepartmentMembership(
+            userId: userId,
+            departmentId: departmentId,
+            departmentName: department.name,
+            role: .member
+        )
+        
+        // バッチ処理
+        let batch = db.batch()
+        
+        // メンバーシップを追加
+        let membershipRef = db.collection("department_memberships").document(membership.id)
+        try batch.setData(from: membership, forDocument: membershipRef)
+        
+        // pendingRequestsから削除してメンバー数を増やす
+        let departmentRef = db.collection("departments").document(departmentId)
+        batch.updateData([
+            "pendingRequests": FieldValue.arrayRemove([userId]),
+            "memberCount": FieldValue.increment(Int64(1))
+        ], forDocument: departmentRef)
+        
+        try await batch.commit()
+        
+        // TODO: 承認された人に通知を送る
+        
+        loadDepartments()
+        print("✅ 参加リクエストを承認しました")
+    }
+    
+    /// 参加リクエストを拒否
+    func rejectJoinRequest(userId: String, departmentId: String) async throws {
+        guard let currentUserId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
+        // 拒否権限があるか確認（エルダー以上）
+        guard let myMembership = userDepartments.first(where: { $0.departmentId == departmentId }),
+              myMembership.role.canInvite else {
+            throw NSError(domain: "DepartmentError", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "拒否する権限がありません"])
+        }
+        
+        print("❌ 参加リクエスト拒否: \(userId)")
+        
+        // pendingRequestsから削除
+        try await db.collection("departments").document(departmentId).updateData([
+            "pendingRequests": FieldValue.arrayRemove([userId])
+        ])
+        
+        // TODO: 拒否された人に通知を送る（オプション）
+        
+        loadDepartments()
+        print("✅ 参加リクエストを拒否しました")
+    }
+}
+
 extension MainViewModel {
     
     // MARK: - MBTI設定機能（不足している部分）
