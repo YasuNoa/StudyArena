@@ -20,6 +20,7 @@ class TimelineViewModel: ObservableObject {
     var user: User?
     
     private let service = TimelineService()
+    private let studyRecordService = StudyRecordService()
     
     // MARK: - 読み込み
     
@@ -50,7 +51,7 @@ class TimelineViewModel: ObservableObject {
         guard let userId = self.userId, let user = self.user else { return }
         
         // 今日の学習時間を取得
-        let todayStudyTime = await service.fetchTodayStudyTime(userId: userId)
+        let todayStudyTime = await studyRecordService.fetchTodayStudyTime(userId: userId)
         
         // ⭐️ モデルの初期化 (デフォルト値があるものは省略可能ですが、明示的に書いています)
         let post = TimelinePost(

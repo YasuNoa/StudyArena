@@ -4,9 +4,14 @@ import Combine
 import FirebaseAuth
 
 class AuthManager: ObservableObject {
+    static let shared = AuthManager()
+    
     @Published var userId: String?
     @Published var isLoading: Bool = true
     @Published var errorMessage: String?
+    
+    // シングルトン化のためprivate init
+    private init() {}
     
     func signInAnonymously() {
         print("🔥 Firebase Auth の状態を確認中...")

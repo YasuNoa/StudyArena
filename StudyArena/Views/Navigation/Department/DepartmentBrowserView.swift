@@ -80,7 +80,7 @@ struct DepartmentBrowserView: View {
         .task {
             // 🔧 修正: 既存のメソッド名を使用
             await viewModel.loadDepartments()
-            await viewModel.fetchUserMemberships()
+            await viewModel.loadUserMemberships()
         }
     }
     

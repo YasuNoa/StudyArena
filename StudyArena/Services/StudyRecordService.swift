@@ -9,7 +9,7 @@ import Foundation
 import Firebase
 import FirebaseFirestore
 
-class StudyService {
+class StudyRecordService {
     private let db = Firestore.firestore()
     
     // MARK: - 取得系
@@ -43,7 +43,7 @@ class StudyService {
     }
     
     // 今日の合計学習時間を取得（タイマー開始時のチェック等）
-    func fetchTodayTotalStudyTime(userId: String) async -> TimeInterval {
+    func fetchTodayStudyTime(userId: String) async -> TimeInterval {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!

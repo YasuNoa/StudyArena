@@ -16,10 +16,11 @@ class TimerManager: ObservableObject {
     
     private var timer: Timer?
     
-    // 完了報告用クロージャー
-    var onTimerCompleted: ((TimeInterval) -> Void)?
+    // 完了報告用Combine Subject
+    let timerCompletedSubject = PassthroughSubject<TimeInterval, Never>()
     
-    func start() {
+    
+    func startTimer() {
         guard !isTimerRunning else { return }
         
         backgroundTracker.resetSession()
@@ -33,7 +34,7 @@ class TimerManager: ObservableObject {
         }
     }
     
-    func stop() {
+    func stopTimer() {
         guard isTimerRunning else { return }
         
         isTimerRunning = false
@@ -49,8 +50,8 @@ class TimerManager: ObservableObject {
             return
         }
         
-        // 完了報告（保存処理はMainViewModelに任せる）
-        onTimerCompleted?(studyTime)
+        // 完了報告（Combineで通知）
+        timerCompletedSubject.send(studyTime)
     }
     
     func forceStop() {
@@ -60,9 +61,6 @@ class TimerManager: ObservableObject {
         timerValue = 0
     }
     
-    // View用のラッパーメソッド（互換性維持）
-    func startTimerWithValidation() { start() }
-    func stopTimerWithValidation() { stop() }
     
     func formatTime(_ interval: TimeInterval) -> String {
         let totalHours = Int(interval) / 3600

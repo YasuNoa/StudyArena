@@ -279,7 +279,7 @@
 				BF7F8B8C2E15099C00DF3CFC /* ContentView.swift */,
 				BFC0F9E32E16504B00870CDD /* MainTabView.swift */,
 				BFACD48F2E517C4E00935FCE /* Navigation */,
-				BFC0F9DC2E164FC000870CDD /* ViewParts */,
+				BFC0F9DC2E164FC000870CDD /* MainTabViewParts */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -337,7 +337,7 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		BFC0F9DC2E164FC000870CDD /* ViewParts */ = {
+		BFC0F9DC2E164FC000870CDD /* MainTabViewParts */ = {
 			isa = PBXGroup;
 			children = (
 				BF639EB02E48EC66004FCD52 /* RewardSystemView.swift */,
@@ -348,7 +348,7 @@
 				BFACD48B2E5057F500935FCE /* Timeline */,
 				BFC0F9FC2E1651E900870CDD /* Prifile */,
 			);
-			path = ViewParts;
+			path = MainTabViewParts;
 			sourceTree = "<group>";
 		};
 		BFC0F9F92E16513E00870CDD /* Timer */ = {

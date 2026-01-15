@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 @MainActor
-class StudyViewModel: ObservableObject {
+class StudyRecordViewModel: ObservableObject {
     
     // データソース：これが変わると統計も自動再計算される
     @Published var studyRecords: [StudyRecord] = [] {
@@ -22,7 +22,7 @@ class StudyViewModel: ObservableObject {
     var userId: String?
     var user: User? // MBTI情報などが必要な場合用
     
-    private let service = StudyService()
+    private let service = StudyRecordService()
     
     // MARK: - データ読み込み
     

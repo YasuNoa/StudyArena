@@ -15,11 +15,12 @@ class MainViewModel: ObservableObject {
     @Published var isLoading: Bool = true
     @Published var errorMessage: String?
     @Published var validationWarning: String?
-    @Published var timerManager = TimerManager()
-    
-    private let authManager = AuthManager()
+
+    // シングルトンだが、objectWillChangeを監視するために保持
+    private let timerManager = TimerManager.shared
+    private let authManager = AuthManager.shared
     private let userService = UserService()
-    private let studyService = StudyService() // 必要に応じて
+    private let studyRecordService = StudyRecordService()
     private let feedbackService = FeedbackService()
     
     private var cancellables = Set<AnyCancellable>()
@@ -65,15 +66,25 @@ class MainViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     private func setupTimerBinding() {
+        // 1. TimerManagerの変更をMainViewModelの変更として転送 (objectWillChangeの連結)
+        timerManager.objectWillChange //TimerManagerの中にある値が変わる直前を検知するセンサ。
+            .sink { [weak self] _ in //ここがサブスクライブ。{}の処理を実行する。objectwillchangeで検知されたら{}を実行。
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+            
         // TimerManagerの警告をMainViewModelに反映
         timerManager.$validationWarning
             .assign(to: \.validationWarning, on: self)
             .store(in: &cancellables)
         
-        // タイマー完了時の処理（ここが重要！）
-        timerManager.onTimerCompleted = { [weak self] studyTime in
-            self?.handleStudyCompleted(studyTime: studyTime)
-        }
+        // タイマー完了時の処理（Combine）
+        timerManager.timerCompletedSubject
+            .receive(on: RunLoop.main)
+            .sink { [weak self] studyTime in
+                self?.handleStudyCompleted(studyTime: studyTime)
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - 学習完了時の処理 (司令塔の仕事)
@@ -98,7 +109,7 @@ class MainViewModel: ObservableObject {
                 afterLevel: user?.level ?? 1, // updateExperienceの結果を反映すべきだが一旦簡易実装
                 mbtiType: user?.mbtiType
             )
-            try? await studyService.saveStudyRecord(record)
+            try? await studyRecordService.saveStudyRecord(record)
             
             // 3. 画面の更新（ユーザー情報再取得）
             await loadUserData(uid: userId)
@@ -157,17 +168,17 @@ class MainViewModel: ObservableObject {
         timerManager.isTimerRunning
     }
     
-    func startTimerWithValidation() {
-        timerManager.startTimerWithValidation()
+    func startTimer() {
+        timerManager.startTimer()
     }
     
-    func stopTimerWithValidation() {
-        timerManager.stopTimerWithValidation()
+    func stopTimer() {
+        timerManager.stopTimer()
     }
     
     func stopTimerWithNotifications() {
         // 名前は違ってもやることは同じなら、Managerのメソッドを呼ぶ
-        timerManager.stopTimerWithValidation()
+        timerManager.stopTimer()
     }
     
     func forceStopTimer() {
@@ -206,7 +217,7 @@ class MainViewModel: ObservableObject {
     @objc private func startStudyFromNotification() {
         print("📩 通知から学習開始")
         DispatchQueue.main.async {
-            self.timerManager.startTimerWithValidation()
+            self.timerManager.startTimer()
         }
     }
 }

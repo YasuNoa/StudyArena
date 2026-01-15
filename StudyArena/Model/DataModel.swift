@@ -267,3 +267,12 @@ extension User {
         }
     }
 }
+
+// MARK: - Notification Setting
+struct NotificationSetting: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let description: String
+    var isEnabled: Bool
+    var time: DateComponents? // 時間指定が必要な場合
+}

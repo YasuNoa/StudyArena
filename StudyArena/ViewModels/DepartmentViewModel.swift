@@ -10,6 +10,7 @@
 import Foundation
 import Combine
 
+@MainActor
 class DepartmentViewModel: ObservableObject {
     
     @Published var departments: [Department] = []
@@ -49,7 +50,7 @@ class DepartmentViewModel: ObservableObject {
     
     
     //自分の所属を取得
-    func fetchUserMemberships() async {
+    func loadUserMemberships() async {
         guard let userId = self.userId else { return }
         
         
@@ -77,7 +78,7 @@ class DepartmentViewModel: ObservableObject {
             )
             // リスト更新
             loadDepartments()
-            await fetchUserMemberships()
+            await loadUserMemberships()
             print("参加成功")
         } catch {
             throw error
@@ -111,7 +112,7 @@ class DepartmentViewModel: ObservableObject {
             )
             
             loadDepartments()
-            await fetchUserMemberships()
+            await loadUserMemberships()
             print("作成成功")
             
         } catch {

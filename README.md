@@ -30,12 +30,37 @@ StudyArenaは、学習時間を記録・管理し、他のユーザーと競い�
 - **UserNotifications**: プッシュ通知
 
 ### アーキテクチャ
-- **MVVM**: Model-View-ViewModelパターン
-- **@StateObject/@ObservableObject**: SwiftUIの状態管理
-- **@MainActor**: メインスレッドでの安全な更新
-- **Swift Concurrency**: async/awaitによる非同期処理
+**Modular MVVM (Model-View-ViewModel + Services + Managers)**
 
+- **Views (UI)**: SwiftUIによる画面描画。`ViewModel`の状態を監視・反映します。
+- **ViewModels (Binding & Logic)**: ViewとModel/Serviceの仲介役。
+    - UIの状態管理 (`@Published`)
+    - Combineを使用したデータのバインディング
+    - `Manager`や`Service`への処理委譲
+- **Managers (System & State)**: アプリ全体の状態やシステム機能を管理。
+    - `AuthManager`: 認証状態の監視
+    - `TimerManager`: バックグラウンド対応のタイマー制御
+    - `NotificationManager`: ローカル通知の管理
+- **Services (Data Access)**: バックエンド（Firebase）との通信を担当。
+    - `UserService`: ユーザー情報のCRUD
+    - `StudyRecordService`: 学習記録の保存
+    - `TimelineService`: タイムラインデータの取得・更新
 
+### ディレクトリ構成
+```text
+StudyArena/
+  ├── StudyArena.swift         # アプリのエントリーポイント（App Check設定含む）
+  ├── Managers/                # アプリ全体の機能管理 (Auth, Timer, Notification)
+  ├── Services/                # データアクセス層 (Firebase Firestore)
+  ├── ViewModels/              # 画面ごとのビジネスロジック
+  ├── Views/                   # SwiftUI View
+  │   ├── Navigation/          # ナビゲーション関連
+  │   └── ViewParts/           # 再利用可能なUIコンポーネント
+  ├── Model/                   # データモデル定義
+  └── Assets.xcassets/         # 画像リソース
+```
+
+### Firestore Data Structure
 
 users/
   ├── {userId}/

@@ -38,9 +38,9 @@ struct TimerView: View {
                     isRunning: viewModel.isTimerRunning,
                     onTap: {
                         if viewModel.isTimerRunning {
-                            viewModel.stopTimerWithValidation()
+                            viewModel.stopTimer()
                         } else {
-                            viewModel.startTimerWithValidation()
+                            viewModel.startTimer()
                         }
                     }
                 )

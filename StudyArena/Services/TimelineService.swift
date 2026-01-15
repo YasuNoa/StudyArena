@@ -36,27 +36,7 @@ class TimelineService {
         }
     }
     
-    // 今日の学習時間（投稿付与用）
-    func fetchTodayStudyTime(userId: String) async -> TimeInterval {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
-        
-        do {
-            let snapshot = try await db.collection("studyRecords")
-                .whereField("userId", isEqualTo: userId)
-                .whereField("timestamp", isGreaterThanOrEqualTo: Timestamp(date: today))
-                .whereField("timestamp", isLessThan: Timestamp(date: tomorrow))
-                .whereField("recordType", isEqualTo: "study")
-                .getDocuments()
-            
-            return snapshot.documents.reduce(0.0) { total, doc in
-                return total + (doc.data()["duration"] as? TimeInterval ?? 0)
-            }
-        } catch {
-            return 0
-        }
-    }
+  
     
     // MARK: - 更新系
     
