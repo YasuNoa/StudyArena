@@ -281,6 +281,8 @@ struct FeedbackView: View {
             }
         }
         .onAppear {
+            // ユーザー情報同期
+            feedbackViewModel.user = viewModel.user
             checkDailyLimit()
         }
         .alert("送信完了", isPresented: $feedbackViewModel.showSuccessAlert) {
@@ -299,22 +301,17 @@ struct FeedbackView: View {
     
     // 修正: checkDailyLimit関数を実装
     private func checkDailyLimit() {
-        guard let userId = viewModel.user?.id else { return }
         Task {
-            await feedbackViewModel.checkDailyLimit(userId: userId)
+            await feedbackViewModel.checkDailyLimit()
         }
     }
     
     private func submitFeedback() {
         guard !feedbackViewModel.isSubmitting else { return }
-        guard let user = viewModel.user else { return }
         
         Task {
             do {
                 try await feedbackViewModel.submitFeedback(
-                    userId: user.id,
-                    userNickname: user.nickname,
-                    userLevel: user.level,
                     type: feedbackType,
                     content: feedbackText.trimmingCharacters(in: .whitespacesAndNewlines),
                     email: email.trimmingCharacters(in: .whitespacesAndNewlines)

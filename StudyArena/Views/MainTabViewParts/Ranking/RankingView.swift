@@ -47,7 +47,7 @@ struct RankingView: View {
             // ランキングリスト（シンプル版）
             ScrollView {
                 VStack(spacing: 8) {
-                    ForEach(viewModel.ranking) { user in
+                    ForEach(rankingViewModel.ranking) { user in
                         RankingRow(user: user)
                             .padding(.horizontal)
                     }
@@ -55,7 +55,7 @@ struct RankingView: View {
                 .padding(.vertical, 10)
             }
             .refreshable {
-                viewModel.loadRanking()
+                await rankingViewModel.loadRanking()
             }
         }
         .onAppear {

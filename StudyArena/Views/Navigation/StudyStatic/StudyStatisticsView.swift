@@ -3,6 +3,7 @@ import Charts
 
 struct StudyStatisticsView: View {
     @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var studyRecordViewModel = StudyRecordViewModel()
     @State private var selectedPeriod: Period = .week
     @State private var isLoading = true
     
@@ -22,13 +23,13 @@ struct StudyStatisticsView: View {
                 
                 if isLoading {
                     loadingSection
-                } else if viewModel.studyRecords.isEmpty {
+                } else if studyRecordViewModel.studyRecords.isEmpty {
                     emptyStateSection
                 } else {
                     ScrollView {
                         VStack(spacing: 25) {
                             // 統計サマリー
-                            if let stats = viewModel.studyStatistics {
+                            if let stats = studyRecordViewModel.studyStatistics {
                                 statisticsSummary(stats: stats)
                             }
                             
@@ -82,16 +83,16 @@ struct StudyStatisticsView: View {
     private var emptyStateSection: some View {
         VStack(spacing: 20) {
             Image(systemName: "chart.bar.doc.horizontal")
-                .font(.system(size: 60))
-                .foregroundColor(.white.opacity(0.3))
+            .font(.system(size: 60))
+            .foregroundColor(.white.opacity(0.3))
             
             Text("学習記録がありません")
-                .font(.title3)
-                .foregroundColor(.white.opacity(0.7))
+            .font(.title3)
+            .foregroundColor(.white.opacity(0.7))
             
             Text("タイマーで学習を始めましょう")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.5))
+            .font(.caption)
+            .foregroundColor(.white.opacity(0.5))
         }
         .frame(maxHeight: .infinity)
     }
@@ -149,8 +150,8 @@ struct StudyStatisticsView: View {
     private var modernChartSection: some View {
         VStack(alignment: .leading, spacing: 15) {
             Text("学習時間の推移")
-                .font(.headline)
-                .foregroundColor(.white.opacity(0.7))
+            .font(.headline)
+            .foregroundColor(.white.opacity(0.7))
             
             Chart(getChartData()) { item in
                 BarMark(
@@ -173,8 +174,8 @@ struct StudyStatisticsView: View {
                         // 🔧 修正: valueを正しくDate型として扱う
                         if let date = value.as(Date.self) {
                             Text(formatAxisDate(date))
-                                .font(.caption2)
-                                .foregroundColor(.white.opacity(0.7))
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.7))
                         }
                     }
                 }
@@ -185,23 +186,23 @@ struct StudyStatisticsView: View {
                         // 🔧 修正: valueを正しくDouble型として扱う
                         if let hours = value.as(Double.self) {
                             Text("\(Int(hours))h")
-                                .font(.caption2)
-                                .foregroundColor(.white.opacity(0.7))
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.7))
                         }
                     }
                     AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                        .foregroundStyle(Color.white.opacity(0.1))
+                    .foregroundStyle(Color.white.opacity(0.1))
                 }
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
+            .fill(Color.white.opacity(0.05))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
         )
     }
     
@@ -209,29 +210,29 @@ struct StudyStatisticsView: View {
     private var legacyChartSection: some View {
         VStack(alignment: .leading, spacing: 15) {
             Text("学習時間の推移")
-                .font(.headline)
-                .foregroundColor(.white.opacity(0.7))
+            .font(.headline)
+            .foregroundColor(.white.opacity(0.7))
             
             VStack(spacing: 10) {
                 ForEach(getChartData().suffix(7), id: \.date) { item in
                     HStack {
                         Text(formatAxisDate(item.date))
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.7))
-                            .frame(width: 60, alignment: .leading)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.7))
+                        .frame(width: 60, alignment: .leading)
                         
                         GeometryReader { geometry in
                             HStack {
                                 RoundedRectangle(cornerRadius: 4)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [.blue, .cyan],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.blue, .cyan],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
                                     )
-                                    .frame(width: geometry.size.width * CGFloat(item.hours) / 8.0)
-                                    .animation(.spring(), value: item.hours)
+                                )
+                                .frame(width: geometry.size.width * CGFloat(item.hours) / 8.0)
+                                .animation(.spring(), value: item.hours)
                                 
                                 Spacer()
                             }
@@ -239,9 +240,9 @@ struct StudyStatisticsView: View {
                         .frame(height: 20)
                         
                         Text("\(item.hours)h")
-                            .font(.caption2)
-                            .foregroundColor(.white.opacity(0.7))
-                            .frame(width: 40, alignment: .trailing)
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.7))
+                        .frame(width: 40, alignment: .trailing)
                     }
                 }
             }
@@ -249,11 +250,11 @@ struct StudyStatisticsView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
+            .fill(Color.white.opacity(0.05))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
         )
     }
     
@@ -261,11 +262,11 @@ struct StudyStatisticsView: View {
     private var recentRecordsSection: some View {
         VStack(alignment: .leading, spacing: 15) {
             Text("最近の学習記録")
-                .font(.headline)
-                .foregroundColor(.white.opacity(0.7))
+            .font(.headline)
+            .foregroundColor(.white.opacity(0.7))
             
             VStack(spacing: 10) {
-                ForEach(viewModel.studyRecords.prefix(5)) { record in
+                ForEach(studyRecordViewModel.studyRecords.prefix(5)) { record in
                     RecordRow(record: record)
                 }
             }
@@ -273,18 +274,20 @@ struct StudyStatisticsView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
+            .fill(Color.white.opacity(0.05))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
         )
     }
     
     // MARK: - ヘルパーメソッド
     private func loadData() {
         isLoading = true
-        viewModel.loadStudyRecords()
+        // ユーザーID同期
+        studyRecordViewModel.userId = viewModel.user?.id
+        studyRecordViewModel.loadRecords()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             isLoading = false
@@ -307,7 +310,7 @@ struct StudyStatisticsView: View {
         }
         
         // 日付ごとにグループ化
-        let filteredRecords = viewModel.studyRecords.filter { record in
+        let filteredRecords = studyRecordViewModel.studyRecords.filter { record in
             record.timestamp >= startDate && record.recordType == .study
         }
         

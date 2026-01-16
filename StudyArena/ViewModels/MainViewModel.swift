@@ -225,6 +225,11 @@ class MainViewModel: ObservableObject {
             self.timerManager.startTimer()
         }
     }
+    
+    // MARK: - Helpers
+    func formatTime(_ interval: TimeInterval) -> String {
+        return TimerManager.shared.formatTime(interval)
+    }
 }
 
 // MainViewModel.swift の一番下に追加

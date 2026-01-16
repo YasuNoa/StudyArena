@@ -18,9 +18,19 @@ class FeedbackViewModel: ObservableObject {
     @Published var showSuccessAlert = false
     @Published var showErrorAlert = false
     
+    // 親から受け取る情報
+    var user: User? {
+        didSet {
+            userId = user?.id
+        }
+    }
+    private(set) var userId: String?
+    
     private let service = FeedbackService()
     
-    func checkDailyLimit(userId: String) async {
+    func checkDailyLimit() async {
+        guard let userId = userId else { return }
+        
         isCheckingLimit = true
         limitCheckError = nil
         
@@ -35,15 +45,19 @@ class FeedbackViewModel: ObservableObject {
         isCheckingLimit = false
     }
     
-    func submitFeedback(userId: String, userNickname: String, userLevel: Int, type: String, content: String, email: String) async throws {
+    func submitFeedback(type: String, content: String, email: String) async throws {
+        guard let userId = userId, let user = user else {
+            throw NSError(domain: "FeedbackError", code: 401, userInfo: [NSLocalizedDescriptionKey: "ユーザー情報が見つかりません"])
+        }
+        
         isSubmitting = true
         errorMessage = nil
         
         do {
             try await service.submitFeedback(
                 userId: userId,
-                userNickname: userNickname,
-                userLevel: userLevel,
+                userNickname: user.nickname,
+                userLevel: user.level,
                 type: type,
                 content: content,
                 email: email

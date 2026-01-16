@@ -10,6 +10,7 @@ import SwiftUI
 
 struct StudyCalendarView: View {
     @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var studyRecordViewModel = StudyRecordViewModel()
     @State private var selectedDate = Date()
     @State private var currentMonth = Date()
     
@@ -33,30 +34,38 @@ struct StudyCalendarView: View {
                 CalendarGrid(
                     currentMonth: currentMonth,
                     selectedDate: $selectedDate,
-                    studyData: viewModel.dailyStudyData
+                    studyData: studyRecordViewModel.dailyStudyData
                 )
                 .padding(.horizontal)
                 
                 // 選択日の詳細
                 DayDetailView(
                     date: selectedDate,
-                    studyTime: viewModel.getStudyTime(for: selectedDate)
+                    studyTime: getStudyTime(for: selectedDate)
                 )
                 .padding()
                 
                 Spacer()
             }
         }
-        .onAppear {  // ⭐️ ここに追加
+        .onAppear {
+            // ユーザーID同期
+            studyRecordViewModel.userId = viewModel.user?.id
+            
             Task {
-                await viewModel.loadMonthlyData(for: currentMonth)
+                studyRecordViewModel.loadMonthlyData(for: currentMonth)
             }
         }
-        .onChange(of: currentMonth) { newMonth in  // ⭐️ 月が変わったときも
+        .onChange(of: currentMonth) { newMonth in
             Task {
-                await viewModel.loadMonthlyData(for: newMonth)
+                studyRecordViewModel.loadMonthlyData(for: newMonth)
             }
         }
+    }
+    
+    private func getStudyTime(for date: Date) -> TimeInterval {
+        let day = calendar.startOfDay(for: date)
+        return studyRecordViewModel.dailyStudyData[day] ?? 0
     }
 }
 

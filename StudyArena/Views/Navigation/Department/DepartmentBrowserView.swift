@@ -193,6 +193,8 @@ struct CreateDepartmentView: View {
     @State private var departmentName = ""
     @State private var departmentDescription = ""
     @State private var isCreating = false
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
     
     var body: some View {
         NavigationView {
@@ -238,6 +240,11 @@ struct CreateDepartmentView: View {
                 }
             }
         }
+        .alert("エラー", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
+        }
     }
     
     private func createDepartment() {
@@ -255,6 +262,15 @@ struct CreateDepartmentView: View {
                 }
             } catch {
                 print("部門作成エラー: \(error)")
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                    // もしNSErrorで詳細なメッセージが取れない場合はこちらを検討:
+                    // errorMessage = (error as NSError).domain == "DepartmentError" ? "部門作成に失敗しました: \(error.localizedDescription)" : "不明なエラーが発生しました"
+                    if let nsError = error as NSError?, nsError.domain == "DepartmentError", nsError.code == 10 {
+                         errorMessage = "レベル10以上のユーザーのみ部門を作成できます"
+                    }
+                    showingErrorAlert = true
+                }
             }
             
             await MainActor.run {

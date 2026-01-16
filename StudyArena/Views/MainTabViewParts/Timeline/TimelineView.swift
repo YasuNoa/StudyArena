@@ -3,6 +3,7 @@ import SwiftUI
 // StudyRecordとTimelinePostを統合して表示
 struct TimelineView: View {
     @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var studyRecordViewModel = StudyRecordViewModel()
     @StateObject private var timelineViewModel = TimelineViewModel()
     @State private var selectedFilter: FilterType = .all
     @State private var showPostCreate = false
@@ -22,16 +23,16 @@ struct TimelineView: View {
         // フィルターに応じてアイテムを追加
         switch selectedFilter {
         case .all:
-            items = viewModel.studyRecords.map { .studyRecord($0) }
+            items = studyRecordViewModel.studyRecords.map { .studyRecord($0) }
             items += timelineViewModel.timelinePosts.map { .post($0) }
         case .study:
-            items = viewModel.studyRecords
+            items = studyRecordViewModel.studyRecords
                 .filter { $0.recordType == .study }
                 .map { .studyRecord($0) }
         case .posts:
             items = timelineViewModel.timelinePosts.map { .post($0) }
         case .levelUp:
-            items = viewModel.studyRecords
+            items = studyRecordViewModel.studyRecords
                 .filter { $0.recordType == .levelUp }
                 .map { .studyRecord($0) }
         }
@@ -49,7 +50,7 @@ struct TimelineView: View {
             VStack(spacing: 0) {
                 // ヘッダー
                 VStack(spacing: 15) {
-                    if let stats = viewModel.studyStatistics {
+                    if let stats = studyRecordViewModel.studyStatistics {
                         StudyStatsCard(statistics: stats)
                     }
                     
@@ -85,7 +86,7 @@ struct TimelineView: View {
                          .padding(.bottom, 100)
                      }
                      .refreshable {
-                         viewModel.loadStudyRecords()
+                         studyRecordViewModel.loadRecords()
                          timelineViewModel.loadTimelinePosts()
                      }
                  }
@@ -125,10 +126,11 @@ struct TimelineView: View {
         .environmentObject(timelineViewModel) // Inject here
         .onAppear {
             // Sync User
+            studyRecordViewModel.userId = viewModel.user?.id
             timelineViewModel.userId = viewModel.user?.id
             timelineViewModel.user = viewModel.user
 
-            viewModel.loadStudyRecords()
+            studyRecordViewModel.loadRecords()
             timelineViewModel.loadTimelinePosts() 
         }
         .sheet(isPresented: $showPostCreate) {

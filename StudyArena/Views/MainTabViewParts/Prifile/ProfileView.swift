@@ -7,6 +7,8 @@ import Combine
 
 struct ProfileView: View {
     @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var rankingViewModel = RankingViewModel()
+    @StateObject private var timelineViewModel = TimelineViewModel()
     @State private var editingNickname: String = ""
     @State private var showSaveAlert: Bool = false
     @State private var isEditing: Bool = false
@@ -89,7 +91,7 @@ struct ProfileView: View {
                                                         .fontWeight(.bold)
                                                         .foregroundColor(.purple)
                                                     
-                                                    let info = MainViewModel.getMBTIInfo(mbti)
+                                                    let info = MBTIViewModel.getMBTIInfo(mbti)
                                                     Text(info.name)
                                                         .font(.subheadline)
                                                         .foregroundColor(.purple.opacity(0.8))
@@ -116,7 +118,7 @@ struct ProfileView: View {
                                                 .background(
                                                     RoundedRectangle(cornerRadius: 10)
                                                         .fill(Color.purple.opacity(0.1))
-                                                )
+                                                    )
                                             }
                                         }
                                     }
@@ -174,9 +176,13 @@ struct ProfileView: View {
             }
             .padding(.top, 20) // 上部の余白
             .onAppear {
-                findUserRank()
+                Task{
+                    await rankingViewModel.loadRanking() // ランキング取得
+                }
+                // findUserRankはonReceiveで呼ばれるが、初回も呼んでおく
+                // しかしloadRanking完了後じゃないと意味ないかも
             }
-            .onReceive(viewModel.$ranking) { _ in
+            .onReceive(rankingViewModel.$ranking) { _ in
                 findUserRank()
             }
         }
@@ -206,7 +212,7 @@ struct ProfileView: View {
     
     private func findUserRank() {
         guard let userId = viewModel.user?.id else { return }
-        userRank = viewModel.ranking.firstIndex(where: { $0.id == userId }).map { $0 + 1 }
+        userRank = rankingViewModel.ranking.firstIndex(where: { $0.id == userId }).map { $0 + 1 }
     }
     
     private func saveProfile() {
@@ -239,8 +245,8 @@ struct ProfileView: View {
                 showSaveAlert = true
                 
                 // ランキングとタイムラインをリロード
-                viewModel.loadRanking()
-                viewModel.loadTimelinePosts()
+                await rankingViewModel.loadRanking()
+                timelineViewModel.loadTimelinePosts()
                 
             } catch {
                 print("プロフィールの保存に失敗しました: \(error)")
