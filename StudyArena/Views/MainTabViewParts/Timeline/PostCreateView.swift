@@ -3,6 +3,7 @@ import SwiftUI
 struct PostCreateView: View {
     @Binding var isPresented: Bool
     @EnvironmentObject var viewModel: MainViewModel
+    @EnvironmentObject var timelineViewModel: TimelineViewModel
     
     @State private var postContent = ""
     @State private var showAlert = false
@@ -90,7 +91,7 @@ struct PostCreateView: View {
         .onAppear {
             // 残り投稿回数を計算
             Task {
-                let todayCount = await viewModel.getTodayPostCount()
+                let todayCount = await timelineViewModel.getTodayPostCount()
                 let limit = viewModel.user?.dailyPostLimit ?? 1
                 await MainActor.run {
                     remainingPosts = limit - todayCount
@@ -113,7 +114,7 @@ struct PostCreateView: View {
         Task {
             do {
                 // 今日の投稿回数をチェック
-                let todayCount = await viewModel.getTodayPostCount()
+                let todayCount = await timelineViewModel.getTodayPostCount()
                 let limit = viewModel.user?.dailyPostLimit ?? 1
                 
                 if todayCount >= limit {
@@ -132,7 +133,7 @@ struct PostCreateView: View {
                 }
                 
                 // 投稿処理
-                try await viewModel.createTimelinePost(content: postContent)
+                try await timelineViewModel.createTimelinePost(content: postContent)
                 
                 // 成功したら画面を閉じる
                 await MainActor.run {
@@ -140,7 +141,7 @@ struct PostCreateView: View {
                     remainingPosts = limit - (todayCount + 1)
                     
                     // タイムラインをリロード
-                    viewModel.loadTimelinePosts()
+                    timelineViewModel.loadTimelinePosts()
                     
                     // 画面を閉じる
                     isPresented = false

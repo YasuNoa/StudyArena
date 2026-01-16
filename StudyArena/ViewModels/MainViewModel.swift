@@ -11,7 +11,7 @@ class MainViewModel: ObservableObject {
     
     // 既存のプロパティ
     @Published var user: User?
-    @Published var ranking: [User] = []
+    // @Published var ranking: [User] = [] // RankingViewModelへ移動
     @Published var isLoading: Bool = true
     @Published var errorMessage: String?
     @Published var validationWarning: String?
@@ -130,17 +130,21 @@ class MainViewModel: ObservableObject {
         do {
             self.user = try await userService.fetchUser(uid: uid)
             // ランキングもついでに更新
-            loadRanking()
+            // ランキングもついでに更新 (RankingView側でやるので削除)
+            // loadRanking()
         } catch {
             print("ユーザーロードエラー: \(error)")
         }
     }
     
+    // RankingViewModelへ移動済
+    /*
     func loadRanking() {
         Task {
-            self.ranking = await userService.fetchRanking()
+            self.ranking = await userService.loadRanking()
         }
     }
+     */
     
     func updateNicknameEverywhere(newNickname: String) async throws {
         guard let userId = authManager.userId else { return }
@@ -156,7 +160,8 @@ class MainViewModel: ObservableObject {
         await loadUserData(uid: userId)
     }
     
-    // MARK: - 互換性のためのラッパーメソッド (Viewを変更しないための工夫)
+
+    
     
     // Viewで `viewModel.timerValue` を参照している場合用
     var timerValue: TimeInterval {
@@ -249,30 +254,6 @@ extension MainViewModel {
             departments: [mockMembership], // ✅ ここで配列にする
             mbtiType: "INTJ"
         )
-        
-        // 3. ランキング用データの作成
-        vm.ranking = [
-            User(
-                id: "rank1",
-                nickname: "一位の人",
-                level: 99,
-                experience: 0,
-                totalStudyTime: 99999,
-                departments: [], // 所属なしなら空配列
-                mbtiType: "ENTJ",
-                rank: 1
-            ),
-            User(
-                id: mockUserId,
-                nickname: "プレビュー太郎",
-                level: 10,
-                experience: 500,
-                totalStudyTime: 12000,
-                departments: [mockMembership],
-                mbtiType: "INTJ",
-                rank: 10
-            )
-        ]
         
         vm.isLoading = false
         

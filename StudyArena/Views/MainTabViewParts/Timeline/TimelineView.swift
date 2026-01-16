@@ -1,19 +1,9 @@
 import SwiftUI
 
-// タイムラインアイテムのプロトコル
-protocol TimelineItem {
-    var timestamp: Date { get }
-    var itemType: TimelineItemType { get }
-}
-
-enum TimelineItemType {
-    case studyRecord(StudyRecord)
-    case post(TimelinePost)
-}
-
 // StudyRecordとTimelinePostを統合して表示
 struct TimelineView: View {
     @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var timelineViewModel = TimelineViewModel()
     @State private var selectedFilter: FilterType = .all
     @State private var showPostCreate = false
     
@@ -24,6 +14,7 @@ struct TimelineView: View {
         case levelUp = "レベルアップ"
     }
     
+
     // 統合されたタイムラインアイテム
     var timelineItems: [TimelineItemType] {
         var items: [TimelineItemType] = []
@@ -32,13 +23,13 @@ struct TimelineView: View {
         switch selectedFilter {
         case .all:
             items = viewModel.studyRecords.map { .studyRecord($0) }
-            items += viewModel.timelinePosts.map { .post($0) }
+            items += timelineViewModel.timelinePosts.map { .post($0) }
         case .study:
             items = viewModel.studyRecords
                 .filter { $0.recordType == .study }
                 .map { .studyRecord($0) }
         case .posts:
-            items = viewModel.timelinePosts.map { .post($0) }
+            items = timelineViewModel.timelinePosts.map { .post($0) }
         case .levelUp:
             items = viewModel.studyRecords
                 .filter { $0.recordType == .levelUp }
@@ -69,39 +60,37 @@ struct TimelineView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 20)
                 
-                if timelineItems.isEmpty {
-                    EmptyTimelineView()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(Array(timelineItems.enumerated()), id: \.offset) { _, item in
-                                Group {
-                                    switch item {
-                                    case .studyRecord(let record):
-                                        TimelineCard(record: record)
-                                    case .post(let post):
-                                        TimelinePostCard(post: post)
-                                    }
-                                }
+                 if timelineItems.isEmpty {
+                     EmptyTimelineView()
+                 } else {
+                     ScrollView {
+                         LazyVStack(spacing: 12) {
+                             ForEach(Array(timelineItems.enumerated()), id: \.offset) { _, item in
+                                 Group {
+                                     switch item {
+                                     case .studyRecord(let record):
+                                         TimelineCard(record: record)
+                                     case .post(let post):
+                                         TimelinePostCard(post: post)
+                                     }
+                                 }
                                 .padding(.horizontal)
                                 .transition(.asymmetric(
                                     insertion: .move(edge: .trailing).combined(with: .opacity),
                                     removal: .move(edge: .leading).combined(with: .opacity)
                                 ))
-                            }
-                        }
-                        .padding(.vertical, 10)
-                        .padding(.bottom, 100) // TabBar用の余白
-                    }
-                    .refreshable {
-                        viewModel.loadStudyRecords()
-                        viewModel.loadTimelinePosts()
-                    }
-                }
-                
-                Spacer()
+                             }
+                         }
+                         .padding(.vertical, 10)
+                         .padding(.bottom, 100)
+                     }
+                     .refreshable {
+                         viewModel.loadStudyRecords()
+                         timelineViewModel.loadTimelinePosts()
+                     }
+                 }
+                 Spacer()
             }
-            
             // ⭐️ プラスボタン（右下）
             VStack {
                 Spacer()
@@ -133,13 +122,19 @@ struct TimelineView: View {
                 }
             }
         }
+        .environmentObject(timelineViewModel) // Inject here
         .onAppear {
+            // Sync User
+            timelineViewModel.userId = viewModel.user?.id
+            timelineViewModel.user = viewModel.user
+
             viewModel.loadStudyRecords()
-            viewModel.loadTimelinePostsWithLikes() 
+            timelineViewModel.loadTimelinePosts() 
         }
         .sheet(isPresented: $showPostCreate) {
             PostCreateView(isPresented: $showPostCreate)
                 .environmentObject(viewModel)
+                .environmentObject(timelineViewModel)
         }
     }
     
@@ -361,7 +356,7 @@ import SwiftUI
 
 struct TimelinePostCard: View {
     let post: TimelinePost
-    @EnvironmentObject var viewModel: MainViewModel
+    @EnvironmentObject var timelineViewModel: TimelineViewModel
     @State private var isAnimated = false
     @State private var isLiking = false
     @State private var localLikeCount: Int
@@ -515,10 +510,10 @@ struct TimelinePostCard: View {
             localLikeCount += isLiked ? 1 : -1
         }
         
-        // ⭐️ MainViewModelの実装済みメソッドを使用
+        // ⭐️ TimelineViewModelの実装済みメソッドを使用
         Task {
             do {
-                let result = try await viewModel.toggleLike(for: postId)
+                let result = try await timelineViewModel.toggleLike(for: postId)
                 
                 await MainActor.run {
                     // サーバーの結果で更新
@@ -544,7 +539,7 @@ struct TimelinePostCard: View {
         guard let postId = post.id else { return }
         
         Task {
-            let liked = await viewModel.isPostLikedByUser(postId)
+            let liked = timelineViewModel.isPostLikedByUser(post)
             await MainActor.run {
                 isLiked = liked
             }

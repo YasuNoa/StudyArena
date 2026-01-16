@@ -4,7 +4,8 @@
 import SwiftUI
 
 struct DepartmentBrowserView: View {
-    @ObservedObject var viewModel: MainViewModel
+    @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var departmentViewModel = DepartmentViewModel()
     @State private var showingCreateDepartment = false
     @State private var searchText = ""
     @Environment(\.dismiss) var dismiss
@@ -32,11 +33,11 @@ struct DepartmentBrowserView: View {
                             ForEach(filteredDepartments) { department in
                                 DepartmentBrowserCard(
                                     department: department,
-                                    isJoined: viewModel.isJoinedDepartment(department.id ?? ""),
+                                    isJoined: departmentViewModel.isJoinedDepartment(department.id ?? ""),
                                     onJoin: {
                                         Task {
                                             do {
-                                                try await viewModel.joinDepartment(department)
+                                                try await departmentViewModel.joinDepartment(department)
                                             } catch {
                                                 print("部門参加エラー: \(error)")
                                             }
@@ -75,20 +76,23 @@ struct DepartmentBrowserView: View {
             }
         }
         .sheet(isPresented: $showingCreateDepartment) {
-            CreateDepartmentView(viewModel: viewModel)
+            CreateDepartmentView(departmentViewModel: departmentViewModel)
         }
         .task {
-            // 🔧 修正: 既存のメソッド名を使用
-            await viewModel.loadDepartments()
-            await viewModel.loadUserMemberships()
+            // MainViewModelからユーザー情報を同期
+            departmentViewModel.userId = viewModel.user?.id
+            departmentViewModel.user = viewModel.user
+            
+            await departmentViewModel.loadDepartments()
+            await departmentViewModel.loadUserMemberships()
         }
     }
     
     private var filteredDepartments: [Department] {
         if searchText.isEmpty {
-            return viewModel.departments
+            return departmentViewModel.departments
         } else {
-            return viewModel.departments.filter { department in
+            return departmentViewModel.departments.filter { department in
                 department.name.localizedCaseInsensitiveContains(searchText) ||
                 department.description.localizedCaseInsensitiveContains(searchText) ||
                 department.creatorName.localizedCaseInsensitiveContains(searchText)
@@ -183,7 +187,7 @@ struct DepartmentBrowserCard: View {
 
 // 🔧 シンプルな部門作成ビュー
 struct CreateDepartmentView: View {
-    @ObservedObject var viewModel: MainViewModel
+    @ObservedObject var departmentViewModel: DepartmentViewModel
     @Environment(\.dismiss) private var dismiss
     
     @State private var departmentName = ""
@@ -242,7 +246,7 @@ struct CreateDepartmentView: View {
         Task {
             do {
                 // 🔧 修正: 既存のメソッドを使用
-                try await viewModel.createDepartment(
+                try await departmentViewModel.createDepartment(
                     name: departmentName,
                     description: departmentDescription
                 )

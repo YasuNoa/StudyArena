@@ -29,7 +29,7 @@ class UserService {
     }
     
     // ランキング取得
-    func fetchRanking(limit: Int = 100) async -> [User] {
+    func loadRanking(limit: Int = 100) async -> [User] {
         do {
             let snapshot = try await db.collection("users")
                 .order(by: "totalStudyTime", descending: true)
@@ -73,5 +73,11 @@ class UserService {
     // ニックネーム更新
     func updateNickname(userId: String, name: String) async throws {
         try await db.collection("users").document(userId).updateData(["nickname": name])
+    }
+    
+    // MBTI更新
+    func updateMBTI(userId: String, mbti: String?) async throws {
+        let data: [String: Any] = ["mbtiType": mbti as Any]
+        try await db.collection("users").document(userId).updateData(data)
     }
 }

@@ -1,6 +1,9 @@
 import Foundation
 import Combine
 
+    
+// 学習パターン、時間帯分析、継続性などを将来実装していきたい！
+
 @MainActor
 class StudyRecordViewModel: ObservableObject {
     

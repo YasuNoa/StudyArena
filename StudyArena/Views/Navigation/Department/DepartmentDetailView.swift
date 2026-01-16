@@ -9,6 +9,8 @@ import SwiftUI
 
 struct DepartmentDetailView: View {
     @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var departmentViewModel = DepartmentViewModel()
+    
     let department: Department
     
     @State private var members: [DepartmentMember] = []
@@ -16,9 +18,8 @@ struct DepartmentDetailView: View {
     @State private var showingLeaveAlert = false
     @State private var errorMessage: String?
     
-    // 現在のユーザーのメンバーシップ情報
     private var currentUserMembership: DepartmentMembership? {
-        viewModel.userDepartments.first { $0.departmentId == department.id }
+        departmentViewModel.userDepartments.first { $0.departmentId == department.id }
     }
     
     // 現在のユーザーの役割
@@ -35,7 +36,7 @@ struct DepartmentDetailView: View {
     private var isLeader: Bool {
         currentUserRole == .leader
     }
-    
+
     var body: some View {
         ZStack {
             MinimalDarkBackgroundView()
@@ -54,7 +55,8 @@ struct DepartmentDetailView: View {
                         members: members,
                         currentUserRole: currentUserRole,
                         departmentId: department.id ?? "",
-                        leaderId: department.creatorId
+                        leaderId: department.creatorId,
+                        departmentViewModel: departmentViewModel
                     )
                 }
                 .padding()
@@ -63,6 +65,12 @@ struct DepartmentDetailView: View {
         .navigationTitle(department.name)
         .navigationBarTitleDisplayMode(.inline)
         .task {
+            // MainViewModelからユーザー情報を同期
+            departmentViewModel.userId = viewModel.user?.id
+            departmentViewModel.user = viewModel.user
+            
+            // データ読み込み
+            await departmentViewModel.loadUserMemberships()
             await loadMembers()
         }
         .alert("エラー", isPresented: .constant(errorMessage != nil)) {
@@ -234,7 +242,7 @@ struct DepartmentDetailView: View {
         isLoading = true
         
         do {
-            let loadedMembers = try await viewModel.getDepartmentMembers(departmentId: department.id ?? "")
+            let loadedMembers = try await departmentViewModel.getDepartmentMembers(departmentId: department.id ?? "")
             await MainActor.run {
                 members = loadedMembers
                 isLoading = false
@@ -250,7 +258,7 @@ struct DepartmentDetailView: View {
     private func joinDepartment() {
         Task {
             do {
-                try await viewModel.joinDepartment(department)
+                try await departmentViewModel.joinDepartment(department)
                 await loadMembers()
             } catch {
                 errorMessage = "参加に失敗しました: \(error.localizedDescription)"
@@ -262,7 +270,7 @@ struct DepartmentDetailView: View {
         Task {
             do {
                 guard let departmentId = department.id else { return }
-                try await viewModel.leaveDepartment(departmentId)
+                try await departmentViewModel.leaveDepartment(departmentId)
             } catch {
                 errorMessage = "脱退に失敗しました: \(error.localizedDescription)"
             }

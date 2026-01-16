@@ -124,6 +124,45 @@ class DepartmentViewModel: ObservableObject {
     
     
     
+    func changeMemberRole(userId: String, departmentId: String, newRole: MemberRole) async throws {
+        let membershipId = "\(userId)_\(departmentId)"
+        try await service.updateMemberRole(membershipId: membershipId, newRole: newRole)
+    }
+    
+    func kickMember(userId: String, departmentId: String) async throws {
+        let membershipId = "\(userId)_\(departmentId)"
+        try await service.kickMember(departmentId: departmentId, membershipId: membershipId)
+    }
+    
+    func transferLeadership(departmentId: String, newLeaderId: String) async throws {
+        guard let currentLeaderId = self.userId else {
+            throw NSError(domain: "DepartmentError", code: 6, userInfo: [NSLocalizedDescriptionKey: "リーダー情報が見つかりません"])
+        }
+        
+        // メンバーシップIDの生成
+        let currentLeaderMembershipId = "\(currentLeaderId)_\(departmentId)"
+        let newLeaderMembershipId = "\(newLeaderId)_\(departmentId)"
+        
+        try await service.transferLeadership(
+            departmentId: departmentId,
+            currentLeaderMembershipId: currentLeaderMembershipId,
+            newLeaderMembershipId: newLeaderMembershipId
+        )
+        
+        // 自分の所属情報などを更新
+        await loadUserMemberships()
+    }
+    func leaveDepartment(_ departmentId: String) async throws {
+        guard let userId = self.userId else { return }
+        let membershipId = "\(userId)_\(departmentId)"
+        try await service.leaveDepartment(departmentId: departmentId, membershipId: membershipId)
+        await loadUserMemberships()
+    }
+    
+    // Alias for getDepartmentMembers to match View usage
+    func getDepartmentMembers(departmentId: String) async throws -> [DepartmentMember] {
+        return try await loadDepartmentRanking(departmentId: departmentId)
+    }
 }
 
 

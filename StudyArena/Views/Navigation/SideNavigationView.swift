@@ -7,6 +7,7 @@ struct SideNavigationView: View {
     @Binding var isShowing: Bool
     @Binding var selectedTab: MainTabView.Tab
     @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var departmentViewModel = DepartmentViewModel()
     @State private var showingSection: NavigationSection? = nil
     @State private var showFeedback = false
     @State private var showDepartmentJoin = false
@@ -246,10 +247,15 @@ struct SideNavigationView: View {
             FeedbackView()
         }
         .sheet(isPresented: $showDepartmentJoin) {
-            DepartmentBrowserView(viewModel: viewModel)
+            DepartmentBrowserView()
+                .environmentObject(viewModel)
         }
         .sheet(isPresented: $showCreateDepartment) {
-            CreateDepartmentView(viewModel: viewModel)
+            CreateDepartmentView(departmentViewModel: departmentViewModel)
+                .onAppear {
+                    departmentViewModel.userId = viewModel.user?.id
+                    departmentViewModel.user = viewModel.user
+                }
         }
         .sheet(isPresented: $showStudyCalendar) {
             NavigationView {
@@ -283,10 +289,7 @@ struct SideNavigationView: View {
                     }
             }
         }
-        .sheet(isPresented: $showMBTIPatterns) {
-            MBTILearningPatternView()
-                .environmentObject(viewModel)
-        }
+        
         .sheet(isPresented: $showRewardSystem) {
             RewardSystemView()
         }

@@ -68,7 +68,7 @@ class DepartmentService{
         ])
     }
     
-    // 役割変更
+    // メンバーの役割変更
     func updateMemberRole(membershipId: String, newRole: MemberRole) async throws {
         try await db.collection("department_memberships").document(membershipId).updateData([
             "role": newRole.rawValue
@@ -78,7 +78,21 @@ class DepartmentService{
     // メンバー追放
     func kickMember(departmentId: String, membershipId: String) async throws {
         try await leaveDepartment(departmentId: departmentId, membershipId: membershipId)
-    
+    }
+
+    // リーダー権限委譲
+    func transferLeadership(departmentId: String, currentLeaderMembershipId: String, newLeaderMembershipId: String) async throws {
+        let batch = db.batch()
+        
+        // 現リーダーをサブリーダーに降格
+        let currentLeaderRef = db.collection("department_memberships").document(currentLeaderMembershipId)
+        batch.updateData(["role": MemberRole.subLeader.rawValue], forDocument: currentLeaderRef)
+        
+        // 新リーダーをリーダーに昇格
+        let newLeaderRef = db.collection("department_memberships").document(newLeaderMembershipId)
+        batch.updateData(["role": MemberRole.leader.rawValue], forDocument: newLeaderRef)
+        
+        try await batch.commit()
     }
     
     // 参加している部門を取得（UserDepartments用）

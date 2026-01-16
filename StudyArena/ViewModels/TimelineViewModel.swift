@@ -80,24 +80,28 @@ class TimelineViewModel: ObservableObject {
         return count < limit
     }
     
+    func getTodayPostCount() async -> Int {
+        guard let userId = self.userId else { return 0 }
+        return await service.fetchTodayPostCount(userId: userId)
+    }
+    
     // MARK: - いいねアクション
     
-    func toggleLike(for postId: String) async {
-        guard let userId = self.userId else { return }
+    func toggleLike(for postId: String) async throws -> (isLiked: Bool, newCount: Int) {
+        guard let userId = self.userId else { 
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "ログインが必要です"])
+        }
         
         // プレビュー対策
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-        if isPreview { return }
+        if isPreview { return (false, 0) }
         
-        do {
-            let (isLiked, newCount) = try await service.toggleLike(postId: postId, userId: userId)
-            
-            // ローカル更新
-            updateLocalPostLike(postId: postId, isLiked: isLiked, newCount: newCount)
-            
-        } catch {
-            print("いいねエラー: \(error)")
-        }
+        let (isLiked, newCount) = try await service.toggleLike(postId: postId, userId: userId)
+        
+        // ローカル更新
+        updateLocalPostLike(postId: postId, isLiked: isLiked, newCount: newCount)
+        
+        return (isLiked, newCount)
     }
     
     // ローカル配列の更新

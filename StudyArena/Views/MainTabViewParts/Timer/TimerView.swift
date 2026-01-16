@@ -49,10 +49,6 @@ struct TimerView: View {
             }
             .padding()
         }
-        .onAppear {
-            // ⭐️ ランキングデータを読み込む（UserStatusCardで使用）
-            viewModel.loadRanking()
-        }
     }
 }
 

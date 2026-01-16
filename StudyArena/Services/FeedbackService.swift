@@ -30,7 +30,7 @@ class FeedbackService {
         try await db.collection("feedbacks").addDocument(data: data)
     }
     
-    private func hasSubmittedToday(userId: String) async -> Bool {
+    func hasSubmittedToday(userId: String) async -> Bool {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!

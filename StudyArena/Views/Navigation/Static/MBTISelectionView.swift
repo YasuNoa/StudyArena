@@ -142,8 +142,18 @@ struct MBTISelectionView: View {
         
         Task {
             do {
-                // 新しい統合メソッドを使用
-                try await viewModel.updateMBTIType(tempSelectedMBTI)
+                // 新しい統合メソッドを使用 (MBTIViewModel経由)
+                // MainViewModelにはUser更新の責任だけ残し、ロジックはMBTIViewModelへという形だが、
+                // User更新はUserServiceの責務で、MBTIViewModelがUserServiceを使う形にしたため、
+                // ここではMBTIViewModelのメソッドを呼ぶ。
+                // ただし、MainViewModelの再読込が必要。
+                
+                let mbtiVM = MBTIViewModel()
+                if let userId = viewModel.user?.id {
+                     try await mbtiVM.updateMBTIType(userId: userId, type: tempSelectedMBTI)
+                     // MainViewModelのデータを更新して画面反映
+                     await viewModel.loadUserData(uid: userId)
+                }
                 
                 await MainActor.run {
                     selectedMBTI = tempSelectedMBTI
@@ -174,7 +184,7 @@ struct EnhancedMBTITypeCard: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(isSelected ? .white : .purple)
                 
-                let info = MainViewModel.getMBTIInfo(type)
+                let info = MBTIViewModel.getMBTIInfo(type)
                 Text(info.name)
                     .font(.system(size: 10, weight: .medium))
                     .foregroundColor(isSelected ? .white.opacity(0.9) : .purple.opacity(0.8))

@@ -4,7 +4,7 @@
 //
 //  部門メンバー一覧ビュー
 //
-
+//役職の変更などを見れる。
 import SwiftUI
 
 struct DepartmentMemberListView: View {
@@ -15,7 +15,7 @@ struct DepartmentMemberListView: View {
     
     @State private var selectedMember: DepartmentMember?
     @State private var showingMemberActions = false
-    @EnvironmentObject var viewModel: MainViewModel
+    @ObservedObject var departmentViewModel: DepartmentViewModel
     
     // 役割ごとにメンバーをグループ化
     private var groupedMembers: [(role: MemberRole, members: [DepartmentMember])] {
@@ -129,7 +129,7 @@ struct DepartmentMemberListView: View {
                     return // リーダーは昇格不可
                 }
                 
-                try await viewModel.changeMemberRole(
+                try await departmentViewModel.changeMemberRole(
                     userId: member.id,
                     departmentId: departmentId,
                     newRole: newRole
@@ -156,7 +156,7 @@ struct DepartmentMemberListView: View {
                     return // リーダーは降格不可
                 }
                 
-                try await viewModel.changeMemberRole(
+                try await departmentViewModel.changeMemberRole(
                     userId: member.id,
                     departmentId: departmentId,
                     newRole: newRole
@@ -171,7 +171,7 @@ struct DepartmentMemberListView: View {
     private func kickMember(_ member: DepartmentMember) {
         Task {
             do {
-                try await viewModel.kickMember(
+                try await departmentViewModel.kickMember(
                     userId: member.id,
                     departmentId: departmentId
                 )
@@ -185,7 +185,7 @@ struct DepartmentMemberListView: View {
     private func transferLeadership(to member: DepartmentMember) {
         Task {
             do {
-                try await viewModel.transferLeadership(
+                try await departmentViewModel.transferLeadership(
                     departmentId: departmentId,
                     newLeaderId: member.id
                 )
@@ -479,6 +479,7 @@ struct ActionButton: View {
         ],
         currentUserRole: .leader,
         departmentId: "dept123",
-        leaderId: "1"
+        leaderId: "1",
+        departmentViewModel: DepartmentViewModel()
     )
 }

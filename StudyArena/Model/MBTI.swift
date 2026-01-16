@@ -60,3 +60,19 @@ enum MBTIType: String, Codable, CaseIterable, Identifiable {
         }
     }
 }
+
+// MBTI統計データ構造体
+struct MBTIStatData: Identifiable {
+    let id = UUID()
+    let mbtiType: String
+    let totalTime: Double
+    let userCount: Int
+    let avgTime: Double
+    
+    init(mbtiType: String, totalTime: Double, userCount: Int, avgTime: Double) {
+        self.mbtiType = mbtiType
+        self.totalTime = totalTime
+        self.userCount = userCount
+        self.avgTime = avgTime
+    }
+}

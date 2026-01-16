@@ -8,6 +8,8 @@ import SwiftUI
 
 struct RankingView: View {
     @EnvironmentObject var viewModel: MainViewModel
+    @StateObject private var rankingViewModel = RankingViewModel()
+    
     // 🔧 削除: フィルター関連の状態変数をコメントアウト
     // @State private var selectedFilter: RankingFilter = .all
     // @State private var selectedDepartment: Department? = nil
@@ -46,7 +48,7 @@ struct RankingView: View {
             ScrollView {
                 VStack(spacing: 8) {
                     ForEach(viewModel.ranking) { user in
-                        MinimalRankingRowDiamond(user: user)
+                        RankingRow(user: user)
                             .padding(.horizontal)
                     }
                 }
@@ -58,7 +60,9 @@ struct RankingView: View {
         }
         .onAppear {
             // 🔧 シンプル化: デフォルトで全体ランキングのみ読み込み
-            viewModel.loadRanking()
+            Task {
+                await rankingViewModel.loadRanking()
+            }
         }
     }
     
@@ -85,7 +89,7 @@ struct RankingView: View {
 }
 
 // ダイヤモンドまでのランキング行（変更なし）
-struct MinimalRankingRowDiamond: View {
+struct RankingRow: View {
     let user: User
     @EnvironmentObject var viewModel: MainViewModel
     

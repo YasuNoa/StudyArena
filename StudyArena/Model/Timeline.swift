@@ -8,6 +8,17 @@
 import Foundation
 import FirebaseFirestore
 
+// タイムラインアイテムのプロトコル
+protocol TimelineItem {
+    var timestamp: Date { get }
+    var itemType: TimelineItemType { get }
+}
+
+enum TimelineItemType {
+    case studyRecord(StudyRecord)
+    case post(TimelinePost)
+}
+
 // タイムライン投稿のデータモデル
 struct TimelinePost: Identifiable, Codable {
     @DocumentID var id: String?

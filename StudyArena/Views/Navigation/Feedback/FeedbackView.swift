@@ -4,16 +4,11 @@ struct FeedbackView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: MainViewModel
     
+    @StateObject private var feedbackViewModel = FeedbackViewModel()
+    
     @State private var feedbackType = "機能要望"
     @State private var feedbackText = ""
     @State private var email = ""
-    @State private var isSubmitting = false
-    @State private var showSuccessAlert = false
-    @State private var showErrorAlert = false
-    @State private var errorMessage = ""
-    @State private var hasSubmittedToday = false
-    @State private var isCheckingLimit = true
-    @State private var limitCheckError: String? = nil
     
     let feedbackTypes = ["バグ報告", "機能要望", "改善提案", "その他"]
     
@@ -25,8 +20,8 @@ struct FeedbackView: View {
         !feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         feedbackText.count <= maxContentLength &&
         isValidEmail(email.trimmingCharacters(in: .whitespacesAndNewlines)) &&
-        !isSubmitting &&
-        !hasSubmittedToday
+        !feedbackViewModel.isSubmitting &&
+        !feedbackViewModel.hasSubmittedToday
     }
     
     // メールアドレスの形式チェック
@@ -41,7 +36,7 @@ struct FeedbackView: View {
             ZStack {
                 MinimalDarkBackgroundView()
                 
-                if isCheckingLimit {
+                if feedbackViewModel.isCheckingLimit {
                     // 制限チェック中の表示
                     VStack(spacing: 20) {
                         ProgressView()
@@ -52,7 +47,7 @@ struct FeedbackView: View {
                             .font(.headline)
                             .foregroundColor(.white)
                     }
-                } else if hasSubmittedToday {
+                } else if feedbackViewModel.hasSubmittedToday {
                     // 1日1回制限に達している場合
                     VStack(spacing: 30) {
                         Image(systemName: "clock.badge.exclamationmark.fill")
@@ -218,7 +213,7 @@ struct FeedbackView: View {
                             // 送信ボタン
                             VStack(spacing: 10) {
                                 // 送信不可の理由を表示
-                                if !canSubmit && !isSubmitting {
+                                if !canSubmit && !feedbackViewModel.isSubmitting {
                                     VStack(alignment: .leading, spacing: 4) {
                                         if feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                             Text("• 内容を入力してください")
@@ -242,13 +237,13 @@ struct FeedbackView: View {
                                 
                                 Button(action: submitFeedback) {
                                     HStack {
-                                        if isSubmitting {
+                                        if feedbackViewModel.isSubmitting {
                                             ProgressView()
                                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                                 .scaleEffect(0.8)
                                         }
                                         
-                                        Text(isSubmitting ? "送信中..." : "送信")
+                                        Text(feedbackViewModel.isSubmitting ? "送信中..." : "送信")
                                             .font(.headline)
                                             .fontWeight(.semibold)
                                     }
@@ -288,55 +283,43 @@ struct FeedbackView: View {
         .onAppear {
             checkDailyLimit()
         }
-        .alert("送信完了", isPresented: $showSuccessAlert) {
+        .alert("送信完了", isPresented: $feedbackViewModel.showSuccessAlert) {
             Button("OK") {
                 dismiss()
             }
         } message: {
             Text("フィードバックを送信しました。ご協力ありがとうございます！")
         }
-        .alert("送信エラー", isPresented: $showErrorAlert) {
+        .alert("送信エラー", isPresented: $feedbackViewModel.showErrorAlert) {
             Button("OK") {}
         } message: {
-            Text(errorMessage)
+            Text(feedbackViewModel.errorMessage ?? "")
         }
     }
     
     // 修正: checkDailyLimit関数を実装
     private func checkDailyLimit() {
+        guard let userId = viewModel.user?.id else { return }
         Task {
-            let hasSubmitted = await viewModel.hasSubmittedFeedbackToday()
-            await MainActor.run {
-                hasSubmittedToday = hasSubmitted
-                isCheckingLimit = false
-            }
+            await feedbackViewModel.checkDailyLimit(userId: userId)
         }
     }
     
     private func submitFeedback() {
-        guard !isSubmitting else { return }
-        
-        isSubmitting = true
+        guard !feedbackViewModel.isSubmitting else { return }
+        guard let user = viewModel.user else { return }
         
         Task {
             do {
-                try await viewModel.submitFeedback(
+                try await feedbackViewModel.submitFeedback(
+                    userId: user.id,
+                    userNickname: user.nickname,
+                    userLevel: user.level,
                     type: feedbackType,
                     content: feedbackText.trimmingCharacters(in: .whitespacesAndNewlines),
                     email: email.trimmingCharacters(in: .whitespacesAndNewlines)
                 )
-                
-                await MainActor.run {
-                    isSubmitting = false
-                    showSuccessAlert = true
-                }
-                
             } catch {
-                await MainActor.run {
-                    isSubmitting = false
-                    errorMessage = error.localizedDescription
-                    showErrorAlert = true
-                }
             }
         }
     }
