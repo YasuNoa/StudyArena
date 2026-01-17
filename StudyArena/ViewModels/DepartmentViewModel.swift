@@ -23,20 +23,15 @@ class DepartmentViewModel: ObservableObject {
     
     private let service = DepartmentService()
     
-    func loadDepartments() {
+    func loadDepartments() async {
         self.isLoading = true
-        Task {
-            do {
-                let fetchedDepartments = try await service.fetchDepartments()
-                
-                self.departments = fetchedDepartments
-                self.isLoading = false
-                
-            } catch {
-                print("部門の取得エラー: \(error)")
-                self.isLoading = false
-            }//このselfはインスタンス自体を指す。すなわち、
+        do {
+            let fetchedDepartments = try await service.fetchDepartments()
+            self.departments = fetchedDepartments
+        } catch {
+            print("部門の取得エラー: \(error)")
         }
+        self.isLoading = false
     }
     
     func loadDepartmentRanking(departmentId: String) async throws -> [DepartmentMember] {
@@ -77,7 +72,7 @@ class DepartmentViewModel: ObservableObject {
                 userId: userId
             )
             // リスト更新
-            loadDepartments()
+            await loadDepartments()
             await loadUserMemberships()
             print("参加成功")
         } catch {
@@ -111,7 +106,7 @@ class DepartmentViewModel: ObservableObject {
                 creatorName: user.nickname
             )
             
-            loadDepartments()
+            await loadDepartments()
             await loadUserMemberships()
             print("作成成功")
             

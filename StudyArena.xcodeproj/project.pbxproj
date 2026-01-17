@@ -51,6 +51,7 @@
 		BF7F8BCE2E15988E00DF3CFC /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCD2E15988E00DF3CFC /* FirebaseStorageCombine-Community */; };
 		BF7F8BD02E15988E00DF3CFC /* FirebaseVertexAI in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCF2E15988E00DF3CFC /* FirebaseVertexAI */; };
 		BF966FAE2F19FD9600C21258 /* FeedbackViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF966FAD2F19FD9600C21258 /* FeedbackViewModel.swift */; };
+		BF966FB02F1B72DC00C21258 /* MyDepartmentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF966FAF2F1B72DC00C21258 /* MyDepartmentListView.swift */; };
 		BFACD4882E49CDCC00935FCE /* TrophyDisplayCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */; };
 		BFACD48E2E517C1400935FCE /* Department.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD48D2E517C1400935FCE /* Department.swift */; };
 		BFACD4912E517C8800935FCE /* SideNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4902E517C8800935FCE /* SideNavigationView.swift */; };
@@ -110,6 +111,7 @@
 		BF7F8B8E2E15099C00DF3CFC /* StudyArena.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyArena.swift; sourceTree = "<group>"; };
 		BF7F8B962E150B2400DF3CFC /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		BF966FAD2F19FD9600C21258 /* FeedbackViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackViewModel.swift; sourceTree = "<group>"; };
+		BF966FAF2F1B72DC00C21258 /* MyDepartmentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDepartmentListView.swift; sourceTree = "<group>"; };
 		BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrophyDisplayCard.swift; sourceTree = "<group>"; };
 		BFACD48D2E517C1400935FCE /* Department.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Department.swift; sourceTree = "<group>"; };
 		BFACD4902E517C8800935FCE /* SideNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideNavigationView.swift; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 			children = (
 				BF38EDFD2E6B392B007437B7 /* DepartmentBrowserView.swift */,
 				BF38EE042E6B39C3007437B7 /* CategoryChip.swift */,
+				BF966FAF2F1B72DC00C21258 /* MyDepartmentListView.swift */,
 				BF38EE022E6B3969007437B7 /* DepartmentCard.swift */,
 				BF4B80D62F0FB4FB004EC274 /* DepartmentMemberListView.swift */,
 				BF4B80D42F0FB4CD004EC274 /* DepartmentDetailView.swift */,
@@ -539,6 +542,7 @@
 				BFAD2C462E408728004C748A /* PostCreateView.swift in Sources */,
 				BFDC6A9D2F10A230009CA955 /* MBTI.swift in Sources */,
 				BFAD2C3F2E3E7469004C748A /* StudyRecord.swift in Sources */,
+				BF966FB02F1B72DC00C21258 /* MyDepartmentListView.swift in Sources */,
 				BF38EE0D2E6C2574007437B7 /* NotificationSettingsView.swift in Sources */,
 				BF4B80D72F0FB4FB004EC274 /* DepartmentMemberListView.swift in Sources */,
 				BFDC6A9F2F10D5FA009CA955 /* TimelineViewModel.swift in Sources */,

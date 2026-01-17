@@ -2,26 +2,52 @@
 //  DepartmentCard.swift
 //  StudyArena
 //
-//  Created by 田中正造 on 2025/09/06.
+//  Created by 田中正造 on 2025/01/04.
+//
+//  部門の概要（名前、人数、説明など）をカード形式で表示するコンポーネント
+//  一覧表示や所属リストで共通して使用する
 //
 import SwiftUI
 
-struct DepartmentCard: View {
+struct DepartmentCard<ActionButton: View>: View {
     let department: Department
-    @State private var isJoined = false
+    let role: MemberRole? // 所属している場合、その役職
+    let actionButton: ActionButton // 右側に表示するボタンやテキスト
     
+    // アクションボタンがない場合のイニシャライザ
+    init(department: Department, role: MemberRole? = nil, @ViewBuilder actionButton: () -> ActionButton) {
+        self.department = department
+        self.role = role
+        self.actionButton = actionButton()
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                // デフォルトアイコン（DepartmentCategoryがないため）
+                // デフォルトアイコン
                 Image(systemName: "building.2.fill")
                     .font(.title2)
                     .foregroundColor(.blue)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(department.name)
-                        .font(.headline)
-                        .foregroundColor(.white)
+                    HStack(spacing: 8) {
+                        Text(department.name)
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        // 役職バッジ（あれば表示）
+                        if let role = role {
+                            Text(role.displayName)
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(roleColor(role).opacity(0.2))
+                                .foregroundColor(roleColor(role))
+                                .cornerRadius(4)
+                        }
+                    }
                     
                     Text(department.description)
                         .font(.caption)
@@ -31,48 +57,37 @@ struct DepartmentCard: View {
                 
                 Spacer()
                 
-                // 参加ボタン
-                Button(action: toggleJoin) {
-                    Text(isJoined ? "参加中" : "参加")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(isJoined ? Color.green : Color.blue)
-                        )
-                }
+                // 注入されたアクションボタン（参加ボタンや矢印など）
+                actionButton
             }
             
-            // 作成者情報
+            // 下部情報（作成者、人数、日付）
             HStack {
-                Image(systemName: "person.fill")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.5))
-                
-                Text("作成者: \(department.creatorName)")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.6))
-            }
-            
-            // メンバー数と作成日
-            HStack {
-                HStack {
-                    Image(systemName: "person.3.fill")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.5))
-                    Text("\(department.memberCount)人参加中")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.5))
+                // 作成者
+                HStack(spacing: 4) {
+                    Image(systemName: "person.fill")
+                        .font(.caption2)
+                    Text("作成者: \(department.creatorName)")
+                        .font(.caption2)
                 }
+                .foregroundColor(.white.opacity(0.5))
                 
                 Spacer()
                 
+                // 人数
+                HStack(spacing: 4) {
+                    Image(systemName: "person.3.fill")
+                        .font(.caption2)
+                    Text("\(department.memberCount)人")
+                        .font(.caption2)
+                }
+                .foregroundColor(.blue.opacity(0.8))
+                
+                // 作成日
                 Text(formatDate(department.createdAt))
                     .font(.caption2)
                     .foregroundColor(.white.opacity(0.4))
+                    .padding(.leading, 8)
             }
         }
         .padding()
@@ -86,9 +101,12 @@ struct DepartmentCard: View {
         )
     }
     
-    private func toggleJoin() {
-        withAnimation(.spring()) {
-            isJoined.toggle()
+    private func roleColor(_ role: MemberRole) -> Color {
+        switch role {
+        case .leader: return .yellow
+        case .subLeader: return .orange
+        case .elder: return .cyan
+        case .member: return .white
         }
     }
     
@@ -97,5 +115,12 @@ struct DepartmentCard: View {
         formatter.dateStyle = .short
         formatter.locale = Locale(identifier: "ja_JP")
         return formatter.string(from: date)
+    }
+}
+
+// プレビュー用
+extension DepartmentCard where ActionButton == EmptyView {
+    init(department: Department, role: MemberRole? = nil) {
+        self.init(department: department, role: role) { EmptyView() }
     }
 }

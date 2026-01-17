@@ -1,3 +1,4 @@
+// 部門を検索・一覧表示し、新規作成や参加を行うためのビュー
 //部門を検索するためのview
 //部門一覧がDepartment型？にしてたから、型の不一致に注意
 
@@ -26,30 +27,41 @@ struct DepartmentBrowserView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top)
+                    .padding(.bottom, 10) // 少し余白追加
                     
-                    // 部門一覧
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredDepartments) { department in
-                                DepartmentBrowserCard(
-                                    department: department,
-                                    isJoined: departmentViewModel.isJoinedDepartment(department.id ?? ""),
-                                    onJoin: {
-                                        Task {
-                                            do {
-                                                try await departmentViewModel.joinDepartment(department)
-                                            } catch {
-                                                print("部門参加エラー: \(error)")
+                    if departmentViewModel.isLoading {
+                        Spacer()
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .tint(.white)
+                        Spacer()
+                    } else {
+                        // 部門一覧
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(filteredDepartments) { department in
+                                    DepartmentBrowserCard(
+                                        department: department,
+                                        isJoined: departmentViewModel.isJoinedDepartment(department.id ?? ""),
+                                        onJoin: {
+                                            Task {
+                                                do {
+                                                    try await departmentViewModel.joinDepartment(department)
+                                                } catch {
+                                                    print("部門参加エラー: \(error)")
+                                                }
                                             }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
+                            .padding(.horizontal)
+                            .padding(.top)
+                            .padding(.bottom, 30) // 下部にも余白
                         }
-                        .padding(.horizontal)
-                        .padding(.top)
                     }
                 }
+                .padding(.horizontal, 8) // 全体に少し横余白を追加してフルスクリーン時の圧迫感を軽減
             }
             .navigationTitle("部門を探す")
             .navigationBarTitleDisplayMode(.inline)
@@ -220,6 +232,7 @@ struct CreateDepartmentView: View {
                     
                     Spacer()
                 }
+                .padding(.horizontal, 8) // こちらも横に少し余白
             }
             .navigationTitle("部門作成")
             .navigationBarTitleDisplayMode(.inline)
@@ -237,6 +250,18 @@ struct CreateDepartmentView: View {
                     }
                     .foregroundColor(.blue)
                     .disabled(departmentName.isEmpty || departmentDescription.isEmpty || isCreating)
+                }
+            }
+            .disabled(isCreating) // 作成中は全体を無効化
+            .overlay {
+                if isCreating {
+                    ZStack {
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .tint(.white)
+                    }
                 }
             }
         }

@@ -21,7 +21,12 @@ class DepartmentService{
         
         // ドキュメントをDepartment型に変換して配列で返す
         return snapshot.documents.compactMap { doc in
-            try? doc.data(as: Department.self)
+            do {
+                return try doc.data(as: Department.self)
+            } catch {
+                print("⚠️ Department decoding error for doc \(doc.documentID): \(error)")
+                return nil
+            }
         }
     }
     

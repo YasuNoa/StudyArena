@@ -7,6 +7,20 @@ struct MainTabView: View {
     @State private var selectedTab: Tab = .timer
     @State private var showSideMenu = false
     
+    // Navigation States
+    @State private var showMBTIPatterns = false
+    @State private var showMBTIStats = false
+    @State private var showDepartmentJoin = false
+    @State private var showCreateDepartment = false
+    @State private var showMyDepartments = false // ⭐️ 追加
+    @State private var showStudyStatistics = false
+    @State private var showStudyCalendar = false
+    @State private var showRewardSystem = false
+    @State private var showNotificationSettings = false
+    @State private var showFeedback = false
+    
+    @StateObject private var departmentViewModel = DepartmentViewModel()
+    
     enum Tab: Int, CaseIterable {
         case timer = 0
         case ranking = 1
@@ -42,51 +56,116 @@ struct MainTabView: View {
     }
     
     var body: some View {
-        ZStack { // ← ZStackで全体を囲む
-            // ① 一番下に背景を一度だけ配置
-            MinimalDarkBackgroundView()
-                .ignoresSafeArea()
-            ZStack(alignment: .bottom) {
-                // メインコンテンツ
-                VStack(spacing: 0) {
-                    // 上部ナビゲーションバー
-                    TopNavigationBar(showSideMenu: $showSideMenu, currentTab: selectedTab)
+        NavigationView {
+            ZStack { // ← ZStackで全体を囲む
+                // ① 一番下に背景を一度だけ配置
+                MinimalDarkBackgroundView()
+                    .ignoresSafeArea()
+                
+                // NavigationLink (非表示)
+                // NavigationLinks (非表示)
+                Group {
+                    NavigationLink(isActive: $showMBTIPatterns) { MBTIStatsView() } label: { EmptyView() }
+                    NavigationLink(isActive: $showMBTIStats) { MBTIStatsView() } label: { EmptyView() }
                     
-                    // コンテンツエリア
-                    Group {
-                        switch selectedTab {
-                        case .timer:
-                            TimerView()
-                        case .ranking:
-                            RankingView()
-                        case .timeline:
-                            TimelineView()
-                        case .profile:
-                            ProfileView()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    NavigationLink(isActive: $showDepartmentJoin) {
+                        DepartmentBrowserView()
+                            .environmentObject(viewModel)
+                    } label: { EmptyView() }
+                    
+                    NavigationLink(isActive: $showCreateDepartment) {
+                        CreateDepartmentView(departmentViewModel: departmentViewModel)
+                            .onAppear {
+                                departmentViewModel.userId = viewModel.user?.id
+                                departmentViewModel.user = viewModel.user
+                            }
+                    } label: { EmptyView() }
+                    
+                    NavigationLink(isActive: $showMyDepartments) { // ⭐️ 追加
+                        MyDepartmentListView(departmentViewModel: departmentViewModel)
+                    } label: { EmptyView() }
+                    
+                    NavigationLink(isActive: $showStudyStatistics) {
+                        StudyStatisticsView().environmentObject(viewModel)
+                    } label: { EmptyView() }
+                    
+                    NavigationLink(isActive: $showStudyCalendar) {
+                        StudyCalendarView().environmentObject(viewModel)
+                    } label: { EmptyView() }
+                    
+                    NavigationLink(isActive: $showRewardSystem) { RewardSystemView() } label: { EmptyView() }
+                    NavigationLink(isActive: $showNotificationSettings) { NotificationSettingsView() } label: { EmptyView() }
+                    NavigationLink(isActive: $showFeedback) { FeedbackView() } label: { EmptyView() }
                 }
                 
-                // フローティングTabBar
-                FloatingTabBar(selectedTab: $selectedTab)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 10)
-                
-                // サイドメニューオーバーレイ
-                SideNavigationView(
-                    isShowing: $showSideMenu,
-                    selectedTab: $selectedTab
-                )
+                ZStack(alignment: .bottom) {
+                    // メインコンテンツ
+                    VStack(spacing: 0) {
+                        // 上部ナビゲーションバー
+                        TopNavigationBar(showSideMenu: $showSideMenu, currentTab: $selectedTab)
+                            .padding(.top, 10) // ステータスバーとの余白
+                        
+                        // コンテンツエリア
+                        Group {
+                            switch selectedTab {
+                            case .timer:
+                                TimerView()
+                            case .ranking:
+                                RankingView()
+                            case .timeline:
+                                TimelineView()
+                            case .profile:
+                                ProfileView()
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    .padding(.horizontal, 20) // コンテンツに強めの横余白
+                    .padding(.bottom, 80) // タブバー分の余白確保
+                    
+                    // フローティングTabBar
+                    FloatingTabBar(selectedTab: $selectedTab)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                    
+                    // サイドメニューオーバーレイ
+                    SideNavigationView(
+                        isShowing: $showSideMenu,
+                        selectedTab: $selectedTab,
+                        showFeedback: $showFeedback,
+                        showDepartmentJoin: $showDepartmentJoin,
+                        showStudyCalendar: $showStudyCalendar,
+                        showMBTIStats: $showMBTIStats,
+                        showMBTIPatterns: $showMBTIPatterns,
+                        showMyDepartments: $showMyDepartments,
+                        showRewardSystem: $showRewardSystem,
+                        showNotificationSettings: $showNotificationSettings,
+                        showCreateDepartment: $showCreateDepartment,
+                        showStudyStatistics: $showStudyStatistics
+                    )
+                }
             }
+            .navigationBarHidden(true)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
+        // 各画面から戻った時にサイドメニューを再表示する
+        .onChange(of: showMBTIPatterns) { if !$0 { showSideMenu = true } }
+        .onChange(of: showMBTIStats) { if !$0 { showSideMenu = true } }
+        .onChange(of: showDepartmentJoin) { if !$0 { showSideMenu = true } }
+        .onChange(of: showCreateDepartment) { if !$0 { showSideMenu = true } }
+        .onChange(of: showMyDepartments) { if !$0 { showSideMenu = true } }
+        .onChange(of: showStudyStatistics) { if !$0 { showSideMenu = true } }
+        .onChange(of: showStudyCalendar) { if !$0 { showSideMenu = true } }
+        .onChange(of: showRewardSystem) { if !$0 { showSideMenu = true } }
+        .onChange(of: showNotificationSettings) { if !$0 { showSideMenu = true } }
+        .onChange(of: showFeedback) { if !$0 { showSideMenu = true } }
     }
 }
 
 // MARK: - 上部ナビゲーションバー
 struct TopNavigationBar: View {
     @Binding var showSideMenu: Bool
-    let currentTab: MainTabView.Tab
+    @Binding var currentTab: MainTabView.Tab // ⭐️ Bindingに変更
     @EnvironmentObject var viewModel: MainViewModel
     
     var body: some View {
@@ -110,11 +189,16 @@ struct TopNavigationBar: View {
             
             Spacer()
             
-            // 現在のタブ名
+            // 現在のタブ名（タップでプロフィールへ）
             Text(currentTab.title)
                 .font(.title3)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
+                .onTapGesture { 
+                    withAnimation {
+                        currentTab = .profile
+                    }
+                }
             
             Spacer()
             
@@ -139,7 +223,6 @@ struct TopNavigationBar: View {
             }
             .disabled(true) // 今は無効
         }
-        .padding(.horizontal)
         .background(Color.clear)
     }
 }

@@ -17,7 +17,7 @@ struct Department: Identifiable, Codable {
     var creatorId: String              // 作成者のUUID（リーダー）
     var createdAt: Date = Date()       // 作成日
     var memberCount: Int = 1           // メンバー数（作成者含む）
-    var tags: [String] = []            // タグ（最大3つ）
+    var tags: [String]? = []          // タグ（最大3つ）
     var isOpenToAll: Bool = true       // true: 誰でも参加可能, false: 承認制
     var pendingRequests: [String] = [] // 承認待ちのユーザーID
     var maxMembers: Int = 20           // 最大メンバー数

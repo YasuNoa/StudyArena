@@ -7,17 +7,16 @@ struct SideNavigationView: View {
     @Binding var isShowing: Bool
     @Binding var selectedTab: MainTabView.Tab
     @EnvironmentObject var viewModel: MainViewModel
-    @StateObject private var departmentViewModel = DepartmentViewModel()
-    @State private var showingSection: NavigationSection? = nil
-    @State private var showFeedback = false
-    @State private var showDepartmentJoin = false
-    @State private var showStudyCalendar = false
-    @State private var showMBTIStats = false
-    @State private var showMBTIPatterns = false
-    @State private var showRewardSystem = false
-    @State private var showNotificationSettings = false
-    @State private var showCreateDepartment = false
-    @State private var showStudyStatistics = false  // ⭐️ 追加
+    @Binding var showFeedback: Bool
+    @Binding var showDepartmentJoin: Bool
+    @Binding var showStudyCalendar: Bool
+    @Binding var showMBTIStats: Bool
+    @Binding var showMBTIPatterns: Bool
+    @Binding var showMyDepartments: Bool // ⭐️ 追加
+    @Binding var showRewardSystem: Bool
+    @Binding var showNotificationSettings: Bool
+    @Binding var showCreateDepartment: Bool
+    @Binding var showStudyStatistics: Bool
     
     enum NavigationSection: String, CaseIterable {
         case main = "メイン"
@@ -95,7 +94,7 @@ struct SideNavigationView: View {
                                     badge: viewModel.user?.departments?.count ?? 0,
                                     color: .cyan
                                 ) {
-                                    showingSection = .department//これ遷移しないから修正したいんだけど、先に太り過ぎmainViewmodelをリファクタリングする
+                                    showMyDepartments = true 
                                 }
                                 
                                 NavigationItem(
@@ -112,7 +111,6 @@ struct SideNavigationView: View {
                                         color: .blue
                                     ) {
                                         showCreateDepartment = true
-                                        isShowing = false  // サイドメニューを閉じる
                                     }
                                 } else {
                                     NavigationItem(
@@ -141,7 +139,6 @@ struct SideNavigationView: View {
                                     color: .green
                                 ) {
                                     showStudyStatistics = true  // ⭐️ 変更
-                                    isShowing = false          // ⭐️ 変更
                                 }
                                 
                                 NavigationItem(
@@ -150,7 +147,6 @@ struct SideNavigationView: View {
                                     color: .red
                                 ) {
                                     showStudyCalendar = true
-                                    isShowing = false
                                 }
                                 
                                 NavigationItem(
@@ -159,7 +155,6 @@ struct SideNavigationView: View {
                                     color: .purple
                                 ) {
                                     showMBTIStats = true
-                                    isShowing = false
                                 }
                                 
                                 // 🔧 修正: hasMBTIData()をより安全に実装
@@ -172,7 +167,6 @@ struct SideNavigationView: View {
                                 ) {
                                     if hasMBTIData() {
                                         showMBTIPatterns = true
-                                        isShowing = false
                                     } else {
                                         selectedTab = .profile
                                         isShowing = false
@@ -185,7 +179,6 @@ struct SideNavigationView: View {
                                     color: Color.yellow
                                 ) {
                                     showRewardSystem = true
-                                    isShowing = false
                                 }
                             }
                             
@@ -197,7 +190,6 @@ struct SideNavigationView: View {
                                     color: Color.orange
                                 ) {
                                     showNotificationSettings = true
-                                    isShowing = false
                                 }
                             }
                             
@@ -240,66 +232,11 @@ struct SideNavigationView: View {
                 
                 Spacer()
             }
-            .offset(x: isShowing ? 0 : -300)
+            .padding(.horizontal) // 左右のみに余白
+            .offset(x: isShowing ? 0 : -340) // ⭐️ 修正: パディング分を考慮して隠れる位置を調整 (300 + padding分余裕を見て340)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isShowing)
         }
-        .sheet(isPresented: $showFeedback) {
-            FeedbackView()
-        }
-        .sheet(isPresented: $showDepartmentJoin) {
-            DepartmentBrowserView()
-                .environmentObject(viewModel)
-        }
-        .sheet(isPresented: $showCreateDepartment) {
-            CreateDepartmentView(departmentViewModel: departmentViewModel)
-                .onAppear {
-                    departmentViewModel.userId = viewModel.user?.id
-                    departmentViewModel.user = viewModel.user
-                }
-        }
-        .sheet(isPresented: $showStudyCalendar) {
-            NavigationView {
-                StudyCalendarView()
-                    .environmentObject(viewModel)
-                    .navigationTitle("学習カレンダー")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("閉じる") {
-                                showStudyCalendar = false
-                            }
-                            .foregroundColor(.white)
-                        }
-                    }
-            }
-        }
-        .sheet(isPresented: $showMBTIStats) {
-            NavigationView {
-                MBTIStatsView()
-                    .environmentObject(viewModel)
-                    .navigationTitle("MBTI統計")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("閉じる") {
-                                showMBTIStats = false
-                            }
-                            .foregroundColor(.white)
-                        }
-                    }
-            }
-        }
-        
-        .sheet(isPresented: $showRewardSystem) {
-            RewardSystemView()
-        }
-        .sheet(isPresented: $showNotificationSettings) {
-            NotificationSettingsView()
-        }
-        .sheet(isPresented: $showStudyStatistics) {  // ⭐️ 追加
-            StudyStatisticsView()
-                .environmentObject(viewModel)
-        }
+
         
     }
     
@@ -401,7 +338,7 @@ struct MenuSection<Content: View>: View {
                 .foregroundColor(.white.opacity(0.5))
                 .padding(.horizontal, 10)
             
-            VStack(spacing: 5) {
+            VStack(spacing: 8) { // 5 -> 8 間隔を広げる
                 content
             }
         }
@@ -454,10 +391,10 @@ struct NavigationItem: View {
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.3))
             }
-            .padding(.horizontal, 15)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 16) // 12 -> 16
+            .padding(.vertical, 14)   // 8 -> 14 (より広げてゆとりを持たせる)
             .background(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 12) // 角丸も少し大きくして柔らかく
                     .fill(Color.white.opacity(0.05))
             )
         }

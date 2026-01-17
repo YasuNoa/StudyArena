@@ -2,7 +2,9 @@
 //  DepartmentDetailView.swift
 //  StudyArena
 //
-//  部門詳細ビュー（クラロワ風）
+//  Created by 田中正造 on 2024/01/01.
+//
+//  部門の詳細情報（メンバー、チャット、統計など）を表示・管理するビュー
 //
 
 import SwiftUI
@@ -151,10 +153,10 @@ struct DepartmentDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
             
             // タグ
-            if !department.tags.isEmpty {
+            if !(department.tags ?? []).isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(department.tags, id: \.self) { tag in
+                        ForEach(department.tags ?? [], id: \.self) { tag in
                             Text("#\(tag)")
                                 .font(.caption)
                                 .fontWeight(.medium)

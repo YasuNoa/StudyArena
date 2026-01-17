@@ -2,7 +2,9 @@
 //  CategoryChip.swift
 //  StudyArena
 //
-//  Created by 田中正造 on 2025/09/06.
+//  Created by 田中正造 on 2025/01/04.
+//
+//  カテゴリやタグを表示するためのチップコンポーネント
 //
 
 import SwiftUI
