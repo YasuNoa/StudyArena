@@ -18,9 +18,9 @@ struct Department: Identifiable, Codable {
     var createdAt: Date = Date()       // 作成日
     var memberCount: Int = 1           // メンバー数（作成者含む）
     var tags: [String]? = []          // タグ（最大3つ）
-    var isOpenToAll: Bool = true       // true: 誰でも参加可能, false: 承認制
-    var pendingRequests: [String] = [] // 承認待ちのユーザーID
-    var maxMembers: Int = 20           // 最大メンバー数
+    var isOpenToAll: Bool? = true       // true: 誰でも参加可能, false: 承認制 (旧データ互換のためOptional)
+    var pendingRequests: [String]? = [] // 承認待ちのユーザーID (旧データ互換のためOptional)
+    var maxMembers: Int? = 20           // 最大メンバー数 (旧データ互換のためOptional)
     
     // 初期化用
     init(name: String, description: String, creatorName: String, creatorId: String, tags: [String] = [], isOpenToAll: Bool = true) {
@@ -38,7 +38,7 @@ struct Department: Identifiable, Codable {
     
     // 定員に達しているか
     var isFull: Bool {
-        return memberCount >= maxMembers
+        return memberCount >= (maxMembers ?? 20)
     }
 }
 
@@ -115,9 +115,8 @@ struct DepartmentMember: Identifiable {
     let totalStudyTime: TimeInterval
     
     var formattedJoinDate: String {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateStyle = .medium
-        formatter.locale = Locale(identifier: "ja_JP")
         return formatter.string(from: joinedAt)
     }
 }

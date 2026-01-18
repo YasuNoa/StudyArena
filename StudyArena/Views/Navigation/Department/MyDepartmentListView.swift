@@ -53,7 +53,15 @@ struct MyDepartmentListView: View {
         }
         .navigationTitle("所属部門")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarColorScheme(.dark, for: .navigationBar) // タイトルを白にする（背景が暗いため）
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                NavigationLink(destination: DepartmentBrowserView()) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.white)
+                }
+            }
+        }
         
         .task {
             // データ読み込み

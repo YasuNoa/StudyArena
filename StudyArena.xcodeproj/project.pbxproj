@@ -52,6 +52,7 @@
 		BF7F8BD02E15988E00DF3CFC /* FirebaseVertexAI in Frameworks */ = {isa = PBXBuildFile; productRef = BF7F8BCF2E15988E00DF3CFC /* FirebaseVertexAI */; };
 		BF966FAE2F19FD9600C21258 /* FeedbackViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF966FAD2F19FD9600C21258 /* FeedbackViewModel.swift */; };
 		BF966FB02F1B72DC00C21258 /* MyDepartmentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF966FAF2F1B72DC00C21258 /* MyDepartmentListView.swift */; };
+		BF966FB42F1B8D8400C21258 /* Date+JST.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF966FB22F1B8D8400C21258 /* Date+JST.swift */; };
 		BFACD4882E49CDCC00935FCE /* TrophyDisplayCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */; };
 		BFACD48E2E517C1400935FCE /* Department.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD48D2E517C1400935FCE /* Department.swift */; };
 		BFACD4912E517C8800935FCE /* SideNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFACD4902E517C8800935FCE /* SideNavigationView.swift */; };
@@ -112,6 +113,7 @@
 		BF7F8B962E150B2400DF3CFC /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		BF966FAD2F19FD9600C21258 /* FeedbackViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackViewModel.swift; sourceTree = "<group>"; };
 		BF966FAF2F1B72DC00C21258 /* MyDepartmentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDepartmentListView.swift; sourceTree = "<group>"; };
+		BF966FB22F1B8D8400C21258 /* Date+JST.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+JST.swift"; sourceTree = "<group>"; };
 		BFACD4872E49CDCC00935FCE /* TrophyDisplayCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrophyDisplayCard.swift; sourceTree = "<group>"; };
 		BFACD48D2E517C1400935FCE /* Department.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Department.swift; sourceTree = "<group>"; };
 		BFACD4902E517C8800935FCE /* SideNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideNavigationView.swift; sourceTree = "<group>"; };
@@ -231,6 +233,7 @@
 			children = (
 				BF7F8B8F2E15099C00DF3CFC /* StudyArena */,
 				BFC0F9DB2E159B1800870CDD /* Frameworks */,
+				BF966FB32F1B8D8400C21258 /* Extensions */,
 				BF7F8B7A2E13CCF400DF3CFC /* Products */,
 				BFACD4922E58285200935FCE /* GoogleService-Info.plist */,
 				BFC3B6E42EB8FDFB004959CE /* README.md */,
@@ -283,6 +286,14 @@
 				BFC0F9DC2E164FC000870CDD /* MainTabViewParts */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		BF966FB32F1B8D8400C21258 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				BF966FB22F1B8D8400C21258 /* Date+JST.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 		BFACD48B2E5057F500935FCE /* Timeline */ = {
@@ -462,7 +473,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					BF7F8B782E13CCF400DF3CFC = {
 						CreatedOnToolsVersion = 16.4;
@@ -582,6 +593,7 @@
 				BFDC6AA12F10D8D8009CA955 /* TimelineService.swift in Sources */,
 				BFDC6A972F0FF146009CA955 /* DepartmentViewModel.swift in Sources */,
 				BF38EE032E6B3969007437B7 /* DepartmentCard.swift in Sources */,
+				BF966FB42F1B8D8400C21258 /* Date+JST.swift in Sources */,
 				BF7F8B972E150B2400DF3CFC /* MainViewModel.swift in Sources */,
 				BFACD49A2E5898BB00935FCE /* MBTISelectionView.swift in Sources */,
 				BF4B80D52F0FB4CD004EC274 /* DepartmentDetailView.swift in Sources */,
@@ -653,6 +665,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -710,6 +723,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};

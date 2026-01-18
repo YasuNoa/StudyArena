@@ -111,9 +111,8 @@ struct DepartmentCard<ActionButton: View>: View {
     }
     
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateStyle = .short
-        formatter.locale = Locale(identifier: "ja_JP")
         return formatter.string(from: date)
     }
 }

@@ -56,60 +56,29 @@ struct MainTabView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack { // ← ZStackで全体を囲む
                 // ① 一番下に背景を一度だけ配置
                 MinimalDarkBackgroundView()
                     .ignoresSafeArea()
                 
-                // NavigationLink (非表示)
-                // NavigationLinks (非表示)
-                Group {
-                    NavigationLink(isActive: $showMBTIPatterns) { MBTIStatsView() } label: { EmptyView() }
-                    NavigationLink(isActive: $showMBTIStats) { MBTIStatsView() } label: { EmptyView() }
-                    
-                    NavigationLink(isActive: $showDepartmentJoin) {
-                        DepartmentBrowserView()
-                            .environmentObject(viewModel)
-                    } label: { EmptyView() }
-                    
-                    NavigationLink(isActive: $showCreateDepartment) {
-                        CreateDepartmentView(departmentViewModel: departmentViewModel)
-                            .onAppear {
-                                departmentViewModel.userId = viewModel.user?.id
-                                departmentViewModel.user = viewModel.user
-                            }
-                    } label: { EmptyView() }
-                    
-                    NavigationLink(isActive: $showMyDepartments) { // ⭐️ 追加
-                        MyDepartmentListView(departmentViewModel: departmentViewModel)
-                    } label: { EmptyView() }
-                    
-                    NavigationLink(isActive: $showStudyStatistics) {
-                        StudyStatisticsView().environmentObject(viewModel)
-                    } label: { EmptyView() }
-                    
-                    NavigationLink(isActive: $showStudyCalendar) {
-                        StudyCalendarView().environmentObject(viewModel)
-                    } label: { EmptyView() }
-                    
-                    NavigationLink(isActive: $showRewardSystem) { RewardSystemView() } label: { EmptyView() }
-                    NavigationLink(isActive: $showNotificationSettings) { NotificationSettingsView() } label: { EmptyView() }
-                    NavigationLink(isActive: $showFeedback) { FeedbackView() } label: { EmptyView() }
-                }
-                
                 ZStack(alignment: .bottom) {
                     // メインコンテンツ
                     VStack(spacing: 0) {
                         // 上部ナビゲーションバー
-                        TopNavigationBar(showSideMenu: $showSideMenu, currentTab: $selectedTab)
+                        TopNavigationBar(showSideMenu: $showSideMenu, currentTab: selectedTab)
                             .padding(.top, 10) // ステータスバーとの余白
                         
                         // コンテンツエリア
                         Group {
                             switch selectedTab {
                             case .timer:
-                                TimerView()
+                                TimerView {
+                                    // プロフィールカードが押されたらプロフィールタブへ
+                                    withAnimation {
+                                        selectedTab = .profile
+                                    }
+                                }
                             case .ranking:
                                 RankingView()
                             case .timeline:
@@ -145,27 +114,54 @@ struct MainTabView: View {
                     )
                 }
             }
+            // iOS 16以降のモダンな画面遷移定義
+            .navigationDestination(isPresented: $showMBTIPatterns) { MBTIStatsView() }
+            .navigationDestination(isPresented: $showMBTIStats) { MBTIStatsView() }
+            .navigationDestination(isPresented: $showDepartmentJoin) {
+                DepartmentBrowserView()
+                    .environmentObject(viewModel)
+            }
+            .navigationDestination(isPresented: $showCreateDepartment) {
+                CreateDepartmentView(departmentViewModel: departmentViewModel)
+                    .onAppear {
+                        departmentViewModel.userId = viewModel.user?.id
+                        departmentViewModel.user = viewModel.user
+                    }
+            }
+            .navigationDestination(isPresented: $showMyDepartments) { // ⭐️ 追加
+                MyDepartmentListView(departmentViewModel: departmentViewModel)
+            }
+            .navigationDestination(isPresented: $showStudyStatistics) {
+                StudyStatisticsView().environmentObject(viewModel)
+            }
+            .navigationDestination(isPresented: $showStudyCalendar) {
+                StudyCalendarView().environmentObject(viewModel)
+            }
+            .navigationDestination(isPresented: $showRewardSystem) { RewardSystemView() }
+            .navigationDestination(isPresented: $showNotificationSettings) { NotificationSettingsView() }
+            .navigationDestination(isPresented: $showFeedback) { FeedbackView() }
+            
             .navigationBarHidden(true)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        //.navigationViewStyle(StackNavigationViewStyle()) // NavigationStackでは不要なので削除可能（念のためコメントアウト）
         // 各画面から戻った時にサイドメニューを再表示する
-        .onChange(of: showMBTIPatterns) { if !$0 { showSideMenu = true } }
-        .onChange(of: showMBTIStats) { if !$0 { showSideMenu = true } }
-        .onChange(of: showDepartmentJoin) { if !$0 { showSideMenu = true } }
-        .onChange(of: showCreateDepartment) { if !$0 { showSideMenu = true } }
-        .onChange(of: showMyDepartments) { if !$0 { showSideMenu = true } }
-        .onChange(of: showStudyStatistics) { if !$0 { showSideMenu = true } }
-        .onChange(of: showStudyCalendar) { if !$0 { showSideMenu = true } }
-        .onChange(of: showRewardSystem) { if !$0 { showSideMenu = true } }
-        .onChange(of: showNotificationSettings) { if !$0 { showSideMenu = true } }
-        .onChange(of: showFeedback) { if !$0 { showSideMenu = true } }
+        .onChange(of: showMBTIPatterns) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showMBTIStats) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showDepartmentJoin) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showCreateDepartment) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showMyDepartments) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showStudyStatistics) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showStudyCalendar) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showRewardSystem) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showNotificationSettings) { _, newValue in if !newValue { showSideMenu = true } }
+        .onChange(of: showFeedback) { _, newValue in if !newValue { showSideMenu = true } }
     }
 }
 
 // MARK: - 上部ナビゲーションバー
 struct TopNavigationBar: View {
     @Binding var showSideMenu: Bool
-    @Binding var currentTab: MainTabView.Tab // ⭐️ Bindingに変更
+    let currentTab: MainTabView.Tab
     @EnvironmentObject var viewModel: MainViewModel
     
     var body: some View {
@@ -189,16 +185,11 @@ struct TopNavigationBar: View {
             
             Spacer()
             
-            // 現在のタブ名（タップでプロフィールへ）
+            // 現在のタブ名
             Text(currentTab.title)
                 .font(.title3)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
-                .onTapGesture { 
-                    withAnimation {
-                        currentTab = .profile
-                    }
-                }
             
             Spacer()
             

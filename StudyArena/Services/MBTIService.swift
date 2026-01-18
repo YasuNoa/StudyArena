@@ -7,8 +7,8 @@ class MBTIService {
     
     // ① 書き込み: 勉強が終わったら呼ぶ（足し算するだけ）
     func incrementDailyStats(mbti: String, studyTime: TimeInterval) async throws {
-        // 今日の日付 (例: "2026-01-09")
-        let dateStr = ISO8601DateFormatter().string(from: Date()).prefix(10) //mbtiDailyStatsのdocumentIDを日付にするため。
+        // 今日の日付 (例: "2026-01-09") - JST基準
+        let dateStr = Date().jstDateString 
         let docRef = db.collection("mbtiDailyStats").document(String(dateStr))
         
         // "merge: true" なので、ドキュメントがなければ自動で作られる！
@@ -21,7 +21,7 @@ class MBTIService {
     
     // ② 読み込み: 円グラフ用にデータを取る（1個読むだけ）
     func fetchDailyStats() async throws -> [String: Double] {
-        let dateStr = ISO8601DateFormatter().string(from: Date()).prefix(10)
+        let dateStr = Date().jstDateString
         let doc = try await db.collection("mbtiDailyStats").document(String(dateStr)).getDocument()
         
         guard let data = doc.data() else { return [:] }

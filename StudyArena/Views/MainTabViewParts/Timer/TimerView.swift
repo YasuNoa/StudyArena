@@ -11,6 +11,7 @@ struct TimerView: View {
     @EnvironmentObject var viewModel: MainViewModel
     @State private var rotation: Double = 0
     @State private var showRewardSystem = false
+    var onProfileTap: (() -> Void)? = nil // ⭐️ プロフィール遷移用コールバック
     
     var body: some View {
         ZStack {
@@ -20,6 +21,9 @@ struct TimerView: View {
                 if let user = viewModel.user {
                     UserStatusCard(user: user)
                         .environmentObject(viewModel)
+                        .onTapGesture { 
+                            onProfileTap?()
+                        }
                 }
                 
                 Spacer()

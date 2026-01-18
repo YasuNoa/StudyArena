@@ -47,10 +47,9 @@ struct TimelinePost: Identifiable, Codable {
     
     // 表示用のフォーマット済み日付
     var formattedDate: String {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "ja_JP")
         return formatter.string(from: timestamp)
     }
     
@@ -58,6 +57,7 @@ struct TimelinePost: Identifiable, Codable {
     var relativeTime: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.locale = Locale(identifier: "ja_JP")
+        formatter.calendar = Date.jstCalendar // カレンダーもJST指定
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: timestamp, relativeTo: Date())
     }

@@ -14,9 +14,9 @@ struct StudyCalendarView: View {
     @State private var selectedDate = Date()
     @State private var currentMonth = Date()
     
-    private let calendar = Calendar.current
+    private let calendar = Date.jstCalendar
     private let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateFormat = "yyyy年MM月"
         return formatter
     }()
@@ -118,7 +118,7 @@ struct CalendarGrid: View {
         let action: () -> Void
         
         private var isToday: Bool {
-            Calendar.current.isDateInToday(date)
+            Date.jstCalendar.isDateInToday(date)
         }
         
         private var studyIntensity: Double {
@@ -145,7 +145,7 @@ struct CalendarGrid: View {
                         )
                     
                     VStack(spacing: 2) {
-                        Text("\(Calendar.current.component(.day, from: date))")
+                        Text("\(Date.jstCalendar.component(.day, from: date))")
                             .font(.system(size: 16, weight: isToday ? .bold : .medium))
                             .foregroundColor(.white)
                         
@@ -173,7 +173,7 @@ struct CalendarGrid: View {
     
     // 月の日付を取得
     private func getDaysInMonth() -> [Date?] {
-        let calendar = Calendar.current
+        let calendar = Date.jstCalendar
         let startOfMonth = calendar.dateInterval(of: .month, for: currentMonth)!.start
         let numberOfDays = calendar.range(of: .day, in: .month, for: currentMonth)!.count
         
@@ -195,7 +195,7 @@ struct CalendarGrid: View {
     }
     
     private func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
-        Calendar.current.isDate(date1, inSameDayAs: date2)
+        Date.jstCalendar.isDate(date1, inSameDayAs: date2)
     }
 }
 
@@ -204,7 +204,7 @@ struct CalendarHeader: View {
     @Binding var currentMonth: Date
     
     private let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateFormat = "yyyy年MM月"
         return formatter
     }()
@@ -233,11 +233,11 @@ struct CalendarHeader: View {
     }
     
     private func previousMonth() {
-        currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
+        currentMonth = Date.jstCalendar.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
     }
     
     private func nextMonth() {
-        currentMonth = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
+        currentMonth = Date.jstCalendar.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
     }
 }
 
@@ -247,9 +247,8 @@ struct DayDetailView: View {
     let studyTime: TimeInterval
     
     private let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateFormat = "MM月dd日(E)"
-        formatter.locale = Locale(identifier: "ja_JP")
         return formatter
     }()
     

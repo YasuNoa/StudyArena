@@ -296,7 +296,7 @@ struct StudyStatisticsView: View {
     
     private func getChartData() -> [ChartDataItem] {
         // 期間に応じてデータをフィルタリング
-        let calendar = Calendar.current
+        let calendar = Date.jstCalendar
         let now = Date()
         var startDate: Date
         
@@ -325,9 +325,8 @@ struct StudyStatisticsView: View {
     }
     
     private func formatAxisDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateFormat = "M/d"
-        formatter.locale = Locale(identifier: "ja_JP")
         return formatter.string(from: date)
     }
 }

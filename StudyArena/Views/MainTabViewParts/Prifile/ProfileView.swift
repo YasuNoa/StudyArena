@@ -33,15 +33,16 @@ struct ProfileView: View {
                             VStack(spacing: 20) {
                                 // ニックネーム編集セクション
                                 ProfileCard {
-                                    VStack(spacing: 15) {
-                                        HStack {
-                                            Text("ニックネーム")
-                                                .font(.headline)
-                                                .foregroundColor(.white.opacity(0.7))
-                                            Spacer()
-                                        }
-                                        
-                                        if isEditing {
+                                    if isEditing {
+                                        // 編集モード: テキストフィールド表示
+                                        VStack(spacing: 15) {
+                                            HStack {
+                                                Text("ニックネーム")
+                                                    .font(.headline)
+                                                    .foregroundColor(.white.opacity(0.7))
+                                                Spacer()
+                                            }
+                                            
                                             VStack(alignment: .leading, spacing: 5) {
                                                 TextField("新しいニックネームを入力", text: $editingNickname)
                                                     .textFieldStyle(DarkTextFieldStyle())
@@ -53,15 +54,33 @@ struct ProfileView: View {
                                                         .foregroundColor(.red)
                                                 }
                                             }
-                                        } else {
-                                            HStack {
-                                                Text(user.nickname.isEmpty ? "未設定" : user.nickname)
-                                                    .font(.title2)
-                                                    .fontWeight(.semibold)
-                                                    .foregroundColor(user.nickname.isEmpty ? .white.opacity(0.5) : .white)
-                                                Spacer()
-                                            }
                                         }
+                                    } else {
+                                        // 表示モード: タップで編集開始
+                                        Button(action: startEditing) {
+                                            VStack(spacing: 15) {
+                                                HStack {
+                                                    Text("ニックネーム")
+                                                        .font(.headline)
+                                                        .foregroundColor(.white.opacity(0.7))
+                                                    Spacer()
+                                                    // 編集可能であることを示すアイコン
+                                                    Image(systemName: "pencil")
+                                                        .font(.caption)
+                                                        .foregroundColor(.white.opacity(0.5))
+                                                }
+                                                
+                                                HStack {
+                                                    Text(user.nickname.isEmpty ? "未設定" : user.nickname)
+                                                        .font(.title2)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundColor(user.nickname.isEmpty ? .white.opacity(0.5) : .white)
+                                                    Spacer()
+                                                }
+                                            }
+                                            .contentShape(Rectangle()) // ヒット判定を広げる
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
                                     }
                                 }
                                 
@@ -156,13 +175,7 @@ struct ProfileView: View {
                                     }
                                 } else {
                                     DarkButton(title: "プロフィールを編集", color: .blue) {
-                                        // 現在のニックネームを編集フィールドにセット
-                                        editingNickname = viewModel.user?.nickname ?? ""
-                                        // もし現在のニックネームが"挑戦者"の場合は空欄にする
-                                        if editingNickname == "挑戦者" {
-                                            editingNickname = ""
-                                        }
-                                        isEditing = true
+                                        startEditing()
                                     }
                                 }
                             }
@@ -215,6 +228,19 @@ struct ProfileView: View {
         userRank = rankingViewModel.ranking.firstIndex(where: { $0.id == userId }).map { $0 + 1 }
     }
     
+    // 編集モード開始
+    private func startEditing() {
+        // 現在のニックネームを編集フィールドにセット
+        editingNickname = viewModel.user?.nickname ?? ""
+        // もし現在のニックネームが"挑戦者"の場合は空欄にする
+        if editingNickname == "挑戦者" {
+            editingNickname = ""
+        }
+        withAnimation {
+            isEditing = true
+        }
+    }
+
     private func saveProfile() {
         let trimmedNickname = editingNickname.trimmingCharacters(in: .whitespacesAndNewlines)
         

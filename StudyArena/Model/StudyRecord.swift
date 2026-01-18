@@ -40,10 +40,9 @@ struct StudyRecord: Identifiable, Codable {
     
     // 表示用のフォーマット済み日付
     var formattedDate: String {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "ja_JP")
         return formatter.string(from: timestamp)
     }
     

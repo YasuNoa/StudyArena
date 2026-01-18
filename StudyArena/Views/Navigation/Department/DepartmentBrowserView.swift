@@ -12,81 +12,75 @@ struct DepartmentBrowserView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                MinimalDarkBackgroundView()
+        ZStack {
+            MinimalDarkBackgroundView()
+            
+            VStack(spacing: 0) {
+                // 検索バー
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    //部門検索ビュー
+                    TextField("部門を検索...", text: $searchText)
+                        .textFieldStyle(DarkTextFieldStyle())
+                }
+                .padding(.horizontal)
+                .padding(.top)
+                .padding(.bottom, 10) // 少し余白追加
                 
-                VStack(spacing: 0) {
-                    // 検索バー
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
-                        //部門検索ビュー
-                        TextField("部門を検索...", text: $searchText)
-                            .textFieldStyle(DarkTextFieldStyle())
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
-                    .padding(.bottom, 10) // 少し余白追加
-                    
-                    if departmentViewModel.isLoading {
-                        Spacer()
-                        ProgressView()
-                            .scaleEffect(1.5)
-                            .tint(.white)
-                        Spacer()
-                    } else {
-                        // 部門一覧
-                        ScrollView {
-                            LazyVStack(spacing: 12) {
-                                ForEach(filteredDepartments) { department in
-                                    DepartmentBrowserCard(
-                                        department: department,
-                                        isJoined: departmentViewModel.isJoinedDepartment(department.id ?? ""),
-                                        onJoin: {
-                                            Task {
-                                                do {
-                                                    try await departmentViewModel.joinDepartment(department)
-                                                } catch {
-                                                    print("部門参加エラー: \(error)")
-                                                }
+                if departmentViewModel.isLoading {
+                    Spacer()
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.white)
+                    Spacer()
+                } else {
+                    // 部門一覧
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(filteredDepartments) { department in
+                                DepartmentBrowserCard(
+                                    department: department,
+                                    isJoined: departmentViewModel.isJoinedDepartment(department.id ?? ""),
+                                    onJoin: {
+                                        Task {
+                                            do {
+                                                try await departmentViewModel.joinDepartment(department)
+                                            } catch {
+                                                print("部門参加エラー: \(error)")
                                             }
                                         }
-                                    )
-                                }
+                                    }
+                                )
                             }
-                            .padding(.horizontal)
-                            .padding(.top)
-                            .padding(.bottom, 30) // 下部にも余白
                         }
+                        .padding(.horizontal)
+                        .padding(.top)
+                        .padding(.bottom, 30) // 下部にも余白
                     }
                 }
-                .padding(.horizontal, 8) // 全体に少し横余白を追加してフルスクリーン時の圧迫感を軽減
             }
-            .navigationTitle("部門を探す")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("閉じる") {
-                        dismiss()
-                    }
-                    .foregroundColor(.white)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    // 🔧 修正: canCreateDepartmentプロパティが存在しない場合のチェック
-                    //ここ、本番では10にしてレベル制限をかける。
-                    if (viewModel.user?.level ?? 0) >= 1 {
-                        Button(action: {
-                            showingCreateDepartment = true
-                        }) {
-                            Image(systemName: "plus")
-                                .foregroundColor(.white)
-                        }
+            .padding(.horizontal, 8) // 全体に少し横余白を追加してフルスクリーン時の圧迫感を軽減
+        }
+        .navigationTitle("部門を探す")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // <--- Leading button removed (System "Back" button will appear)
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                // 🔧 修正: canCreateDepartmentプロパティが存在しない場合のチェック
+                //ここ、本番では10にしてレベル制限をかける。
+                if (viewModel.user?.level ?? 0) >= 1 {
+                    Button(action: {
+                        showingCreateDepartment = true
+                    }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.white)
                     }
                 }
             }
         }
+    
         .sheet(isPresented: $showingCreateDepartment) {
             CreateDepartmentView(departmentViewModel: departmentViewModel)
         }
@@ -99,6 +93,7 @@ struct DepartmentBrowserView: View {
             await departmentViewModel.loadUserMemberships()
         }
     }
+    
     
     private var filteredDepartments: [Department] {
         if searchText.isEmpty {
@@ -190,9 +185,8 @@ struct DepartmentBrowserCard: View {
     }
     
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateStyle = .short
-        formatter.locale = Locale(identifier: "ja_JP")
         return formatter.string(from: date)
     }
 }
@@ -209,16 +203,12 @@ struct CreateDepartmentView: View {
     @State private var errorMessage = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 MinimalDarkBackgroundView()
                 
                 VStack(spacing: 20) {
-                    Text("新しい部門を作成")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.top)
+                    // Manual header text removed
                     
                     VStack(spacing: 16) {
                         TextField("部門名", text: $departmentName)
@@ -237,12 +227,7 @@ struct CreateDepartmentView: View {
             .navigationTitle("部門作成")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("キャンセル") {
-                        dismiss()
-                    }
-                    .foregroundColor(.white)
-                }
+                
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("作成") {

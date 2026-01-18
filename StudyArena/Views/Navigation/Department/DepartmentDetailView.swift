@@ -116,7 +116,7 @@ struct DepartmentDetailView: View {
                     HStack {
                         Image(systemName: "person.3.fill")
                             .font(.caption)
-                        Text("\(department.memberCount)/\(department.maxMembers)")
+                        Text("\(department.memberCount)/\(department.maxMembers ?? 20)")
                             .font(.caption)
                     }
                     .foregroundColor(.white.opacity(0.7))
@@ -125,7 +125,7 @@ struct DepartmentDetailView: View {
                 Spacer()
                 
                 // 承認制バッジ
-                if !department.isOpenToAll {
+                if !(department.isOpenToAll ?? true) {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.shield.fill")
                             .font(.caption)
@@ -221,8 +221,8 @@ struct DepartmentDetailView: View {
                 // 参加ボタン
                 Button(action: joinDepartment) {
                     HStack {
-                        Image(systemName: department.isOpenToAll ? "person.badge.plus" : "envelope.fill")
-                        Text(department.isOpenToAll ? "参加する" : "参加リクエストを送る")
+                        Image(systemName: (department.isOpenToAll ?? true) ? "person.badge.plus" : "envelope.fill")
+                        Text((department.isOpenToAll ?? true) ? "参加する" : "参加リクエストを送る")
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -280,9 +280,8 @@ struct DepartmentDetailView: View {
     }
     
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
+        let formatter = Date.jstFormatter
         formatter.dateStyle = .medium
-        formatter.locale = Locale(identifier: "ja_JP")
         return formatter.string(from: date)
     }
 }
